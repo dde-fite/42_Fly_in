@@ -42,9 +42,9 @@ def parse_hub(raw: str, type: HubType = HubType.INTERMEDIATE) -> Hub:
 
 def parse_connection(raw: str, hubs: list[Hub]) -> Connection:
     splits = raw.split(maxsplit=2)
-    p1, p2 = splits[0].split("-")
-    p1 = next(filter(lambda x: x.name == p1, hubs))
-    p2 = next(filter(lambda x: x.name == p2, hubs))
+    p1_name, p2_name = splits[0].split("-")
+    p1 = next(filter(lambda x: x.name == p1_name, hubs))
+    p2 = next(filter(lambda x: x.name == p2_name, hubs))
     params: dict[str, Any] = dict()
     if len(splits) == 3:
         for key, value in parse_params(splits[2]).items():
@@ -97,5 +97,6 @@ async def parse_map(file: UploadFile) -> Simulation:
                         )
                 )
             )
-    logger.debug(f"Loaded map with {nb_drones} drones")
-    return Simulation(hubs=hubs, connection=connection, drones=drones)
+    sim = Simulation(hubs=hubs, connection=connection, drones=drones)
+    logger.debug(f"Loaded map. Simulation details: {sim}.")
+    return sim
