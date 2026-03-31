@@ -11,3 +11,9 @@ def register_simulation(simulation: Simulation) -> SimulationWithToken:
 
 def fetch_simulation(token: str) -> Simulation:
     return dc[token]
+
+
+def execute_turn(token: str, turns: int) -> Simulation:
+    sim = fetch_simulation(token)
+    sim.turns += 1
+    return sim

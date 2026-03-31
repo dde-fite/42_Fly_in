@@ -19,7 +19,7 @@ NoArg = __hax()
 class DataCache():
     def __init__(
             self,
-            default_expire_time: timedelta = timedelta(seconds=10),
+            default_expire_time: timedelta = timedelta(minutes=5),
             process_expires: bool = True
     ) -> None:
         self.__default_expire_time = default_expire_time

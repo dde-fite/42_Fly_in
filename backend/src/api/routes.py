@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from src.services import parse_map, register_simulation, fetch_simulation
+from src.services import parse_map, register_simulation, fetch_simulation, execute_turn
 from src.models import SimulationWithToken, Simulation
 from src.utils.data_cache import KeyExpiredError
 
@@ -26,5 +26,9 @@ async def get_simulation(token: str):
 
 
 @router.post("/simulation/step")
-async def advance_simulation(token: str):
-    pass
+async def advance_simulation(token: str, steps: int = 1):
+    try:
+        sim = execute_turn(token, steps)
+    except (KeyExpiredError, KeyError):
+        raise HTTPException(404)
+    return sim
