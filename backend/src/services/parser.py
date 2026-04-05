@@ -40,7 +40,7 @@ def parse_hub(raw: str) -> Hub:
     return (Hub(name=name, position=pos, **params))
 
 
-def parse_connection(raw: str, hubs: list[Hub]) -> Connection:
+def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
     splits = raw.split(maxsplit=2)
     p1_name, p2_name = splits[0].split("-")
     p1 = next(filter(lambda x: x.name == p1_name, hubs))
@@ -53,12 +53,12 @@ def parse_connection(raw: str, hubs: list[Hub]) -> Connection:
                     params["capacity"] = value
                 case _:
                     pass
-    return (Connection(hubs=(p1, p2), **params))
+    return (Connection(hubs=frozenset([p1, p2]), **params))
 
 
 async def parse_map(file: UploadFile) -> Simulation:
     nb_drones: int | None = None
-    hubs: list[Hub] = []
+    hubs: set[Hub] = set()
     origin: Hub | None = None
     destination: Hub | None = None
     connection: list[Connection] = []
@@ -81,13 +81,17 @@ async def parse_map(file: UploadFile) -> Simulation:
                     )
                 nb_drones = int(value)
             case "start_hub":
+                if origin:
+                    raise ValueError("Start hub already defined!")
                 origin = parse_hub(value)
-                hubs.append(origin)
+                hubs.add(origin)
             case "end_hub":
+                if destination:
+                    raise ValueError("Destination hub already defined!")
                 destination = parse_hub(value)
-                hubs.append(destination)
+                hubs.add(destination)
             case "hub":
-                hubs.append(parse_hub(value))
+                hubs.add(parse_hub(value))
             case "connection":
                 connection.append(parse_connection(value, hubs))
             case _:

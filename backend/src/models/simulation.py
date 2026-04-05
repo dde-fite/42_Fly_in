@@ -6,7 +6,7 @@ from .connection import Connection
 
 class Simulation(BaseModel):
     turns: int = 0
-    hubs: list[Hub]
+    hubs: set[Hub]
     origin: Hub
     destination: Hub
     connections: list[Connection]
