@@ -5,9 +5,12 @@ Content-Type: multipart/form-data; boundary=MfnBoundry
 Content-Disposition: form-data; name="file"; filename="01_linear_path.txt"
 Content-Type: text/plain
 
-< ../maps/hard/01_maze_nightmare.txt
+< ../maps/hard/02_capacity_hell.txt
 --MfnBoundry--
+###
 
-# GET http://localhost:8000/api/simulation?token=64-Ifl_iw2R-ugXfxiZfnXQ7vF2qs9G9Vqs4rgYnIH0 HTTP/1.1
+GET http://localhost:8000/api/simulation?token=aLFbH0WF9qt0wVIL5vUQ-Q3oIidKOveQRWU1dkfLCKI HTTP/1.1
 
-POST http://localhost:8000/api/simulation/step?token=l-rd3VzqHxR-D-2U_Cz4GwHye6MhUB4Zy7HqbAH85Nc HTTP/1.1
+###
+
+POST http://localhost:8000/api/simulation/step?token=Q2Yk8CZW-95IRnmRm06cOYOsgXLuecomUR0AF-llhvI HTTP/1.1

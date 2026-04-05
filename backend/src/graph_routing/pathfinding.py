@@ -1,59 +1,82 @@
 import math
+import heapq
+import itertools
 from src.models import Hub, Simulation, Connection, HubAccess, Trajectory, DijkstraTable
 
 
 def get_adyacent_hubs(hub: Hub, connections: list[Connection]
-                      ) -> list[tuple[Hub, int]]:
-    adc: list[tuple[Hub, int]] = []
+                      ) -> list[tuple[int, Hub, Connection]]:
+    adc: list[tuple[int, Hub, Connection]] = []
 
     for con in connections:
         if hub not in con.hubs:
             continue
-        end = next(h for h in con.hubs if h != hub)
+        end = next(iter(con.hubs - {hub}))
         if end.access == HubAccess.BLOCKED:
             continue
-        cost = 1
+        d = 1
         if end.access == HubAccess.RESTRICTED:
-            cost = 2
-        adc.append((end, cost))
+            d = 2
+        adc.append((d, end, con))
     return adc
 
 
-def calculate_delay():
-    return 0
+def calculate_delay(current: Hub | Connection, other_trajectories: list[Trajectory], turn: int = 0) -> int:
+    delay = 0
+    return delay
 
 
 def dijkstra_to_trajectory(
-        table: DijkstraTable, origin: Hub, destination: Hub
+        table: DijkstraTable, origin: Hub, destination: Hub,
 ) -> Trajectory:
     trajectory: Trajectory = []
-    selected = destination
-    while selected != origin:
-        trajectory.insert(0, selected)
-        selected = table[selected][0]
+    c = table[destination]
+    prev_d = c[0]
+    while c[1] != origin:
+        d, hub, con = c
+        if con:
+            for _i in range(int(prev_d - d)):
+                trajectory.append(con)
+        trajectory.append(c[1])
+        c = table[hub]
+        prev_d = d
     return trajectory
 
 
 def run_dijkstra(simulation: Simulation, origin: Hub) -> DijkstraTable:
+    counter = itertools.count()
+    other_trajectories = [d.trajectory for d in simulation.drones if d.trajectory is not None]
     table: DijkstraTable = dict()
     for hub in simulation.hubs:
-        table[hub] = (origin, math.inf)
-    table[origin] = (origin, 0)
-    open = simulation.hubs.copy()
-    selected = origin
-    while len(open) > 0:
-        open.remove(selected)
-        adyacent_hubs = get_adyacent_hubs(selected, simulation.connections)
-        for hub, cost in adyacent_hubs:
-            if hub not in open:
+        table[hub] = (math.inf, hub, None)
+    table[origin] = (0, origin, None)
+    queue = [(0, 0, next(counter), origin)]
+    explored: set[Hub] = set()
+    while queue:
+        d, _, _, hub = heapq.heappop(queue)
+        if hub in explored:
+            continue
+        explored.add(hub)
+        for ad_d, ad_hub, con in get_adyacent_hubs(hub, simulation.connections):
+            if ad_hub.access == HubAccess.BLOCKED or ad_hub in explored:
                 continue
-            new_cost = cost + table[selected][1] + calculate_delay()
-            if (new_cost < table[hub][1] and table[selected][0].access != HubAccess.PRIORITY):
-                table[hub] = (selected, new_cost)
-        if not open:
-            break
-        # Use calculate_delays when comparing or adding a new record in table.
-        selected = min(open, key=lambda h: table[h][1])
+            delay = calculate_delay(
+                ad_hub,
+                other_trajectories,
+                simulation.turns
+            )
+            new_d = d + ad_d + delay
+            if new_d < table[ad_hub][0] or ad_hub.access == HubAccess.PRIORITY:
+                table[ad_hub] = (new_d, hub, con)
+                bonus = 1 if ad_hub.access == HubAccess.PRIORITY else 0
+                heapq.heappush(
+                    queue,
+                    (
+                        new_d,
+                        -bonus,
+                        next(counter),
+                        ad_hub)
+                )
     return table
 
 

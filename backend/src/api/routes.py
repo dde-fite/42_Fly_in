@@ -30,7 +30,8 @@ async def get_simulation(token: str):
 @router.post("/simulation/step", response_model=list[Drone])
 async def advance_simulation(token: str, steps: int = 1):
     try:
-        sim = execute_turn(token, steps)
+        sim = fetch_simulation(token)
     except (KeyExpiredError, KeyError):
         raise HTTPException(404)
+    execute_turn(sim, steps)
     return sim.drones
