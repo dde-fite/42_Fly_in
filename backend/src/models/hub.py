@@ -4,12 +4,6 @@ from pydantic_extra_types import Color
 from .vector import Vector
 
 
-class HubType(Enum):
-    ORIGIN = "origin"
-    INTERMEDIATE = "intermediate"
-    DESTINATION = "destination"
-
-
 class HubAccess(Enum):
     NORMAL = "normal"
     BLOCKED = "blocked"
@@ -20,7 +14,6 @@ class HubAccess(Enum):
 class Hub(BaseModel):
     name: str
     position: Vector
-    hub_type: HubType = HubType.INTERMEDIATE
     access: HubAccess = HubAccess.NORMAL
     color: Color | None = None
     capacity: int = Field(ge=1, default=1)
@@ -31,3 +24,6 @@ class Hub(BaseModel):
         if "-" in value:
             raise ValueError("Hub names can not contain dashes(-)")
         return value
+
+    def __hash__(self) -> int:
+        return hash(self.name)

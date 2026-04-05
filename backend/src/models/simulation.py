@@ -7,7 +7,9 @@ from .connection import Connection
 class Simulation(BaseModel):
     turns: int = 0
     hubs: list[Hub]
-    connection: list[Connection]
+    origin: Hub
+    destination: Hub
+    connections: list[Connection]
     drones: list[Drone]
 
 

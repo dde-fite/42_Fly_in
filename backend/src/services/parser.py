@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import UploadFile
 from pydantic_extra_types import Color
-from src.models import Simulation, Hub, HubType, Connection, Vector, Drone
+from src.models import Simulation, Hub, Connection, Vector, Drone
 from src.core.logging import logger
 
 
@@ -21,7 +21,7 @@ def parse_params(raw_params: str) -> dict[str, Any]:
     return params
 
 
-def parse_hub(raw: str, type: HubType = HubType.INTERMEDIATE) -> Hub:
+def parse_hub(raw: str) -> Hub:
     splits = raw.split(maxsplit=3)
     name = splits[0].strip()
     pos = Vector(x=int(splits[1]), y=int(splits[2]))
@@ -37,7 +37,7 @@ def parse_hub(raw: str, type: HubType = HubType.INTERMEDIATE) -> Hub:
                     params["capacity"] = int(value)
                 case _:
                     pass
-    return (Hub(name=name, position=pos, hub_type=type, **params))
+    return (Hub(name=name, position=pos, **params))
 
 
 def parse_connection(raw: str, hubs: list[Hub]) -> Connection:
@@ -59,6 +59,8 @@ def parse_connection(raw: str, hubs: list[Hub]) -> Connection:
 async def parse_map(file: UploadFile) -> Simulation:
     nb_drones: int | None = None
     hubs: list[Hub] = []
+    origin: Hub | None = None
+    destination: Hub | None = None
     connection: list[Connection] = []
     drones: list[Drone] = []
     content = await file.read()
@@ -79,24 +81,26 @@ async def parse_map(file: UploadFile) -> Simulation:
                     )
                 nb_drones = int(value)
             case "start_hub":
-                hubs.append(parse_hub(value, type=HubType.ORIGIN))
+                origin = parse_hub(value)
+                hubs.append(origin)
             case "end_hub":
-                hubs.append(parse_hub(value, type=HubType.DESTINATION))
+                destination = parse_hub(value)
+                hubs.append(destination)
             case "hub":
-                hubs.append(parse_hub(value, type=HubType.INTERMEDIATE))
+                hubs.append(parse_hub(value))
             case "connection":
                 connection.append(parse_connection(value, hubs))
             case _:
                 raise ValueError(f"Type {key} not recognized")
     if nb_drones and nb_drones > 0:
         for _d in range(nb_drones):
-            drones.append(
-                Drone(
-                    hub=next(filter(
-                        lambda x: x.hub_type == HubType.ORIGIN, hubs)
-                        )
-                )
-            )
-    sim = Simulation(hubs=hubs, connection=connection, drones=drones)
+            drones.append(Drone(hub=origin))
+    sim = Simulation(
+        hubs=hubs,
+        origin=origin,
+        destination=destination,
+        connections=connection,
+        drones=drones
+    )
     logger.debug(f"Loaded map. Simulation details: {sim}.")
     return sim
