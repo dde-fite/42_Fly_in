@@ -30,16 +30,16 @@ def dijkstra_to_trajectory(
         table: DijkstraTable, origin: Hub, destination: Hub,
 ) -> Trajectory:
     trajectory: Trajectory = []
-    c = table[destination]
-    prev_d = c[0]
-    while c[1] != origin:
-        d, hub, con = c
+    current = destination
+    prev_d = table[destination][0]
+    while current != origin:
+        d, prev, ad_d, con = table[current]
         if con:
-            for _i in range(int(prev_d - d)):
-                trajectory.append(con)
-        trajectory.append(c[1])
-        c = table[hub]
+            trajectory.append(con)
+        trajectory.append(prev)
         prev_d = d
+        current = prev
+    trajectory.reverse()
     return trajectory
 
 
@@ -48,8 +48,8 @@ def run_dijkstra(simulation: Simulation, origin: Hub) -> DijkstraTable:
     other_trajectories = [d.trajectory for d in simulation.drones if d.trajectory is not None]
     table: DijkstraTable = dict()
     for hub in simulation.hubs:
-        table[hub] = (math.inf, hub, None)
-    table[origin] = (0, origin, None)
+        table[hub] = (math.inf, hub, 0, None)
+    table[origin] = (0, origin, 0, None)
     queue = [(0, 0, next(counter), origin)]
     explored: set[Hub] = set()
     while queue:
@@ -67,7 +67,7 @@ def run_dijkstra(simulation: Simulation, origin: Hub) -> DijkstraTable:
             )
             new_d = d + ad_d + delay
             if new_d < table[ad_hub][0] or ad_hub.access == HubAccess.PRIORITY:
-                table[ad_hub] = (new_d, hub, con)
+                table[ad_hub] = (new_d, hub, ad_d, con)
                 bonus = 1 if ad_hub.access == HubAccess.PRIORITY else 0
                 heapq.heappush(
                     queue,

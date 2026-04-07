@@ -6,6 +6,7 @@ Content-Disposition: form-data; name="file"; filename="01_linear_path.txt"
 Content-Type: text/plain
 
 < ../maps/hard/02_capacity_hell.txt
+# < ../maps/medium/02_circular_loop.txt
 --MfnBoundry--
 ###
 
