@@ -2,14 +2,15 @@ from typing import Any
 from fastapi import UploadFile
 from pydantic_extra_types import Color
 from src.models import Simulation, Hub, Connection, Vector, Drone
-from src.core.logging import logger
+from src.core import logger, ParseError
 
 
 def parse_params(raw_params: str) -> dict[str, Any]:
     params: dict[str, Any] = dict()
     raw_params = raw_params.strip()
-    if raw_params[0] != "[" or raw_params[-1] != "]":
-        raise ValueError("Params contains sintax errors")
+    if not raw_params or \
+       not (raw_params.startswith("[") and raw_params.endswith("]")):
+        raise ParseError("Params contains sintax errors", raw_params)
     raw_params = raw_params.removeprefix("[").removesuffix("]")
     for arg in raw_params.split():
         value: Any
@@ -42,9 +43,18 @@ def parse_hub(raw: str) -> Hub:
 
 def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
     splits = raw.split(maxsplit=2)
+    if "-" not in splits[0]:
+        raise ParseError(f"Invalid connection format: {splits[0]}", raw)
     p1_name, p2_name = splits[0].split("-")
-    p1 = next(filter(lambda x: x.name == p1_name, hubs))
-    p2 = next(filter(lambda x: x.name == p2_name, hubs))
+    try:
+        p1 = next(filter(lambda x: x.name == p1_name, hubs))
+        p2 = next(filter(lambda x: x.name == p2_name, hubs))
+    except StopIteration:
+        raise ParseError(f"Unknown hub in connection: {p1_name}, {p2_name}",
+                         raw)
+    if p1.id == p2.id:
+        raise ParseError(f"Self connection not allowed: {p1_name}-{p2_name}",
+                         raw)
     params: dict[str, Any] = dict()
     if len(splits) == 3:
         for key, value in parse_params(splits[2]).items():
@@ -53,7 +63,10 @@ def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
                     params["capacity"] = value
                 case _:
                     pass
-    return (Connection(hubs=frozenset([p1, p2]), **params))
+    con = Connection(hubs=frozenset({p1.id, p2.id}), **params)
+    p1.connections.add(con.id)
+    p2.connections.add(con.id)
+    return con
 
 
 async def parse_map(file: UploadFile) -> Simulation:
@@ -61,8 +74,8 @@ async def parse_map(file: UploadFile) -> Simulation:
     hubs: set[Hub] = set()
     origin: Hub | None = None
     destination: Hub | None = None
-    connection: list[Connection] = []
-    drones: list[Drone] = []
+    connection: set[Connection] = set()
+    drones: set[Drone] = set()
     content = await file.read()
     text = content.decode()
     for line in text.splitlines():
@@ -71,38 +84,41 @@ async def parse_map(file: UploadFile) -> Simulation:
             continue
         splits = line.split(":", 1)
         if len(splits) < 2:
-            raise ValueError("Map contains sintax errors")
+            raise ParseError("Map contains sintax errors", line)
         key, value = splits
         match key.strip():
             case "nb_drones":
                 if nb_drones:
-                    raise ValueError(
-                        "nb_drones can not be declared more than 1 time"
+                    raise ParseError(
+                        "nb_drones can not be declared more than 1 time",
+                        line
                     )
                 nb_drones = int(value)
             case "start_hub":
                 if origin:
-                    raise ValueError("Start hub already defined!")
+                    raise ParseError("Start hub already defined!", line)
                 origin = parse_hub(value)
                 hubs.add(origin)
             case "end_hub":
                 if destination:
-                    raise ValueError("Destination hub already defined!")
+                    raise ParseError("Destination hub already defined!", line)
                 destination = parse_hub(value)
                 hubs.add(destination)
             case "hub":
                 hubs.add(parse_hub(value))
             case "connection":
-                connection.append(parse_connection(value, hubs))
+                connection.add(parse_connection(value, hubs))
             case _:
-                raise ValueError(f"Type {key} not recognized")
+                raise ParseError(f"Type {key} not recognized", line)
     if nb_drones and nb_drones > 0:
         for _d in range(nb_drones):
-            drones.append(Drone(hub=origin))
+            drone = Drone(location=origin.id)
+            drones.add(drone)
+            origin.drones.add(drone)
     sim = Simulation(
         hubs=hubs,
-        origin=origin,
-        destination=destination,
+        origin=origin.id,
+        destination=destination.id,
         connections=connection,
         drones=drones
     )
