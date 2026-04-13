@@ -1,36 +1,32 @@
-from secrets import token_urlsafe
-from src.models import Simulation, SimulationWithToken, Hub, Drone, Connection
+from fastapi import UploadFile
+from pydantic import Base64UrlStr
+from src.core import SimulationAlreadyAllocated, SimulationNotFound
+from src.schema import ResponseSimulation
+from src.models import Simulation
 from src.utils.data_cache import dc
-from src.graph_routing.pathfinding import calculate_route
+from src.mappers import simulation_to_schema
+from src.utils import parse_map
 
 
-def register_simulation(simulation: Simulation) -> SimulationWithToken:
-    token = token_urlsafe()
-    dc[token] = simulation
-    execute_turn(simulation)  # FOR DEBUGGING
-    return SimulationWithToken(token=token, simulation=simulation)
+async def register_simulation(
+        token: Base64UrlStr,
+        file: UploadFile
+) -> ResponseSimulation:
+    if dc.get(token):
+        raise SimulationAlreadyAllocated(f"Token {token} already allocated!")
+    s = await parse_map(file)
+    await file.close()
+    dc[token] = s
+    return simulation_to_schema(s)
 
 
-def fetch_simulation(token: str) -> Simulation:
-    return dc[token]
+def fetch_simulation(token: Base64UrlStr) -> Simulation | None:
+    return dc.get(token)
 
 
-def update_trajectory(simulation: Simulation, drone: Drone):
-    drone.trajectory = calculate_route(
-        simulation, drone.hub, simulation.destination
-    )
-
-
-def execute_turn(simulation: Simulation, turns: int = 1) -> Simulation:
-    simulation.turns += 1
-    for drone in simulation.drones:
-        if not drone.trajectory:
-            update_trajectory(simulation, drone)
-        to_print: list  = []
-        for t in drone.trajectory:
-            if isinstance(t, Hub):
-                to_print.append(t.name)
-            else:
-                to_print.append([h.name for h in t.hubs])
-        print(to_print)
-    return simulation
+def execute_turn(token: Base64UrlStr, turns: int = 1) -> Simulation:
+    s = fetch_simulation(token)
+    if not s:
+        raise SimulationNotFound()
+    s.turns += 1
+    return s

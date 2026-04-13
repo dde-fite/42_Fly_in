@@ -1,18 +1,14 @@
 from pydantic import BaseModel
+from .turn import Turn
 from .hub import Hub
 from .drone import Drone
 from .connection import Connection
 
 
 class Simulation(BaseModel):
-    turns: int = 0
+    turns: Turn = Turn(0)
     hubs: set[Hub]
     origin: Hub
     destination: Hub
-    connections: list[Connection]
-    drones: list[Drone]
-
-
-class SimulationWithToken(BaseModel):
-    token: str
-    simulation: Simulation
+    connections: set[Connection]
+    drones: set[Drone]

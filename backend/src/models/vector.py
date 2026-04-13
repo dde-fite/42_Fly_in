@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from dataclasses import dataclass
 
 
-class Vector(BaseModel):
-    x: int = Field(ge=0)
-    y: int = Field(ge=0)
+@dataclass(frozen=True)
+class Vector:
+    x: int
+    y: int

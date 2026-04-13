@@ -1,30 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from src.services import parse_map, register_simulation, fetch_simulation, execute_turn
-from src.models import SimulationWithToken, Simulation, Drone
-from src.utils.data_cache import KeyExpiredError
-from src.core.logging import logger
+from pydantic import Base64UrlStr
+from src.services import register_simulation, fetch_simulation, execute_turn
+from src.schema import ResponseSimulation
+from src.core import ParseError, SimulationAlreadyAllocated
 
 router = APIRouter()
 
 
-@router.post("/simulation", response_model=SimulationWithToken)
-async def create_simulation(file: UploadFile):
+@router.post("/simulation", response_model=ResponseSimulation)
+async def create_simulation(token: Base64UrlStr, file: UploadFile):
     try:
-        data = await parse_map(file)
-    except ValueError as e:
-        logger.debug(e)
+        s = register_simulation(token, file)
+    except ParseError:
         raise HTTPException(400, "Incorrect map format")
-    await file.close()
-    return register_simulation(data)
+    except SimulationAlreadyAllocated:
+        raise HTTPException(400)
+    return await s
 
 
-@router.get("/simulation", response_model=Simulation)
-async def get_simulation(token: str):
-    try:
-        sim = fetch_simulation(token)
-    except (KeyExpiredError, KeyError):
+@router.get("/simulation", response_model=ResponseSimulation)
+async def get_simulation(token: Base64UrlStr):
+    s = fetch_simulation(token)
+    if not s:
         raise HTTPException(404)
-    return sim
+    return s
 
 
 @router.post("/simulation/step", response_model=list[Drone])

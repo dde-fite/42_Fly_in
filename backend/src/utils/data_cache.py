@@ -1,10 +1,6 @@
 from typing import Any
 from datetime import datetime, timedelta
-from src.core import logger
-
-
-class KeyExpiredError(KeyError):
-    pass
+from src.core import logger, KeyExpiredError
 
 
 def __hax():
