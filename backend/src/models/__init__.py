@@ -2,7 +2,7 @@
 
 from .simulation import Simulation, SimulationWithToken
 from .connection import Connection
-from .drone import Drone
+from .drone import Drone, Transit
 from .hub import Hub, HubAccess, HubCost
 from .vector import Vector
 from .trajectory import Trajectory, DijkstraTable

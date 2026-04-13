@@ -1,19 +1,23 @@
+from typing import TYPE_CHECKING
 from uuid import uuid4
 from pydantic import BaseModel, Field
-from ..schema.references import HubRef, ConnectionRef, DroneRef
+from ..schema.references import DroneRef
 from .trajectory import Trajectory
+from .turn import Turn
 
-if T
+if TYPE_CHECKING:
+    from .connection import Connection
+    from .hub import Hub
 
 
 class Transit(BaseModel):
-    destination: HubRef
-    turns_elapsed: int = 0
+    destination: Hub
+    turns_elapsed: Turn = Turn(0)
 
 
 class Drone(BaseModel):
     id: DroneRef = Field(default_factory=lambda: DroneRef(uuid4()))
-    location: HubRef | ConnectionRef
+    location: Hub | Connection
     in_transit_to: Transit | None = None
     trajectory: Trajectory | None = None
 
