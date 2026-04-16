@@ -12,5 +12,6 @@ def transit_to_schema(t: Transit) -> ResponseTransit:
 def drone_to_schema(d: Drone) -> ResponseDrone:
     return ResponseDrone(
         location=d.location.id,
-        in_transit_to=transit_to_schema(d.in_transit_to)
+        in_transit_to=(transit_to_schema(d.in_transit_to)
+                       if d.in_transit_to else None)
     )
