@@ -1,11 +1,10 @@
 from pydantic import BaseModel
 from .references import HubRef, ConnectionRef
-from src.models import Turn
 
 
 class ResponseTransit(BaseModel):
     destination: HubRef
-    turns_elapsed: Turn = Turn(1)
+    turns_elapsed: int
 
 
 class ResponseDrone(BaseModel):

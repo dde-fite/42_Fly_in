@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from src.schema import HubRef
+from .references import HubRef
 
 
 class ResponseConnection(BaseModel):
