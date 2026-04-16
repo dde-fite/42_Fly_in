@@ -3,9 +3,11 @@ from fastapi import UploadFile
 from pydantic_extra_types import Color
 from src.models import Simulation, Hub, Connection, Vector, Drone
 from src.core import logger, ParseError
+import logging
 
 
 def parse_params(raw_params: str) -> dict[str, Any]:
+    value: Any
     params: dict[str, Any] = dict()
     raw_params = raw_params.strip()
     if not raw_params or \
@@ -13,11 +15,14 @@ def parse_params(raw_params: str) -> dict[str, Any]:
         raise ParseError("Params contains sintax errors", raw_params)
     raw_params = raw_params.removeprefix("[").removesuffix("]")
     for arg in raw_params.split():
-        value: Any
+        if "=" not in arg:
+            raise ParseError("Invalid param format, expected key=value", arg)
         key, value = arg.split("=", 1)
         key, value = key.strip(), value.strip()
-        if value.isdigit():
+        try:
             value = int(value)
+        except ValueError:
+            pass
         params[key] = value
     return params
 
@@ -52,7 +57,7 @@ def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
     except StopIteration:
         raise ParseError(f"Unknown hub in connection: {p1_name}, {p2_name}",
                          raw)
-    if p1.id == p2.id:
+    if p1 == p2:
         raise ParseError(f"Self connection not allowed: {p1_name}-{p2_name}",
                          raw)
     params: dict[str, Any] = dict()
@@ -63,9 +68,9 @@ def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
                     params["capacity"] = value
                 case _:
                     pass
-    con = Connection(hubs=frozenset({p1.id, p2.id}), **params)
-    p1.connections.add(con.id)
-    p2.connections.add(con.id)
+    con = Connection(hubs=frozenset({p1, p2}), **params)
+    p1.connections.add(con)
+    p2.connections.add(con)
     return con
 
 
@@ -88,20 +93,26 @@ async def parse_map(file: UploadFile) -> Simulation:
         key, value = splits
         match key.strip():
             case "nb_drones":
-                if nb_drones:
+                if nb_drones is not None:
                     raise ParseError(
                         "nb_drones can not be declared more than 1 time",
                         line
                     )
-                nb_drones = int(value)
+                try:
+                    nb_drones = int(value)
+                except ValueError:
+                    raise ParseError(
+                        "Number of drones doesn't conains a valid integer",
+                        line
+                    )
             case "start_hub":
                 if origin:
-                    raise ParseError("Start hub already defined!", line)
+                    raise ParseError("Start hub already defined", line)
                 origin = parse_hub(value)
                 hubs.add(origin)
             case "end_hub":
                 if destination:
-                    raise ParseError("Destination hub already defined!", line)
+                    raise ParseError("Destination hub already defined", line)
                 destination = parse_hub(value)
                 hubs.add(destination)
             case "hub":
@@ -110,17 +121,21 @@ async def parse_map(file: UploadFile) -> Simulation:
                 connection.add(parse_connection(value, hubs))
             case _:
                 raise ParseError(f"Type {key} not recognized", line)
-    if nb_drones and nb_drones > 0:
+    if nb_drones is not None:
         for _d in range(nb_drones):
-            drone = Drone(location=origin.id)
+            drone = Drone(location=origin)
             drones.add(drone)
             origin.drones.add(drone)
     sim = Simulation(
         hubs=hubs,
-        origin=origin.id,
-        destination=destination.id,
+        origin=origin,
+        destination=destination,
         connections=connection,
         drones=drones
     )
-    logger.debug(f"Loaded map. Simulation details: {sim}.")
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(
+            "Simulation created (hubs=%d, connections=%d, drones=%d)",
+            len(sim.hubs), len(sim.connections), len(sim.drones)
+        )
     return sim
