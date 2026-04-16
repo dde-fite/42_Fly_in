@@ -1,8 +1,12 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from pydantic import BaseModel
 from .turn import Turn
-from .hub import Hub
-from .drone import Drone
-from .connection import Connection
+
+if TYPE_CHECKING:
+    from .hub import Hub
+    from .drone import Drone
+    from .connection import Connection
 
 
 class Simulation(BaseModel):

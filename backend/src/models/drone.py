@@ -1,7 +1,8 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import uuid4
 from pydantic import BaseModel, Field
-from ..schema.references import DroneRef
+from src.schema.references import DroneRef
 from .trajectory import Trajectory
 from .turn import Turn
 

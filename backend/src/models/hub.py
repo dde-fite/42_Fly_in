@@ -1,14 +1,15 @@
+from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 from enum import Enum
 from uuid import uuid4
 from pydantic import BaseModel, Field, field_validator
 from pydantic_extra_types import Color
-from .vector import Vector
-from ..schema.references import HubRef
+from src.schema.references import HubRef
 
 if TYPE_CHECKING:
     from .connection import Connection
     from .drone import Drone
+    from .vector import Vector
 
 
 class HubAccess(Enum):
@@ -59,7 +60,6 @@ class Hub(BaseModel):
                 if drone in occ:
                     occ.remove(drone)
         return occ
-
 
     def __hash__(self) -> int:
         return hash(self.id)
