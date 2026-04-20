@@ -6,12 +6,14 @@ from src.schema.references import ConnectionRef
 
 if TYPE_CHECKING:
     from .hub import Hub
+    from .drone import Drone
 
 
 class Connection(BaseModel):
     id: ConnectionRef = Field(default_factory=lambda: ConnectionRef(uuid4()))
     hubs: frozenset[Hub] = Field(min_length=2, max_length=2)
     capacity: int = Field(ge=1, default=1)
+    drones: set[Drone] = set()
     # _transits: dict[int, list[Drone]] = {}
 
     # def __init__(self, **data: Any) -> None:

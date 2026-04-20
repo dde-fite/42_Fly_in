@@ -1,11 +1,12 @@
-from pydantic import Base64Str, AfterValidator
+import base64
+from pydantic import AfterValidator
 from typing import Annotated
 
 
-def validate_token(v: Base64Str) -> Base64Str:
-    if len(v) != 43:  # 32 bytes
-        raise ValueError("SimulationToken must be 32 bytes")
-    return v
+def validate_token(token: str):
+    padding = "=" * (-len(token) % 4)
+    base64.urlsafe_b64decode(token + padding)
+    return token
 
 
-SimulationToken = Annotated[Base64Str, AfterValidator(validate_token)]
+SimulationToken = Annotated[str, AfterValidator(validate_token)]

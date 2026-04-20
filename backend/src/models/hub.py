@@ -32,9 +32,10 @@ class Hub(BaseModel):
     name: str
     position: Vector
     access: HubAccess = HubAccess.NORMAL
-    color: Color | None = None
+    color: str | None = None
     drones: set[Drone] = set()
     capacity: int = Field(ge=1, default=1)
+    capacity_defined: bool = False
     connections: set[Connection] = set()
 
     @field_validator('name', mode='after')
