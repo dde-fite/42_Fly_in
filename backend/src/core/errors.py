@@ -2,10 +2,10 @@ from .logging import logger
 
 
 class ParseError(Exception):
-    def __init__(self, msg: str, line: str | None):
-        logger.debug(msg, line)
+    def __init__(self, msg: str, line: str | None = None):
         self.msg = msg
         self.line = line
+        logger.debug("%s line=%s", msg, line)
 
 
 class SimulationAlreadyAllocated(Exception):
