@@ -26,4 +26,9 @@ class Connection(BaseModel):
     #     pass
 
     def __hash__(self) -> int:
-        return hash(id)
+        return hash(self.hubs)
+
+    def __eq__(self, other: Any):
+        if not isinstance(other, Connection):
+            return False
+        return hash(self.hubs) == hash(other.hubs)

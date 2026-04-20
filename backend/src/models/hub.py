@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 from enum import Enum
 from uuid import uuid4
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationError
 from pydantic_extra_types import Color
 from src.schema.references import HubRef
 
@@ -37,6 +37,8 @@ class Hub(BaseModel):
     capacity: int = Field(ge=1, default=1)
     capacity_defined: bool = False
     connections: set[Connection] = set()
+    _arrivals: dict[int, list[Drone]] = {}
+    _departures: dict[int, list[Drone]] = {}
 
     @field_validator('name', mode='after')
     @classmethod
@@ -45,22 +47,22 @@ class Hub(BaseModel):
             raise ValueError("Hub names can not contain dashes(-)")
         return value
 
-    def __init__(self, **data: Any) -> None:
-        super().__init__(**data)
-        self.__arrivals: dict[int, list[Drone]] = {}
-        self.__departures: dict[int, list[Drone]] = {}
+    # def available_at(self, turn: Turn) -> bool:
+    #     pass
 
-    def available_at(self, turn: Turn) -> bool:
-        pass
-
-    def get_occupancy(self, turn: int) -> list[Drone]:
-        occ: list[DroneRef] = []
-        for i in range(turn + 1):
-            occ.extend(self.__arrivals.get(i, []))
-            for drone in self.__departures.get(i, []):
-                if drone in occ:
-                    occ.remove(drone)
-        return occ
+    # def get_occupancy(self, turn: int) -> list[Drone]:
+    #     occ: list[DroneRef] = []
+    #     for i in range(turn + 1):
+    #         occ.extend(self.__arrivals.get(i, []))
+    #         for drone in self.__departures.get(i, []):
+    #             if drone in occ:
+    #                 occ.remove(drone)
+    #     return occ
 
     def __hash__(self) -> int:
-        return hash(self.id)
+        return hash(self.name)
+
+    def __eq__(self, other: Any):
+        if not isinstance(other, Hub):
+            return False
+        return hash(self.name) == hash(other.name)
