@@ -1,0 +1,9 @@
+# Error not start_hub
+nb_drones: 6
+
+hub: loop_a 1 0 [zone=restricted color=orange]
+hub: loop_b 2 0 [zone=restricted color=orange]
+hub: loop_c 2 1 [zone=restricted color=orange]
+hub: loop_d 1 1 [zone=restricted color=orange]
+hub: exit_point 3 0 [color=blue]
+end_hub: goal 4 0 [color=red max_drones=6]

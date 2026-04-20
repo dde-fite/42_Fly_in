@@ -1,0 +1,46 @@
+### Incorrect Base64 token format
+POST http://localhost:8000/api/simulation?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlNI HTTP/1.1
+Content-Type: multipart/form-data; boundary=MfnBoundry
+
+--MfnBoundry
+Content-Disposition: form-data; name="file"; filename="01_linear_path.txt"
+Content-Type: text/plain
+
+< ../maps/hard/02_capacity_hell.txt
+# < ../maps/medium/02_circular_loop.txt
+--MfnBoundry--
+
+POST http://localhost:8000/api/simulation?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlNI HTTP/1.1
+Content-Type: multipart/form-data; boundary=MfnBoundry
+
+--MfnBoundry
+Content-Disposition: form-data; name="file"; filename="01_linear_path.txt"
+Content-Type: text/plain
+
+< ../maps/hard/02_capacity_hell.txt
+# < ../maps/medium/02_circular_loop.txt
+--MfnBoundry--
+
+### Incorrect Base64 token format
+POST http://localhost:8000/api/simulation?token=00000000000000000000000000000000000000000 HTTP/1.1
+Content-Type: multipart/form-data; boundary=MfnBoundry
+
+--MfnBoundry
+Content-Disposition: form-data; name="file"; filename="01_linear_path.txt"
+Content-Type: text/plain
+
+< ../maps/hard/02_capacity_hell.txt
+# < ../maps/medium/02_circular_loop.txt
+--MfnBoundry--
+
+### Incorrect token length
+POST http://localhost:8000/api/simulation?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlN HTTP/1.1
+Content-Type: multipart/form-data; boundary=MfnBoundry
+
+--MfnBoundry
+Content-Disposition: form-data; name="file"; filename="01_linear_path.txt"
+Content-Type: text/plain
+
+< ../maps/hard/02_capacity_hell.txt
+# < ../maps/medium/02_circular_loop.txt
+--MfnBoundry--
