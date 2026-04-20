@@ -16,12 +16,13 @@ router = APIRouter()
 @router.get("/token")
 def generate_token():
     import secrets
-    return secrets.token_urlsafe(32) + f"Len: {len(secrets.token_urlsafe(32))}"
+    return secrets.token_urlsafe(32) + f"  Len: {len(secrets.token_urlsafe(32))}"
+
 
 @router.post("/simulation", response_model=ResponseSimulation)
 async def create_simulation(token: SimulationToken, file: UploadFile):
     try:
-        s = register_simulation(token, file)
+        return await register_simulation(token, file)
     except ParseError as e:
         raise HTTPException(
             400,
@@ -29,7 +30,6 @@ async def create_simulation(token: SimulationToken, file: UploadFile):
         )
     except SimulationAlreadyAllocated:
         raise HTTPException(400)
-    return await s
 
 
 @router.get("/simulation", response_model=ResponseSimulation)
