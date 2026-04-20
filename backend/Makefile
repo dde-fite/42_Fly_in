@@ -22,6 +22,9 @@ run:
 dev:
 	@fastapi dev $(SRC)
 
+test:
+	@pytest
+
 debug:
 	$(PYTHON) -m pdb $(SRC)/main.py
 
