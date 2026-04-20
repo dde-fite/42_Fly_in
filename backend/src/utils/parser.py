@@ -95,15 +95,27 @@ def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
     return con
 
 
+def init_drones(nbr: int, origin: Hub) -> set[Drone]:
+    drones: set[Drone] = set()
+    for _d in range(nbr):
+        try:
+            d = Drone(location=origin)
+        except ValidationError as e:
+            raise ParseError(f"Error creating a drone: {e.errors}")
+        drones.add(d)
+        origin.drones.add(d)
+    return drones
+
+
 async def parse_map(file: UploadFile) -> Simulation:
+    content = await file.read()
+    text = content.decode()
     nb_drones: int | None = None
     hubs: set[Hub] = set()
     origin: Hub | None = None
     destination: Hub | None = None
     connection: set[Connection] = set()
     drones: set[Drone] = set()
-    content = await file.read()
-    text = content.decode()
     for line in text.splitlines():
         line = line.split("#", 1)[0].strip()
         if len(line) < 1:
@@ -132,16 +144,26 @@ async def parse_map(file: UploadFile) -> Simulation:
                 if origin:
                     raise ParseError("Start hub already defined", line)
                 origin = parse_hub(value)
+                if origin in hubs:
+                    raise ParseError("Duplicated hub names", line)
                 hubs.add(origin)
             case "end_hub":
                 if destination:
                     raise ParseError("Destination hub already defined", line)
                 destination = parse_hub(value)
+                if destination in hubs:
+                    raise ParseError("Duplicated hub names", line)
                 hubs.add(destination)
             case "hub":
-                hubs.add(parse_hub(value))
+                h = parse_hub(value)
+                if h in hubs:
+                    raise ParseError("Duplicated hub names", line)
+                hubs.add(h)
             case "connection":
-                connection.add(parse_connection(value, hubs))
+                c = parse_connection(value, hubs)
+                if c in connection:
+                    raise ParseError("Duplicated connection", line)
+                connection.add(c)
             case _:
                 raise ParseError(f"Type {key} not recognized", line)
     if not origin or not destination:
@@ -151,15 +173,9 @@ async def parse_map(file: UploadFile) -> Simulation:
     if nb_drones is not None:
         if nb_drones > origin.capacity:
             raise ParseError(
-                "Number of drones exceed the+ capacity of start hub"
+                "Number of drones exceed the capacity of start hub"
             )
-        for _d in range(nb_drones):
-            try:
-                drone = Drone(location=origin)
-            except ValidationError as e:
-                raise ParseError(f"Error creating a drone: {e.errors}")
-            drones.add(drone)
-            origin.drones.add(drone)
+        drones = init_drones(nb_drones, origin)
     try:
         sim = Simulation(
             hubs=hubs,
@@ -168,7 +184,7 @@ async def parse_map(file: UploadFile) -> Simulation:
             connections=connection,
             drones=drones
         )
-    except ParseError as e:
+    except ValidationError as e:
         raise ParseError(f"Error creating the simulation: {e.errors}")
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
