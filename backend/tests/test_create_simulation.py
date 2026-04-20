@@ -1,12 +1,15 @@
 from typing import Any
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from httpx import Response
+from glob import glob
+from random import choice, randint
 from src.api.routes import router
 from tests.utils import assert_is_uuid
 import pytest
 import os
-import glob
 import secrets
+import string
 
 
 app = FastAPI()
@@ -21,7 +24,7 @@ def assert_simulation_response(
     hubs: int,
     connections: int,
     drones: int
-):
+) -> None:
     assert data["turns"] == turn
     assert len(data["hubs"]) == hubs
     for hub in data["hubs"]:
@@ -36,17 +39,21 @@ def assert_simulation_response(
         assert_is_uuid(drone)
 
 
+def random_string(length: int = randint(1, 50)) -> str:
+    chars = string.ascii_letters + string.digits + "+/="
+    return ''.join(choice(chars) for _ in range(length))
+
 # -----------------------
 # Create simulation OK strict
 # -----------------------
 
 
 # Subject's maps
-def test_create_simulation_ok_easy_01():
+def test_create_simulation_ok_easy_01() -> None:
     with open("tests/maps/easy/01_linear_path.txt") as map:
         res = client.post(
             "/api/simulation",
-            params={"token": secrets.token_urlsafe()},
+            params={"token": secrets.token_urlsafe(32)},
             files={"file": ("file", map.read(), "text/plain")}
         )
     assert res.status_code == 200
@@ -60,11 +67,11 @@ def test_create_simulation_ok_easy_01():
     )
 
 
-def test_create_simulation_ok_easy_02():
+def test_create_simulation_ok_easy_02() -> None:
     with open("tests/maps/easy/02_simple_fork.txt") as map:
         res = client.post(
             "/api/simulation",
-            params={"token": secrets.token_urlsafe()},
+            params={"token": secrets.token_urlsafe(32)},
             files={"file": ("file", map.read(), "text/plain")}
         )
     assert res.status_code == 200
@@ -78,11 +85,11 @@ def test_create_simulation_ok_easy_02():
     )
 
 
-def test_create_simulation_ok_easy_03():
+def test_create_simulation_ok_easy_03() -> None:
     with open("tests/maps/easy/03_basic_capacity.txt") as map:
         res = client.post(
             "/api/simulation",
-            params={"token": secrets.token_urlsafe()},
+            params={"token": secrets.token_urlsafe(32)},
             files={"file": ("file", map.read(), "text/plain")}
         )
     assert res.status_code == 200
@@ -96,13 +103,13 @@ def test_create_simulation_ok_easy_03():
     )
 
 
-def test_create_simulation_ok_challenger():
+def test_create_simulation_ok_challenger() -> None:
     with open(
         "tests/maps/challenger/01_the_impossible_dream.txt"
     ) as map:
         res = client.post(
             "/api/simulation",
-            params={"token": secrets.token_urlsafe()},
+            params={"token": secrets.token_urlsafe(32)},
             files={"file": ("file", map.read(), "text/plain")}
         )
     assert res.status_code == 200
@@ -117,11 +124,11 @@ def test_create_simulation_ok_challenger():
 
 
 # ok tests
-def test_create_simulation_ok_01():
+def test_create_simulation_ok_01() -> None:
     with open("tests/parsing/ok/parse_ok01.txt") as map:
         res = client.post(
             "/api/simulation",
-            params={"token": secrets.token_urlsafe()},
+            params={"token": secrets.token_urlsafe(32)},
             files={"file": ("file", map.read(), "text/plain")}
         )
     assert res.status_code == 200
@@ -135,11 +142,11 @@ def test_create_simulation_ok_01():
     )
 
 
-def test_create_simulation_ok_02():
+def test_create_simulation_ok_02() -> None:
     with open("tests/parsing/ok/parse_ok02.txt") as map:
         res = client.post(
             "/api/simulation",
-            params={"token": secrets.token_urlsafe()},
+            params={"token": secrets.token_urlsafe(32)},
             files={"file": ("file", map.read(), "text/plain")}
         )
     assert res.status_code == 200
@@ -157,37 +164,164 @@ def test_create_simulation_ok_02():
 # Create simulation ERROR
 # -----------------------
 
-def parse_error_files():
+# Parsing Errors
+def parse_error_files() -> list[str]:
     errors = "tests/parsing/error"
-    return glob.glob(os.path.join(errors, '*.txt'))
+    return glob(os.path.join(errors, '*.txt'))
 
 
 @pytest.mark.parametrize("file_path", parse_error_files())
-def test_create_simulation_parse_error_batch(file_path: str):
+def test_create_simulation_parse_error_batch(file_path: str) -> None:
     with open(file_path) as map:
         res = client.post(
             "/api/simulation",
-            params={"token": secrets.token_urlsafe()},
+            params={"token": secrets.token_urlsafe(32)},
             files={"file": ("file", map.read(), "text/plain")}
         )
 
-        assert res.status_code == 400
+    assert res.status_code == 400
+    data = res.json()
+    assert "detail" in data
+
+
+# Bad tokens
+def test_create_simulation_bad_token_01() -> None:
+    with open("tests/maps/easy/01_linear_path.txt") as map:
+        res = client.post(
+            "/api/simulation",
+            params={"token": "0"},
+            files={"file": ("file", map.read(), "text/plain")}
+        )
+
+    assert res.status_code == 422
+    data = res.json()
+    assert "detail" in data
+
+
+def test_create_simulation_bad_token_02() -> None:
+    with open("tests/maps/easy/01_linear_path.txt") as map:
+        res = client.post(
+            "/api/simulation",
+            params={"token": secrets.token_urlsafe(32) + "="},
+            files={"file": ("file", map.read(), "text/plain")}
+        )
+
+    assert res.status_code == 422
+    data = res.json()
+    assert "detail" in data
+
+
+def test_create_simulation_bad_token_03() -> None:
+    with open("tests/maps/easy/01_linear_path.txt") as map:
+        res = client.post(
+            "/api/simulation",
+            params={"token": secrets.token_urlsafe(31)},
+            files={"file": ("file", map.read(), "text/plain")}
+        )
+
+    assert res.status_code == 422
+    data = res.json()
+    assert "detail" in data
+
+
+def test_create_simulation_bad_token_04() -> None:
+    with open("tests/maps/easy/01_linear_path.txt") as map:
+        res = client.post(
+            "/api/simulation",
+            params={"token": secrets.token_urlsafe(16)},
+            files={"file": ("file", map.read(), "text/plain")}
+        )
+
+    assert res.status_code == 422
+    data = res.json()
+    assert "detail" in data
+
+
+def test_create_simulation_bad_token_05() -> None:
+    with open("tests/maps/easy/01_linear_path.txt") as map:
+        res = client.post(
+            "/api/simulation",
+            params={"token": "000000000000000000000000000"},
+            files={"file": ("file", map.read(), "text/plain")}
+        )
+
+    assert res.status_code == 422
+    data = res.json()
+    assert "detail" in data
+
+
+def test_create_simulation_bad_token_06() -> None:
+    with open("tests/maps/easy/01_linear_path.txt") as map:
+        res = client.post(
+            "/api/simulation",
+            params={},
+            files={"file": ("file", map.read(), "text/plain")}
+        )
+
+    assert res.status_code == 422
+    data = res.json()
+    assert "detail" in data
+
+
+def test_create_simulation_bad_token_07() -> None:
+    with open("tests/maps/easy/01_linear_path.txt") as file:
+        map = file.read()
+
+    for _ in range(100):
+        res = client.post(
+            "/api/simulation",
+            params={"token": random_string()},
+            files={"file": ("file", map, "text/plain")}
+        )
+        assert res.status_code == 422
         data = res.json()
         assert "detail" in data
 
 
-# @patch("src.api.create_simulation")
-# def test_create_simulation_already_allocated(mock_register):
-#     from src.core import SimulationAlreadyAllocated
-#     mock_register.side_effect = SimulationAlreadyAllocated()
+# Repeated tokens
+def test_create_simulation_repeated_token_01() -> None:
+    token = secrets.token_urlsafe(32)
+    with open("tests/maps/easy/01_linear_path.txt") as file:
+        map = file.read()
 
-#     res = client.post(
-#         "/api/simulation",
-#         params={"token": "valid_token"},
-#         files={"file": ("map.txt", b"data", "text/plain")}
-#     )
+    res = client.post(
+        "/api/simulation",
+        params={"token": token},
+        files={"file": ("file", map, "text/plain")}
+    )
+    assert res.status_code == 200
 
-#     assert res.status_code == 400
+    res = client.post(
+        "/api/simulation",
+        params={"token": token},
+        files={"file": ("file", map, "text/plain")}
+    )
+
+    assert res.status_code == 400
+    data = res.json()
+    assert "detail" in data
+
+
+def test_create_simulation_repeated_token_02() -> None:
+    token = secrets.token_urlsafe(32)
+    with open("tests/maps/easy/01_linear_path.txt") as file:
+        map = file.read()
+    res = client.post(
+            "/api/simulation",
+            params={"token": token},
+            files={"file": ("file", map, "text/plain")}
+        )
+    assert res.status_code == 200
+
+    for _i in range(100):
+        res = client.post(
+            "/api/simulation",
+            params={"token": token},
+            files={"file": ("file", map, "text/plain")}
+        )
+        assert res.status_code == 400
+        data = res.json()
+        assert "detail" in data
 
 
 # # -----------------------
