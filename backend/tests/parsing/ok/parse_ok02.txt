@@ -13,7 +13,7 @@ end_hub: goal 4 0 [color=green max_drones=4]
      connection: start-slow_path1
  connection: start-fast_junction
 connection: slow_path1-slow_path2
-connection: slow_path2-slow_path3
+connection:               slow_path2-slow_path3
 connection: slow_path3-merge_point
 connection: fast_junction-fast_path
 connection: fast_path-merge_point

@@ -93,6 +93,74 @@ end_hub: goal 4 0 [color=green max_drones=4]
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 connection: start-slow_path1
 connection: start-fast_junction
 connection: slow_path1-slow_path2

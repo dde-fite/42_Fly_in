@@ -1,4 +1,4 @@
-# Error in order of statements:
+# Error in order of statements
 nb_drones: 6
 
 

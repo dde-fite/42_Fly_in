@@ -1,7 +1,7 @@
 # Start_hub capacity is less than nb of drones
 nb_drones: 4
 
-start_hub: start 0 0 # [color=green]
+start_hub: start 0 0 # [color=chorizo max_drones=2]
 hub: slow_path1 1 -1 [zone=restricted color=red]
 hub: slow_path2 2 -1 [zone=restricted color=red]
 hub: slow_path3 3 -1 [zone=restricted color=red]

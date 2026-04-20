@@ -128,6 +128,114 @@ async def test_parsing_ok_easy_03():
 
 
 @pytest.mark.asyncio
+async def test_parsing_ok_medium_01():
+    with open("tests/maps/medium/01_dead_end_trap.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=6,
+        connections=5,
+        drones=5
+    )
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_medium_02():
+    with open("tests/maps/medium/02_circular_loop.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=7,
+        connections=7,
+        drones=6
+    )
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_medium_03():
+    with open("tests/maps/medium/03_priority_puzzle.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=8,
+        connections=8,
+        drones=4
+    )
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_hard_01():
+    with open("tests/maps/hard/01_maze_nightmare.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=17,
+        connections=20,
+        drones=8
+    )
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_hard_02():
+    with open("tests/maps/hard/02_capacity_hell.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=15,
+        connections=18,
+        drones=12
+    )
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_hard_03():
+    with open("tests/maps/hard/03_ultimate_challenge.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=31,
+        connections=37,
+        drones=15
+    )
+
+
+@pytest.mark.asyncio
 async def test_parsing_ok_challenger():
     with open("tests/maps/challenger/01_the_impossible_dream.txt", "rb") as f:
         content = f.read()
@@ -185,6 +293,42 @@ async def test_parsing_ok_02():
 @pytest.mark.asyncio
 async def test_parsing_ok_03():
     with open("tests/parsing/ok/parse_ok03.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=8,
+        connections=8,
+        drones=4
+    )
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_04():
+    with open("tests/parsing/ok/parse_ok04.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=245,
+        connections=355,
+        drones=50
+    )
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_05():
+    with open("tests/parsing/ok/parse_ok05.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
         filename="map.txt",

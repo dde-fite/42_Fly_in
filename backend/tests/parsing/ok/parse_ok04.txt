@@ -1,0 +1,825 @@
+# ULTRA CHALLENGER LEVEL: BEYOND IMPOSSIBLE — "THE ABYSS"
+
+nb_drones: 50
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║            LAYER 0 — THE PRIMORDIAL BOTTLENECK           ║
+# ╚══════════════════════════════════════════════════════════╝
+# 50 drones must pass through a single capacity=1 node before anything else.
+
+start_hub: abyss_start 0 0 [color=white max_drones=50]
+
+hub: primordial_bottle 1 0 [color=black max_drones=1]
+
+# Fake parallel entry lanes (all converge to primordial_bottle)
+hub: fake_entry_n1 1 2  [color=gray max_drones=2]
+hub: fake_entry_n2 1 4  [color=gray max_drones=2]
+hub: fake_entry_n3 1 6  [color=gray max_drones=2]
+hub: fake_entry_s1 1 -2 [color=gray max_drones=2]
+hub: fake_entry_s2 1 -4 [color=gray max_drones=2]
+hub: fake_entry_s3 1 -6 [color=gray max_drones=2]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║         LAYER 1 — THE SYMMETRIC MIRROR TRAP              ║
+# ╚══════════════════════════════════════════════════════════╝
+# North and South hemispheres look identical.
+# North terminates in dead ends. South terminates in dead ends.
+# Only Center continues forward. Center is capacity=1.
+
+# --- North Hemisphere ---
+hub: mirror_n_a1 2 3  [color=cyan max_drones=3]
+hub: mirror_n_a2 3 3  [color=cyan max_drones=3]
+hub: mirror_n_a3 4 3  [color=cyan max_drones=3]
+hub: mirror_n_b1 2 5  [color=cyan max_drones=3]
+hub: mirror_n_b2 3 5  [color=cyan max_drones=3]
+hub: mirror_n_b3 4 5  [color=cyan max_drones=3]
+hub: mirror_n_dead1 5 3  [color=black]
+hub: mirror_n_dead2 5 5  [color=black]
+hub: mirror_n_dead3 4 4  [color=black]
+
+# --- South Hemisphere ---
+hub: mirror_s_a1 2 -3  [color=cyan max_drones=3]
+hub: mirror_s_a2 3 -3  [color=cyan max_drones=3]
+hub: mirror_s_a3 4 -3  [color=cyan max_drones=3]
+hub: mirror_s_b1 2 -5  [color=cyan max_drones=3]
+hub: mirror_s_b2 3 -5  [color=cyan max_drones=3]
+hub: mirror_s_b3 4 -5  [color=cyan max_drones=3]
+hub: mirror_s_dead1 5 -3  [color=black]
+hub: mirror_s_dead2 5 -5  [color=black]
+hub: mirror_s_dead3 4 -4  [color=black]
+
+# --- Center Corridor (only real path, capacity=1) ---
+hub: center_pass1 2 0 [color=white max_drones=1]
+hub: center_pass2 3 0 [color=white max_drones=1]
+hub: center_pass3 4 0 [color=white max_drones=1]
+hub: center_pass4 5 0 [color=white max_drones=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║         LAYER 2 — THE INFINITE LOOP GARDEN               ║
+# ╚══════════════════════════════════════════════════════════╝
+# Three concentric restricted rings. Each ring is fully connected.
+# Escape from each ring requires hitting one hidden exit node.
+# The exit nodes are not labeled. Algorithms that greedy-explore loop forever.
+
+# Ring A (inner)
+hub: ring_a1 6 1  [zone=restricted color=purple max_drones=2]
+hub: ring_a2 7 1  [zone=restricted color=purple max_drones=2]
+hub: ring_a3 7 0  [zone=restricted color=purple max_drones=2]
+hub: ring_a4 7 -1 [zone=restricted color=purple max_drones=2]
+hub: ring_a5 6 -1 [zone=restricted color=purple max_drones=2]
+hub: ring_a6 6 0  [zone=restricted color=purple max_drones=2]
+
+# Ring B (middle)
+hub: ring_b1 5 2  [zone=restricted color=indigo max_drones=2]
+hub: ring_b2 6 2  [zone=restricted color=indigo max_drones=2]
+hub: ring_b3 7 2  [zone=restricted color=indigo max_drones=2]
+hub: ring_b4 8 2  [zone=restricted color=indigo max_drones=2]
+hub: ring_b5 8 1  [zone=restricted color=indigo max_drones=2]
+hub: ring_b6 8 0  [zone=restricted color=indigo max_drones=2]
+hub: ring_b7 8 -1 [zone=restricted color=indigo max_drones=2]
+hub: ring_b8 8 -2 [zone=restricted color=indigo max_drones=2]
+hub: ring_b9 7 -2 [zone=restricted color=indigo max_drones=2]
+hub: ring_b10 6 -2 [zone=restricted color=indigo max_drones=2]
+hub: ring_b11 5 -2 [zone=restricted color=indigo max_drones=2]
+hub: ring_b12 5 1  [zone=restricted color=indigo max_drones=2]
+
+# Ring C (outer)
+hub: ring_c1  5 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c2  6 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c3  7 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c4  8 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c5  9 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c6  9 2  [zone=restricted color=violet max_drones=1]
+hub: ring_c7  9 1  [zone=restricted color=violet max_drones=1]
+hub: ring_c8  9 0  [zone=restricted color=violet max_drones=1]
+hub: ring_c9  9 -1 [zone=restricted color=violet max_drones=1]
+hub: ring_c10 9 -2 [zone=restricted color=violet max_drones=1]
+hub: ring_c11 9 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c12 8 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c13 7 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c14 6 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c15 5 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c16 5 -1 [zone=restricted color=violet max_drones=1]
+
+# Hidden ring exits (disguised as normal ring nodes by position)
+hub: ring_exit_a 7 0  [color=white max_drones=1]  # overlaps ring_a3
+hub: ring_exit_b 8 0  [color=white max_drones=1]  # overlaps ring_b6
+hub: ring_exit_c 9 0  [color=white max_drones=1]  # overlaps ring_c8
+hub: post_rings  10 0 [color=lime max_drones=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║         LAYER 3 — THE HONEYPOT PRIORITY MATRIX           ║
+# ╚══════════════════════════════════════════════════════════╝
+# A 6x6 grid of priority zones. Every node looks identical.
+# Only one path through the grid leads forward.
+# Every other path terminates in a black dead end.
+# Dead ends are at unpredictable positions.
+
+hub: hpot_00 11 3  [zone=priority color=gold max_drones=2]
+hub: hpot_10 12 3  [zone=priority color=gold max_drones=2]
+hub: hpot_20 13 3  [zone=priority color=gold max_drones=2]
+hub: hpot_30 14 3  [zone=priority color=gold max_drones=2]
+hub: hpot_40 15 3  [zone=priority color=gold max_drones=2]
+hub: hpot_50 16 3  [zone=priority color=gold max_drones=2]
+
+hub: hpot_01 11 2  [zone=priority color=gold max_drones=2]
+hub: hpot_11 12 2  [zone=priority color=gold max_drones=2]
+hub: hpot_21 13 2  [zone=priority color=gold max_drones=2]
+hub: hpot_31 14 2  [zone=priority color=gold max_drones=2]
+hub: hpot_41 15 2  [zone=priority color=gold max_drones=2]
+hub: hpot_51 16 2  [zone=priority color=gold max_drones=2]
+
+hub: hpot_02 11 1  [zone=priority color=gold max_drones=2]
+hub: hpot_12 12 1  [zone=priority color=gold max_drones=2]
+hub: hpot_22 13 1  [zone=priority color=gold max_drones=2]
+hub: hpot_32 14 1  [zone=priority color=gold max_drones=2]
+hub: hpot_42 15 1  [zone=priority color=gold max_drones=2]
+hub: hpot_52 16 1  [zone=priority color=gold max_drones=2]
+
+hub: hpot_03 11 0  [zone=priority color=gold max_drones=2]
+hub: hpot_13 12 0  [zone=priority color=gold max_drones=2]
+hub: hpot_23 13 0  [zone=priority color=gold max_drones=2]
+hub: hpot_33 14 0  [zone=priority color=gold max_drones=2]
+hub: hpot_43 15 0  [zone=priority color=gold max_drones=2]
+hub: hpot_53 16 0  [zone=priority color=gold max_drones=2]
+
+hub: hpot_04 11 -1 [zone=priority color=gold max_drones=2]
+hub: hpot_14 12 -1 [zone=priority color=gold max_drones=2]
+hub: hpot_24 13 -1 [zone=priority color=gold max_drones=2]
+hub: hpot_34 14 -1 [zone=priority color=gold max_drones=2]
+hub: hpot_44 15 -1 [zone=priority color=gold max_drones=2]
+hub: hpot_54 16 -1 [zone=priority color=gold max_drones=2]
+
+hub: hpot_05 11 -2 [zone=priority color=gold max_drones=2]
+hub: hpot_15 12 -2 [zone=priority color=gold max_drones=2]
+hub: hpot_25 13 -2 [zone=priority color=gold max_drones=2]
+hub: hpot_35 14 -2 [zone=priority color=gold max_drones=2]
+hub: hpot_45 15 -2 [zone=priority color=gold max_drones=2]
+hub: hpot_55 16 -2 [zone=priority color=gold max_drones=2]
+
+# Dead end clusters (scattered, not in corners, to confuse heuristics)
+hub: hpot_dead01 12 3  [color=black]   # looks like hpot_10 duplicate
+hub: hpot_dead02 14 2  [color=black]
+hub: hpot_dead03 13 1  [color=black]
+hub: hpot_dead04 15 0  [color=black]
+hub: hpot_dead05 11 -1 [color=black]
+hub: hpot_dead06 16 -2 [color=black]
+hub: hpot_dead07 12 -1 [color=black]
+hub: hpot_dead08 14 3  [color=black]
+hub: hpot_dead09 16 1  [color=black]
+hub: hpot_dead10 13 -2 [color=black]
+
+# Single exit from the matrix
+hub: post_matrix 17 0 [color=lime max_drones=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║        LAYER 4 — THE CAPACITY COLLAPSE CASCADE           ║
+# ╚══════════════════════════════════════════════════════════╝
+# 6 parallel lanes of capacity=3. They all merge into capacity=2,
+# then capacity=1, then a single choke node of capacity=1.
+# Any backpressure cascades upstream instantaneously.
+
+# Lane 1
+hub: cascade_l1a 18 5  [color=orange max_drones=3]
+hub: cascade_l1b 19 5  [color=orange max_drones=3]
+hub: cascade_l1c 20 5  [color=orange max_drones=2]
+hub: cascade_l1d 21 5  [color=orange max_drones=1]
+
+# Lane 2
+hub: cascade_l2a 18 3  [color=orange max_drones=3]
+hub: cascade_l2b 19 3  [color=orange max_drones=3]
+hub: cascade_l2c 20 3  [color=orange max_drones=2]
+hub: cascade_l2d 21 3  [color=orange max_drones=1]
+
+# Lane 3
+hub: cascade_l3a 18 1  [color=orange max_drones=3]
+hub: cascade_l3b 19 1  [color=orange max_drones=3]
+hub: cascade_l3c 20 1  [color=orange max_drones=2]
+hub: cascade_l3d 21 1  [color=orange max_drones=1]
+
+# Lane 4
+hub: cascade_l4a 18 -1 [color=orange max_drones=3]
+hub: cascade_l4b 19 -1 [color=orange max_drones=3]
+hub: cascade_l4c 20 -1 [color=orange max_drones=2]
+hub: cascade_l4d 21 -1 [color=orange max_drones=1]
+
+# Lane 5
+hub: cascade_l5a 18 -3 [color=orange max_drones=3]
+hub: cascade_l5b 19 -3 [color=orange max_drones=3]
+hub: cascade_l5c 20 -3 [color=orange max_drones=2]
+hub: cascade_l5d 21 -3 [color=orange max_drones=1]
+
+# Lane 6
+hub: cascade_l6a 18 -5 [color=orange max_drones=3]
+hub: cascade_l6b 19 -5 [color=orange max_drones=3]
+hub: cascade_l6c 20 -5 [color=orange max_drones=2]
+hub: cascade_l6d 21 -5 [color=orange max_drones=1]
+
+# Merge tier 1 (6→3)
+hub: cascade_m1 22 4  [color=red max_drones=2]
+hub: cascade_m2 22 0  [color=red max_drones=2]
+hub: cascade_m3 22 -4 [color=red max_drones=2]
+
+# Merge tier 2 (3→1)
+hub: cascade_final 23 0 [color=darkred max_drones=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║      LAYER 5 — THE TEMPORAL ORDERING TRAP               ║
+# ╚══════════════════════════════════════════════════════════╝
+# Nodes that can only be traversed in a strict order.
+# If two drones arrive in the wrong order, both block.
+# This is undetectable without explicit ordering metadata.
+
+hub: order_gate_a 24 2  [color=teal max_drones=1]
+hub: order_gate_b 24 1  [color=teal max_drones=1]
+hub: order_gate_c 24 0  [color=teal max_drones=1]
+hub: order_gate_d 24 -1 [color=teal max_drones=1]
+hub: order_gate_e 24 -2 [color=teal max_drones=1]
+
+hub: order_sync   25 0  [color=teal max_drones=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║      LAYER 6 — THE FAKE SHORTCUT ARCHIPELAGO            ║
+# ╚══════════════════════════════════════════════════════════╝
+# Islands connected by high-cost restricted bridges.
+# Each bridge has capacity=1 and zone=restricted.
+# The "shortcut" islands appear to skip layers but actually loop back.
+
+hub: island_a1 26 4  [color=aqua max_drones=3]
+hub: island_a2 27 4  [color=aqua max_drones=3]
+hub: island_a3 28 4  [color=aqua max_drones=3]
+hub: bridge_ab1 27 3  [zone=restricted color=brown max_drones=1]
+
+hub: island_b1 26 2  [color=aqua max_drones=3]
+hub: island_b2 27 2  [color=aqua max_drones=3]
+hub: island_b3 28 2  [color=aqua max_drones=3]
+hub: bridge_bc1 27 1  [zone=restricted color=brown max_drones=1]
+
+hub: island_c1 26 0  [color=aqua max_drones=3]
+hub: island_c2 27 0  [color=aqua max_drones=3]
+hub: island_c3 28 0  [color=aqua max_drones=3]
+hub: bridge_cd1 27 -1 [zone=restricted color=brown max_drones=1]
+
+hub: island_d1 26 -2 [color=aqua max_drones=3]
+hub: island_d2 27 -2 [color=aqua max_drones=3]
+hub: island_d3 28 -2 [color=aqua max_drones=3]
+hub: bridge_de1 27 -3 [zone=restricted color=brown max_drones=1]
+
+hub: island_e1 26 -4 [color=aqua max_drones=3]
+hub: island_e2 27 -4 [color=aqua max_drones=3]
+hub: island_e3 28 -4 [color=aqua max_drones=3]
+
+# Shortcut exits (loop back to layer 4 merge, not forward!)
+hub: shortcut_loop_n 29 2  [color=yellow max_drones=1]
+hub: shortcut_loop_s 29 -2 [color=yellow max_drones=1]
+
+# True forward exit (hidden deep)
+hub: post_archipelago 29 0 [color=lime max_drones=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║      LAYER 7 — THE FIFTY-WAY CONVERGENCE FUNNEL         ║
+# ╚══════════════════════════════════════════════════════════╝
+# 50 distinct feeder nodes must all pass through a single capacity=1 node.
+# Each feeder has capacity=1. The funnel is flanked by overflow sinks
+# that look like valid paths but are capacity=0 (blocked forever).
+
+hub: funnel_f01 30 10  [color=maroon max_drones=1]
+hub: funnel_f02 30 9   [color=maroon max_drones=1]
+hub: funnel_f03 30 8   [color=maroon max_drones=1]
+hub: funnel_f04 30 7   [color=maroon max_drones=1]
+hub: funnel_f05 30 6   [color=maroon max_drones=1]
+hub: funnel_f06 30 5   [color=maroon max_drones=1]
+hub: funnel_f07 30 4   [color=maroon max_drones=1]
+hub: funnel_f08 30 3   [color=maroon max_drones=1]
+hub: funnel_f09 30 2   [color=maroon max_drones=1]
+hub: funnel_f10 30 1   [color=maroon max_drones=1]
+hub: funnel_f11 30 0   [color=maroon max_drones=1]
+hub: funnel_f12 30 -1  [color=maroon max_drones=1]
+hub: funnel_f13 30 -2  [color=maroon max_drones=1]
+hub: funnel_f14 30 -3  [color=maroon max_drones=1]
+hub: funnel_f15 30 -4  [color=maroon max_drones=1]
+hub: funnel_f16 30 -5  [color=maroon max_drones=1]
+hub: funnel_f17 30 -6  [color=maroon max_drones=1]
+hub: funnel_f18 30 -7  [color=maroon max_drones=1]
+hub: funnel_f19 30 -8  [color=maroon max_drones=1]
+hub: funnel_f20 30 -9  [color=maroon max_drones=1]
+hub: funnel_f21 31 10  [color=maroon max_drones=1]
+hub: funnel_f22 31 9   [color=maroon max_drones=1]
+hub: funnel_f23 31 8   [color=maroon max_drones=1]
+hub: funnel_f24 31 7   [color=maroon max_drones=1]
+hub: funnel_f25 31 6   [color=maroon max_drones=1]
+hub: funnel_f26 31 5   [color=maroon max_drones=1]
+hub: funnel_f27 31 4   [color=maroon max_drones=1]
+hub: funnel_f28 31 3   [color=maroon max_drones=1]
+hub: funnel_f29 31 2   [color=maroon max_drones=1]
+hub: funnel_f30 31 1   [color=maroon max_drones=1]
+hub: funnel_f31 31 0   [color=maroon max_drones=1]
+hub: funnel_f32 31 -1  [color=maroon max_drones=1]
+hub: funnel_f33 31 -2  [color=maroon max_drones=1]
+hub: funnel_f34 31 -3  [color=maroon max_drones=1]
+hub: funnel_f35 31 -4  [color=maroon max_drones=1]
+hub: funnel_f36 31 -5  [color=maroon max_drones=1]
+hub: funnel_f37 31 -6  [color=maroon max_drones=1]
+hub: funnel_f38 31 -7  [color=maroon max_drones=1]
+hub: funnel_f39 31 -8  [color=maroon max_drones=1]
+hub: funnel_f40 31 -9  [color=maroon max_drones=1]
+hub: funnel_f41 32 5   [color=maroon max_drones=1]
+hub: funnel_f42 32 4   [color=maroon max_drones=1]
+hub: funnel_f43 32 3   [color=maroon max_drones=1]
+hub: funnel_f44 32 2   [color=maroon max_drones=1]
+hub: funnel_f45 32 1   [color=maroon max_drones=1]
+hub: funnel_f46 32 -1  [color=maroon max_drones=1]
+hub: funnel_f47 32 -2  [color=maroon max_drones=1]
+hub: funnel_f48 32 -3  [color=maroon max_drones=1]
+hub: funnel_f49 32 -4  [color=maroon max_drones=1]
+hub: funnel_f50 32 -5  [color=maroon max_drones=1]
+
+# The Singular Funnel Point — 50 sources → 1 node
+hub: funnel_apex 33 0 [color=black max_drones=1]
+
+# Overflow sinks (look valid, capacity=0 → permanent block)
+hub: overflow_sink_n 33 5  [color=gray max_drones=1]
+hub: overflow_sink_s 33 -5 [color=gray max_drones=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║      LAYER 8 — THE FINAL GAUNTLET OF TWENTY             ║
+# ╚══════════════════════════════════════════════════════════╝
+# A sequential chain of 20 nodes, all capacity=1, all restricted.
+# No bypasses. No alternatives. One drone at a time.
+# The last node feeds directly into the goal.
+
+hub: gaunt01 34 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt02 35 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt03 36 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt04 37 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt05 38 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt06 39 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt07 40 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt08 41 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt09 42 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt10 43 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt11 44 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt12 45 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt13 46 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt14 47 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt15 48 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt16 49 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt17 50 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt18 51 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt19 52 0  [zone=restricted color=crimson max_drones=1]
+hub: gaunt20 53 0  [zone=restricted color=crimson max_drones=1]
+
+# THE GOAL
+end_hub: the_abyss_goal 54 0 [color=rainbow max_drones=50]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║               CONNECTIONS — THE WEB OF SUFFERING         ║
+# ╚══════════════════════════════════════════════════════════╝
+
+# ── Layer 0: Primordial bottleneck ──
+connection: abyss_start-primordial_bottle [max_link_capacity=1]
+connection: abyss_start-fake_entry_n1     [max_link_capacity=2]
+connection: abyss_start-fake_entry_n2     [max_link_capacity=2]
+connection: abyss_start-fake_entry_n3     [max_link_capacity=2]
+connection: abyss_start-fake_entry_s1     [max_link_capacity=2]
+connection: abyss_start-fake_entry_s2     [max_link_capacity=2]
+connection: abyss_start-fake_entry_s3     [max_link_capacity=2]
+# Fake entries converge to bottleneck (appear as alternates, aren't)
+connection: fake_entry_n1-primordial_bottle [max_link_capacity=1]
+connection: fake_entry_n2-primordial_bottle [max_link_capacity=1]
+connection: fake_entry_n3-primordial_bottle [max_link_capacity=1]
+connection: fake_entry_s1-primordial_bottle [max_link_capacity=1]
+connection: fake_entry_s2-primordial_bottle [max_link_capacity=1]
+connection: fake_entry_s3-primordial_bottle [max_link_capacity=1]
+
+# ── Layer 1: Mirror trap ──
+connection: primordial_bottle-mirror_n_a1
+connection: primordial_bottle-mirror_s_a1
+connection: primordial_bottle-center_pass1 [max_link_capacity=1]
+
+connection: mirror_n_a1-mirror_n_a2
+connection: mirror_n_a2-mirror_n_a3
+connection: mirror_n_a3-mirror_n_dead1
+connection: mirror_n_a1-mirror_n_b1
+connection: mirror_n_b1-mirror_n_b2
+connection: mirror_n_b2-mirror_n_b3
+connection: mirror_n_b3-mirror_n_dead2
+connection: mirror_n_a2-mirror_n_b2
+connection: mirror_n_b2-mirror_n_dead3
+
+connection: mirror_s_a1-mirror_s_a2
+connection: mirror_s_a2-mirror_s_a3
+connection: mirror_s_a3-mirror_s_dead1
+connection: mirror_s_a1-mirror_s_b1
+connection: mirror_s_b1-mirror_s_b2
+connection: mirror_s_b2-mirror_s_b3
+connection: mirror_s_b3-mirror_s_dead2
+connection: mirror_s_a2-mirror_s_b2
+connection: mirror_s_b2-mirror_s_dead3
+
+connection: center_pass1-center_pass2 [max_link_capacity=1]
+connection: center_pass2-center_pass3 [max_link_capacity=1]
+connection: center_pass3-center_pass4 [max_link_capacity=1]
+
+# ── Layer 2: Loop garden ──
+connection: center_pass4-ring_a1
+connection: center_pass4-ring_b1
+connection: center_pass4-ring_c1
+
+# Ring A (closed loop)
+connection: ring_a1-ring_a2
+connection: ring_a2-ring_a3
+connection: ring_a3-ring_a4
+connection: ring_a4-ring_a5
+connection: ring_a5-ring_a6
+connection: ring_a6-ring_a1
+
+# Ring B (closed loop)
+connection: ring_b1-ring_b2
+connection: ring_b2-ring_b3
+connection: ring_b3-ring_b4
+connection: ring_b4-ring_b5
+connection: ring_b5-ring_b6
+connection: ring_b6-ring_b7
+connection: ring_b7-ring_b8
+connection: ring_b8-ring_b9
+connection: ring_b9-ring_b10
+connection: ring_b10-ring_b11
+connection: ring_b11-ring_b12
+connection: ring_b12-ring_b1
+
+# Ring C (closed loop)
+connection: ring_c1-ring_c2
+connection: ring_c2-ring_c3
+connection: ring_c3-ring_c4
+connection: ring_c4-ring_c5
+connection: ring_c5-ring_c6
+connection: ring_c6-ring_c7
+connection: ring_c7-ring_c8
+connection: ring_c8-ring_c9
+connection: ring_c9-ring_c10
+connection: ring_c10-ring_c11
+connection: ring_c11-ring_c12
+connection: ring_c12-ring_c13
+connection: ring_c13-ring_c14
+connection: ring_c14-ring_c15
+connection: ring_c15-ring_c16
+connection: ring_c16-ring_c1
+
+# Hidden exits (share position with ring nodes — algorithm must resolve)
+connection: ring_a3-ring_exit_a [max_link_capacity=1]
+connection: ring_b6-ring_exit_b [max_link_capacity=1]
+connection: ring_c8-ring_exit_c [max_link_capacity=1]
+connection: ring_exit_a-ring_exit_b [max_link_capacity=1]
+connection: ring_exit_b-ring_exit_c [max_link_capacity=1]
+connection: ring_exit_c-post_rings   [max_link_capacity=1]
+
+# ── Layer 3: Honeypot matrix (grid connections) ──
+connection: post_rings-hpot_00
+
+# Row 0 horizontal
+connection: hpot_00-hpot_10
+connection: hpot_10-hpot_20
+connection: hpot_20-hpot_30
+connection: hpot_30-hpot_40
+connection: hpot_40-hpot_50
+
+# Row 1 horizontal
+connection: hpot_01-hpot_11
+connection: hpot_11-hpot_21
+connection: hpot_21-hpot_31
+connection: hpot_31-hpot_41
+connection: hpot_41-hpot_51
+
+# Row 2 horizontal
+connection: hpot_02-hpot_12
+connection: hpot_12-hpot_22
+connection: hpot_22-hpot_32
+connection: hpot_32-hpot_42
+connection: hpot_42-hpot_52
+
+# Row 3 horizontal
+connection: hpot_03-hpot_13
+connection: hpot_13-hpot_23
+connection: hpot_23-hpot_33
+connection: hpot_33-hpot_43
+connection: hpot_43-hpot_53
+
+# Row 4 horizontal
+connection: hpot_04-hpot_14
+connection: hpot_14-hpot_24
+connection: hpot_24-hpot_34
+connection: hpot_34-hpot_44
+connection: hpot_44-hpot_54
+
+# Row 5 horizontal
+connection: hpot_05-hpot_15
+connection: hpot_15-hpot_25
+connection: hpot_25-hpot_35
+connection: hpot_35-hpot_45
+connection: hpot_45-hpot_55
+
+# Column connections (vertical)
+connection: hpot_00-hpot_01
+connection: hpot_01-hpot_02
+connection: hpot_02-hpot_03
+connection: hpot_03-hpot_04
+connection: hpot_04-hpot_05
+
+connection: hpot_10-hpot_11
+connection: hpot_11-hpot_12
+connection: hpot_12-hpot_13
+connection: hpot_13-hpot_14
+connection: hpot_14-hpot_15
+
+connection: hpot_20-hpot_21
+connection: hpot_21-hpot_22
+connection: hpot_22-hpot_23
+connection: hpot_23-hpot_24
+connection: hpot_24-hpot_25
+
+connection: hpot_30-hpot_31
+connection: hpot_31-hpot_32
+connection: hpot_32-hpot_33
+connection: hpot_33-hpot_34
+connection: hpot_34-hpot_35
+
+connection: hpot_40-hpot_41
+connection: hpot_41-hpot_42
+connection: hpot_42-hpot_43
+connection: hpot_43-hpot_44
+connection: hpot_44-hpot_45
+
+connection: hpot_50-hpot_51
+connection: hpot_51-hpot_52
+connection: hpot_52-hpot_53
+connection: hpot_53-hpot_54
+connection: hpot_54-hpot_55
+
+# Dead end traps connected to random interior nodes
+connection: hpot_10-hpot_dead01
+connection: hpot_31-hpot_dead02
+connection: hpot_22-hpot_dead03
+connection: hpot_43-hpot_dead04
+connection: hpot_04-hpot_dead05
+connection: hpot_55-hpot_dead06
+connection: hpot_14-hpot_dead07
+connection: hpot_30-hpot_dead08
+connection: hpot_52-hpot_dead09
+connection: hpot_25-hpot_dead10
+
+# Single hidden exit from matrix (bottom-right to post_matrix)
+connection: hpot_53-post_matrix [max_link_capacity=1]
+
+# ── Layer 4: Cascade collapse ──
+connection: post_matrix-cascade_l1a
+connection: post_matrix-cascade_l2a
+connection: post_matrix-cascade_l3a
+connection: post_matrix-cascade_l4a
+connection: post_matrix-cascade_l5a
+connection: post_matrix-cascade_l6a
+
+connection: cascade_l1a-cascade_l1b
+connection: cascade_l1b-cascade_l1c
+connection: cascade_l1c-cascade_l1d
+
+connection: cascade_l2a-cascade_l2b
+connection: cascade_l2b-cascade_l2c
+connection: cascade_l2c-cascade_l2d
+
+connection: cascade_l3a-cascade_l3b
+connection: cascade_l3b-cascade_l3c
+connection: cascade_l3c-cascade_l3d
+
+connection: cascade_l4a-cascade_l4b
+connection: cascade_l4b-cascade_l4c
+connection: cascade_l4c-cascade_l4d
+
+connection: cascade_l5a-cascade_l5b
+connection: cascade_l5b-cascade_l5c
+connection: cascade_l5c-cascade_l5d
+
+connection: cascade_l6a-cascade_l6b
+connection: cascade_l6b-cascade_l6c
+connection: cascade_l6c-cascade_l6d
+
+# Merge tier 1
+connection: cascade_l1d-cascade_m1
+connection: cascade_l2d-cascade_m1
+connection: cascade_l3d-cascade_m2
+connection: cascade_l4d-cascade_m2
+connection: cascade_l5d-cascade_m3
+connection: cascade_l6d-cascade_m3
+
+# Merge tier 2
+connection: cascade_m1-cascade_final [max_link_capacity=1]
+connection: cascade_m2-cascade_final [max_link_capacity=1]
+connection: cascade_m3-cascade_final [max_link_capacity=1]
+
+# ── Layer 5: Temporal ordering ──
+connection: cascade_final-order_gate_a [max_link_capacity=1]
+connection: cascade_final-order_gate_b [max_link_capacity=1]
+connection: cascade_final-order_gate_c [max_link_capacity=1]
+connection: cascade_final-order_gate_d [max_link_capacity=1]
+connection: cascade_final-order_gate_e [max_link_capacity=1]
+
+connection: order_gate_a-order_sync [max_link_capacity=1]
+connection: order_gate_b-order_sync [max_link_capacity=1]
+connection: order_gate_c-order_sync [max_link_capacity=1]
+connection: order_gate_d-order_sync [max_link_capacity=1]
+connection: order_gate_e-order_sync [max_link_capacity=1]
+
+# ── Layer 6: Fake shortcut archipelago ──
+connection: order_sync-island_a1
+connection: order_sync-island_b1
+connection: order_sync-island_c1
+connection: order_sync-island_d1
+connection: order_sync-island_e1
+
+connection: island_a1-island_a2
+connection: island_a2-island_a3
+connection: island_b1-island_b2
+connection: island_b2-island_b3
+connection: island_c1-island_c2
+connection: island_c2-island_c3
+connection: island_d1-island_d2
+connection: island_d2-island_d3
+connection: island_e1-island_e2
+connection: island_e2-island_e3
+
+# Bridge connections (restricted, capacity=1)
+connection: island_a3-bridge_ab1 [max_link_capacity=1]
+connection: bridge_ab1-island_b1 [max_link_capacity=1]
+connection: island_b3-bridge_bc1 [max_link_capacity=1]
+connection: bridge_bc1-island_c1 [max_link_capacity=1]
+connection: island_c3-bridge_cd1 [max_link_capacity=1]
+connection: bridge_cd1-island_d1 [max_link_capacity=1]
+connection: island_d3-bridge_de1 [max_link_capacity=1]
+connection: bridge_de1-island_e1 [max_link_capacity=1]
+
+# Shortcut loops (mislead algorithm back to layer 4 merge)
+connection: island_a3-shortcut_loop_n [max_link_capacity=1]
+connection: island_e3-shortcut_loop_s [max_link_capacity=1]
+connection: shortcut_loop_n-cascade_m1
+connection: shortcut_loop_s-cascade_m3
+
+# True forward exit
+connection: island_c3-post_archipelago [max_link_capacity=1]
+
+# ── Layer 7: 50-way funnel ──
+connection: post_archipelago-funnel_f01 [max_link_capacity=1]
+connection: post_archipelago-funnel_f02 [max_link_capacity=1]
+connection: post_archipelago-funnel_f03 [max_link_capacity=1]
+connection: post_archipelago-funnel_f04 [max_link_capacity=1]
+connection: post_archipelago-funnel_f05 [max_link_capacity=1]
+connection: post_archipelago-funnel_f06 [max_link_capacity=1]
+connection: post_archipelago-funnel_f07 [max_link_capacity=1]
+connection: post_archipelago-funnel_f08 [max_link_capacity=1]
+connection: post_archipelago-funnel_f09 [max_link_capacity=1]
+connection: post_archipelago-funnel_f10 [max_link_capacity=1]
+connection: post_archipelago-funnel_f11 [max_link_capacity=1]
+connection: post_archipelago-funnel_f12 [max_link_capacity=1]
+connection: post_archipelago-funnel_f13 [max_link_capacity=1]
+connection: post_archipelago-funnel_f14 [max_link_capacity=1]
+connection: post_archipelago-funnel_f15 [max_link_capacity=1]
+connection: post_archipelago-funnel_f16 [max_link_capacity=1]
+connection: post_archipelago-funnel_f17 [max_link_capacity=1]
+connection: post_archipelago-funnel_f18 [max_link_capacity=1]
+connection: post_archipelago-funnel_f19 [max_link_capacity=1]
+connection: post_archipelago-funnel_f20 [max_link_capacity=1]
+connection: post_archipelago-funnel_f21 [max_link_capacity=1]
+connection: post_archipelago-funnel_f22 [max_link_capacity=1]
+connection: post_archipelago-funnel_f23 [max_link_capacity=1]
+connection: post_archipelago-funnel_f24 [max_link_capacity=1]
+connection: post_archipelago-funnel_f25 [max_link_capacity=1]
+connection: post_archipelago-funnel_f26 [max_link_capacity=1]
+connection: post_archipelago-funnel_f27 [max_link_capacity=1]
+connection: post_archipelago-funnel_f28 [max_link_capacity=1]
+connection: post_archipelago-funnel_f29 [max_link_capacity=1]
+connection: post_archipelago-funnel_f30 [max_link_capacity=1]
+connection: post_archipelago-funnel_f31 [max_link_capacity=1]
+connection: post_archipelago-funnel_f32 [max_link_capacity=1]
+connection: post_archipelago-funnel_f33 [max_link_capacity=1]
+connection: post_archipelago-funnel_f34 [max_link_capacity=1]
+connection: post_archipelago-funnel_f35 [max_link_capacity=1]
+connection: post_archipelago-funnel_f36 [max_link_capacity=1]
+connection: post_archipelago-funnel_f37 [max_link_capacity=1]
+connection: post_archipelago-funnel_f38 [max_link_capacity=1]
+connection: post_archipelago-funnel_f39 [max_link_capacity=1]
+connection: post_archipelago-funnel_f40 [max_link_capacity=1]
+connection: post_archipelago-funnel_f41 [max_link_capacity=1]
+connection: post_archipelago-funnel_f42 [max_link_capacity=1]
+connection: post_archipelago-funnel_f43 [max_link_capacity=1]
+connection: post_archipelago-funnel_f44 [max_link_capacity=1]
+connection: post_archipelago-funnel_f45 [max_link_capacity=1]
+connection: post_archipelago-funnel_f46 [max_link_capacity=1]
+connection: post_archipelago-funnel_f47 [max_link_capacity=1]
+connection: post_archipelago-funnel_f48 [max_link_capacity=1]
+connection: post_archipelago-funnel_f49 [max_link_capacity=1]
+connection: post_archipelago-funnel_f50 [max_link_capacity=1]
+
+# All 50 feeders → single apex
+connection: funnel_f01-funnel_apex [max_link_capacity=1]
+connection: funnel_f02-funnel_apex [max_link_capacity=1]
+connection: funnel_f03-funnel_apex [max_link_capacity=1]
+connection: funnel_f04-funnel_apex [max_link_capacity=1]
+connection: funnel_f05-funnel_apex [max_link_capacity=1]
+connection: funnel_f06-funnel_apex [max_link_capacity=1]
+connection: funnel_f07-funnel_apex [max_link_capacity=1]
+connection: funnel_f08-funnel_apex [max_link_capacity=1]
+connection: funnel_f09-funnel_apex [max_link_capacity=1]
+connection: funnel_f10-funnel_apex [max_link_capacity=1]
+connection: funnel_f11-funnel_apex [max_link_capacity=1]
+connection: funnel_f12-funnel_apex [max_link_capacity=1]
+connection: funnel_f13-funnel_apex [max_link_capacity=1]
+connection: funnel_f14-funnel_apex [max_link_capacity=1]
+connection: funnel_f15-funnel_apex [max_link_capacity=1]
+connection: funnel_f16-funnel_apex [max_link_capacity=1]
+connection: funnel_f17-funnel_apex [max_link_capacity=1]
+connection: funnel_f18-funnel_apex [max_link_capacity=1]
+connection: funnel_f19-funnel_apex [max_link_capacity=1]
+connection: funnel_f20-funnel_apex [max_link_capacity=1]
+connection: funnel_f21-funnel_apex [max_link_capacity=1]
+connection: funnel_f22-funnel_apex [max_link_capacity=1]
+connection: funnel_f23-funnel_apex [max_link_capacity=1]
+connection: funnel_f24-funnel_apex [max_link_capacity=1]
+connection: funnel_f25-funnel_apex [max_link_capacity=1]
+connection: funnel_f26-funnel_apex [max_link_capacity=1]
+connection: funnel_f27-funnel_apex [max_link_capacity=1]
+connection: funnel_f28-funnel_apex [max_link_capacity=1]
+connection: funnel_f29-funnel_apex [max_link_capacity=1]
+connection: funnel_f30-funnel_apex [max_link_capacity=1]
+connection: funnel_f31-funnel_apex [max_link_capacity=1]
+connection: funnel_f32-funnel_apex [max_link_capacity=1]
+connection: funnel_f33-funnel_apex [max_link_capacity=1]
+connection: funnel_f34-funnel_apex [max_link_capacity=1]
+connection: funnel_f35-funnel_apex [max_link_capacity=1]
+connection: funnel_f36-funnel_apex [max_link_capacity=1]
+connection: funnel_f37-funnel_apex [max_link_capacity=1]
+connection: funnel_f38-funnel_apex [max_link_capacity=1]
+connection: funnel_f39-funnel_apex [max_link_capacity=1]
+connection: funnel_f40-funnel_apex [max_link_capacity=1]
+connection: funnel_f41-funnel_apex [max_link_capacity=1]
+connection: funnel_f42-funnel_apex [max_link_capacity=1]
+connection: funnel_f43-funnel_apex [max_link_capacity=1]
+connection: funnel_f44-funnel_apex [max_link_capacity=1]
+connection: funnel_f45-funnel_apex [max_link_capacity=1]
+connection: funnel_f46-funnel_apex [max_link_capacity=1]
+connection: funnel_f47-funnel_apex [max_link_capacity=1]
+connection: funnel_f48-funnel_apex [max_link_capacity=1]
+connection: funnel_f49-funnel_apex [max_link_capacity=1]
+connection: funnel_f50-funnel_apex [max_link_capacity=1]
+
+# Overflow sinks (permanently blocked, attract greedy algorithms)
+connection: funnel_apex-overflow_sink_n
+connection: funnel_apex-overflow_sink_s
+
+# ── Layer 8: Final gauntlet ──
+connection: funnel_apex-gaunt01 [max_link_capacity=1]
+connection: gaunt01-gaunt02  [max_link_capacity=1]
+connection: gaunt02-gaunt03  [max_link_capacity=1]
+connection: gaunt03-gaunt04  [max_link_capacity=1]
+connection: gaunt04-gaunt05  [max_link_capacity=1]
+connection: gaunt05-gaunt06  [max_link_capacity=1]
+connection: gaunt06-gaunt07  [max_link_capacity=1]
+connection: gaunt07-gaunt08  [max_link_capacity=1]
+connection: gaunt08-gaunt09  [max_link_capacity=1]
+connection: gaunt09-gaunt10  [max_link_capacity=1]
+connection: gaunt10-gaunt11  [max_link_capacity=1]
+connection: gaunt11-gaunt12  [max_link_capacity=1]
+connection: gaunt12-gaunt13  [max_link_capacity=1]
+connection: gaunt13-gaunt14  [max_link_capacity=1]
+connection: gaunt14-gaunt15  [max_link_capacity=1]
+connection: gaunt15-gaunt16  [max_link_capacity=1]
+connection: gaunt16-gaunt17  [max_link_capacity=1]
+connection: gaunt17-gaunt18  [max_link_capacity=1]
+connection: gaunt18-gaunt19  [max_link_capacity=1]
+connection: gaunt19-gaunt20  [max_link_capacity=1]
+connection: gaunt20-the_abyss_goal [max_link_capacity=1]
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║   CROSS-LAYER SABOTAGE CONNECTIONS                       ║
+# ║   Emergency bypass routes that appear helpful            ║
+# ║   but lead to earlier layers (regression traps)          ║
+# ╚══════════════════════════════════════════════════════════╝
+
+# Looks like a bypass from layer 3 dead ends back to layer 2
+connection: hpot_dead01-ring_b4   [max_link_capacity=1]
+connection: hpot_dead06-ring_c12  [max_link_capacity=1]
+
+# Looks like a forward jump from layer 1 mirror traps to layer 4
+connection: mirror_n_dead1-cascade_l1a
+connection: mirror_s_dead1-cascade_l6a
+
+# Looks like a shortcut from overflow hell to final gauntlet
+# (actually connects to gaunt10 which then must finish sequentially)
+connection: overflow_sink_n-gaunt10  [max_link_capacity=1]
+connection: overflow_sink_s-gaunt10  [max_link_capacity=1]
+
+# Appears to connect ring exits directly to funnel
+# (actually sends to funnel_f50 which converges at apex anyway)
+connection: ring_exit_a-funnel_f50  [max_link_capacity=1]
+
+# False emergency exit from cascade that loops back to layer 5
+connection: cascade_l3c-order_gate_c [max_link_capacity=1]
+connection: cascade_l4c-order_gate_d [max_link_capacity=1]

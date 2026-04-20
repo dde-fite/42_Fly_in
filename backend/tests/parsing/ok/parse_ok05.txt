@@ -1,0 +1,34 @@
+# Unordered statements
+
+start_hub: start 0 0 [color=green]
+hub: slow_path1 1 -1 [zone=restricted color=red]
+connection: start-slow_path1
+
+hub: slow_path2 2 -1 [zone=restricted color=red]
+connection: slow_path1-slow_path2
+
+hub: slow_path3 3 -1 [zone=restricted color=red]
+connection: slow_path2-slow_path3
+
+
+
+nb_drones: 4
+
+
+
+
+hub: fast_junction 1 0 [zone=priority color=blue max_drones=2]
+connection: start-fast_junction ######## hola @#@#@
+
+hub: fast_path 2 0 [zone=priority color=blue]
+connection: fast_junction-fast_path
+
+hub: merge_point 3 0 [color=yellow max_drones=3]
+connection: slow_path3-merge_point
+connection: fast_path-merge_point
+
+end_hub: goal 4 0 [color=green max_drones=4]
+connection: merge_point-goal
+
+
+
