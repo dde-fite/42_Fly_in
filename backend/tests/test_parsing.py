@@ -344,6 +344,45 @@ async def test_parsing_ok_05():
     )
 
 
+@pytest.mark.asyncio
+async def test_parsing_ok_06():
+    with open("tests/parsing/ok/parse_ok06.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=5,
+        connections=5,
+        drones=3
+    )
+    assert s.origin.color == "rainbow"
+
+
+@pytest.mark.asyncio
+async def test_parsing_ok_07():
+    with open("tests/parsing/ok/parse_ok07.txt", "rb") as f:
+        content = f.read()
+    file = UploadFile(
+        filename="map.txt",
+        file=BytesIO(content)
+    )
+    s = await parse_map(file)
+    assert_simulation(
+        s,
+        turn=0,
+        hubs=5,
+        connections=5,
+        drones=3
+    )
+    assert s.origin.position.x == (
+        523330231315344564654123513044240534564563412153045)
+    assert s.origin.position.y == 56565
+
 # -----------------------
 # Create simulation ERROR
 # -----------------------
