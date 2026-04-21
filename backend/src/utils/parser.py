@@ -42,8 +42,8 @@ def parse_hub(raw: str) -> Hub:
                 case "zone":
                     params["access"] = value
                 case "color":
-                    if value == "rainbow":
-                        params["color"] = value
+                    if isinstance(value, str) and value.lower() == "rainbow":
+                        params["color"] = value.lower()
                     else:
                         try:
                             params["color"] = Color(value).as_hex()
