@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 from enum import Enum
 from uuid import uuid4
-from pydantic import BaseModel, Field, field_validator, ValidationError
+from pydantic import BaseModel, Field, field_validator
 from pydantic_extra_types import Color
 from src.schema.references import HubRef
 
@@ -45,6 +45,16 @@ class Hub(BaseModel):
     def check_name(cls, value: str) -> str:
         if "-" in value:
             raise ValueError("Hub names can not contain dashes(-)")
+        return value
+
+    @field_validator('color', mode='after')
+    @classmethod
+    def check_color(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        if value == "rainbow":
+            return value
+        Color(value)
         return value
 
     # def available_at(self, turn: Turn) -> bool:
