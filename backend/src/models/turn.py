@@ -1,3 +1,5 @@
-from typing import TypeAlias
+class Turn:
+    __slots__ = ('value')
 
-Turn: TypeAlias = int
+    def __init__(self, value: int = 0):
+        self.value: int = value
