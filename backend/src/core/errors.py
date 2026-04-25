@@ -24,3 +24,15 @@ class KeyExpiredError(KeyError):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
         logger.debug(*args)
+
+
+class ZoneNotAvailable(Exception):
+    pass
+
+
+class TrafficError(Exception):
+    pass
+
+
+class ExpiredItinerary(Exception):
+    pass
