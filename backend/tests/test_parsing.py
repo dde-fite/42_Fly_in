@@ -1,3 +1,5 @@
+import pytest
+import os
 from typing import Any
 from fastapi import UploadFile
 from io import BytesIO
@@ -6,11 +8,9 @@ from src.core.errors import ParseError
 from src.models import Simulation, Hub, Connection, Drone
 from src.utils.parser import parse_map
 from tests.utils import assert_is_uuid
-import pytest
-import os
 
 
-def assert_drone(drone: Any):
+def assert_drone(drone: Any) -> None:
     assert isinstance(drone, Drone)
     assert_is_uuid(drone.id)
     assert (isinstance(drone.location, Hub) or
@@ -18,7 +18,7 @@ def assert_drone(drone: Any):
     assert drone in drone.location.drones
 
 
-def assert_connection(connection: Any):
+def assert_connection(connection: Any) -> None:
     assert isinstance(connection, Connection)
     assert_is_uuid(connection.id)
     assert connection.capacity > 0
@@ -27,7 +27,7 @@ def assert_connection(connection: Any):
         assert connection in h.connections
 
 
-def assert_hub(hub: Any):
+def assert_hub(hub: Any) -> None:
     assert isinstance(hub, Hub)
     assert_is_uuid(hub.id)
     assert "-" not in hub.name
@@ -43,8 +43,8 @@ def assert_simulation(
     hubs: int,
     connections: int,
     drones: int
-):
-    assert sim.turns == turn
+) -> None:
+    assert sim.turn.value == turn
     #  Hubs
     assert len(sim.hubs) == hubs
     for h in sim.hubs:
@@ -66,6 +66,7 @@ def assert_simulation(
     for d in sim.drones:
         assert_drone(d)
 
+# ─── Tests ───────────────────────────────────────────────────────────────────
 
 # -----------------------
 # Parse Map OK
@@ -74,7 +75,7 @@ def assert_simulation(
 
 # Subject's maps
 @pytest.mark.asyncio
-async def test_parsing_ok_easy_01():
+async def test_parsing_ok_easy_01() -> None:
     with open("tests/maps/easy/01_linear_path.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -92,7 +93,7 @@ async def test_parsing_ok_easy_01():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_easy_02():
+async def test_parsing_ok_easy_02() -> None:
     with open("tests/maps/easy/02_simple_fork.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -110,7 +111,7 @@ async def test_parsing_ok_easy_02():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_easy_03():
+async def test_parsing_ok_easy_03() -> None:
     with open("tests/maps/easy/03_basic_capacity.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -128,7 +129,7 @@ async def test_parsing_ok_easy_03():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_medium_01():
+async def test_parsing_ok_medium_01() -> None:
     with open("tests/maps/medium/01_dead_end_trap.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -146,7 +147,7 @@ async def test_parsing_ok_medium_01():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_medium_02():
+async def test_parsing_ok_medium_02() -> None:
     with open("tests/maps/medium/02_circular_loop.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -164,7 +165,7 @@ async def test_parsing_ok_medium_02():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_medium_03():
+async def test_parsing_ok_medium_03() -> None:
     with open("tests/maps/medium/03_priority_puzzle.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -182,7 +183,7 @@ async def test_parsing_ok_medium_03():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_hard_01():
+async def test_parsing_ok_hard_01() -> None:
     with open("tests/maps/hard/01_maze_nightmare.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -200,7 +201,7 @@ async def test_parsing_ok_hard_01():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_hard_02():
+async def test_parsing_ok_hard_02() -> None:
     with open("tests/maps/hard/02_capacity_hell.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -218,7 +219,7 @@ async def test_parsing_ok_hard_02():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_hard_03():
+async def test_parsing_ok_hard_03() -> None:
     with open("tests/maps/hard/03_ultimate_challenge.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -236,7 +237,7 @@ async def test_parsing_ok_hard_03():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_challenger():
+async def test_parsing_ok_challenger() -> None:
     with open("tests/maps/challenger/01_the_impossible_dream.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -255,7 +256,7 @@ async def test_parsing_ok_challenger():
 
 # Own maps
 @pytest.mark.asyncio
-async def test_parsing_ok_01():
+async def test_parsing_ok_01() -> None:
     with open("tests/parsing/ok/parse_ok01.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -273,7 +274,7 @@ async def test_parsing_ok_01():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_02():
+async def test_parsing_ok_02() -> None:
     with open("tests/parsing/ok/parse_ok02.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -291,7 +292,7 @@ async def test_parsing_ok_02():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_03():
+async def test_parsing_ok_03() -> None:
     with open("tests/parsing/ok/parse_ok03.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -309,7 +310,7 @@ async def test_parsing_ok_03():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_04():
+async def test_parsing_ok_04() -> None:
     with open("tests/parsing/ok/parse_ok04.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -327,7 +328,7 @@ async def test_parsing_ok_04():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_05():
+async def test_parsing_ok_05() -> None:
     with open("tests/parsing/ok/parse_ok05.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -345,7 +346,7 @@ async def test_parsing_ok_05():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_06():
+async def test_parsing_ok_06() -> None:
     with open("tests/parsing/ok/parse_ok06.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -364,7 +365,7 @@ async def test_parsing_ok_06():
 
 
 @pytest.mark.asyncio
-async def test_parsing_ok_07():
+async def test_parsing_ok_07() -> None:
     with open("tests/parsing/ok/parse_ok07.txt", "rb") as f:
         content = f.read()
     file = UploadFile(
@@ -388,14 +389,14 @@ async def test_parsing_ok_07():
 # -----------------------
 
 
-def parse_error_files():
+def parse_error_files() -> list[str]:
     errors = "tests/parsing/error"
     return glob(os.path.join(errors, '*.txt'))
 
 
 @pytest.mark.parametrize("file_path", parse_error_files())
 @pytest.mark.asyncio
-async def test_parsing_error_batch(file_path: str):
+async def test_parsing_error_batch(file_path: str) -> None:
     with open(file_path, "rb") as f:
         content = f.read()
     file = UploadFile(

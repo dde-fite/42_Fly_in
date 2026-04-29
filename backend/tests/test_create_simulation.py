@@ -1,15 +1,14 @@
-from typing import Any
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from httpx import Response
-from glob import glob
-from random import choice, randint
-from src.api.routes import router
-from tests.utils import assert_is_uuid
 import pytest
 import os
 import secrets
 import string
+from typing import Any
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from glob import glob
+from random import choice, randint
+from src.api.routes import router
+from tests.utils import assert_is_uuid
 
 
 app = FastAPI()
@@ -25,7 +24,7 @@ def assert_simulation_response(
     connections: int,
     drones: int
 ) -> None:
-    assert data["turns"] == turn
+    assert data["turn"] == turn
     assert len(data["hubs"]) == hubs
     for hub in data["hubs"]:
         assert_is_uuid(hub)
@@ -42,6 +41,8 @@ def assert_simulation_response(
 def random_string(length: int = randint(1, 50)) -> str:
     chars = string.ascii_letters + string.digits + "+/="
     return ''.join(choice(chars) for _ in range(length))
+
+# ─── Tests ───────────────────────────────────────────────────────────────────
 
 # -----------------------
 # Create simulation OK strict
