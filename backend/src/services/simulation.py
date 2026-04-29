@@ -1,9 +1,10 @@
+from uuid import UUID
 from fastapi import UploadFile
 from src.models.simulation_token import SimulationToken
 from src.core import SimulationAlreadyAllocated
 from src.schema import (
     ResponseSimulation, ResponseDrone, ResponseHub,
-    DroneRef, HubRef, ResponseConnection, ConnectionRef
+    ResponseConnection
 )
 from src.mappers import (
     simulation_to_schema, connection_to_schema,
@@ -34,7 +35,7 @@ def fetch_simulation(token: SimulationToken) -> ResponseSimulation:
     return simulation_to_schema(s)
 
 
-def fetch_hub(token: SimulationToken, id: HubRef) -> ResponseHub | None:
+def fetch_hub(token: SimulationToken, id: UUID) -> ResponseHub | None:
     s = get_simulation(token)
     for hub in s.hubs:
         if hub.id == id:
@@ -42,7 +43,7 @@ def fetch_hub(token: SimulationToken, id: HubRef) -> ResponseHub | None:
     return None
 
 
-def fetch_drone(token: SimulationToken, id: DroneRef) -> ResponseDrone | None:
+def fetch_drone(token: SimulationToken, id: UUID) -> ResponseDrone | None:
     s = get_simulation(token)
     for drone in s.drones:
         if drone.id == id:
@@ -50,7 +51,7 @@ def fetch_drone(token: SimulationToken, id: DroneRef) -> ResponseDrone | None:
     return None
 
 
-def fetch_connection(token: SimulationToken, id: ConnectionRef
+def fetch_connection(token: SimulationToken, id: UUID
                      ) -> ResponseConnection | None:
     s = get_simulation(token)
     if not s:
@@ -63,5 +64,5 @@ def fetch_connection(token: SimulationToken, id: ConnectionRef
 
 def execute_turn(token: SimulationToken, turns: int = 1) -> ResponseSimulation:
     s = get_simulation(token)
-    s.turns += 1
+    s.turn += 1
     return simulation_to_schema(s)

@@ -4,7 +4,7 @@ from src.schema.simulation import ResponseSimulation
 
 def simulation_to_schema(s: Simulation) -> ResponseSimulation:
     return ResponseSimulation(
-        turns=int(s.turns),
+        turn=int(s.turn.value),
         hubs=[hub.id for hub in s.hubs],
         origin=s.origin.id,
         destination=s.destination.id,

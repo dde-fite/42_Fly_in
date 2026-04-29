@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, UploadFile
 from src.models import SimulationToken
 from src.services import (
@@ -5,8 +6,8 @@ from src.services import (
     fetch_hub, fetch_drone, fetch_connection
 )
 from src.schema import (
-    ResponseSimulation, ResponseDrone, DroneRef, ResponseHub,
-    HubRef, ConnectionRef, ResponseConnection
+    ResponseSimulation, ResponseDrone, ResponseHub,
+    ResponseConnection
 )
 from src.core import ParseError, SimulationAlreadyAllocated, SimulationNotFound
 
@@ -41,7 +42,7 @@ async def get_simulation(token: SimulationToken):
 
 
 @router.get("/hub", response_model=ResponseHub)
-async def get_hub(token: SimulationToken, id: HubRef):
+async def get_hub(token: SimulationToken, id: UUID):
     try:
         return fetch_hub(token, id)
     except SimulationNotFound:
@@ -49,7 +50,7 @@ async def get_hub(token: SimulationToken, id: HubRef):
 
 
 @router.get("/drone", response_model=ResponseDrone)
-async def get_drone(token: SimulationToken, id: DroneRef):
+async def get_drone(token: SimulationToken, id: UUID):
     try:
         return fetch_drone(token, id)
     except SimulationNotFound:
@@ -57,7 +58,7 @@ async def get_drone(token: SimulationToken, id: DroneRef):
 
 
 @router.get("/connection", response_model=ResponseConnection)
-async def get_connection(token: SimulationToken, id: ConnectionRef):
+async def get_connection(token: SimulationToken, id: UUID):
     try:
         return fetch_connection(token, id)
     except SimulationNotFound:
@@ -65,7 +66,7 @@ async def get_connection(token: SimulationToken, id: ConnectionRef):
 
 
 @router.post("/simulation/step", response_model=ResponseSimulation)
-async def advance_simulation(token: str, steps: int):
+async def advance_simulation(token: SimulationToken, steps: int):
     try:
         return execute_turn(token, steps)
     except SimulationNotFound:

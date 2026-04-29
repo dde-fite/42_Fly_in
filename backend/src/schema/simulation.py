@@ -1,11 +1,11 @@
+from uuid import UUID
 from pydantic import BaseModel
-from .references import HubRef, ConnectionRef, DroneRef
 
 
 class ResponseSimulation(BaseModel):
-    turns: int
-    hubs: list[HubRef]
-    origin: HubRef
-    destination: HubRef
-    connections: list[ConnectionRef]
-    drones: list[DroneRef]
+    turn: int
+    hubs: list[UUID]
+    origin: UUID
+    destination: UUID
+    connections: list[UUID]
+    drones: list[UUID]

@@ -1,5 +1,5 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
-from .references import DroneRef, ConnectionRef
 
 
 class ResponseHub(BaseModel):
@@ -7,6 +7,6 @@ class ResponseHub(BaseModel):
     position: tuple[int, int]
     access: str
     color: str | None = None
-    drones: list[DroneRef] = []
+    drones: list[UUID] = []
     capacity: int = Field(ge=1, default=1)
-    connections: list[ConnectionRef] = []
+    connections: list[UUID] = []
