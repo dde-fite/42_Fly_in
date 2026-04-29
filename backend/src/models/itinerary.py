@@ -1,25 +1,28 @@
-from src.core.errors import ZoneNotAvailable, ExpiredItinerary
+from src.core.errors import ZoneNotAvailable, ExpiredItinerary, TrafficError
 from .drone import Drone
-from .transitable_zone import TransitableZone
+from .hub import Hub
 from .turn import Turn
 from .slot_booking import SlotBooking
 
 
 class Itinerary:
+    # TODO: Finish itinerary creation
     def __init__(
             self,
             drone: Drone,
-            zones: list[TransitableZone],
+            hubs: list[Hub],
             turn: Turn
     ) -> None:
+        if drone.itinerary:
+            raise TrafficError("Drone has an itinerary assigned")
         self.__drone = drone
         self.__bookings: list[SlotBooking] = []
         self.__turn = turn
         self.__operative: bool = False
 
         current: Turn = turn
-        for i, zone in enumerate(zones):
-            next_zone = zones[i + 1] if i + 1 < len(zones) else None
+        for i, hub in enumerate(hubs):
+            next_hub = zones[i + 1] if i + 1 < len(hub) else None
             entry = zone.get_next_available_entry(current)
             exit_turn: Turn | None
             if next_zone is not None:
@@ -40,6 +43,7 @@ class Itinerary:
             self.__bookings.append(booking)
             if exit_turn is not None:
                 current = exit_turn
+        self.__drone.itinerary = self
         self.__operative = True
 
     @property

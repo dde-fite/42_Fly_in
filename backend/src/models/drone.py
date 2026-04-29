@@ -1,22 +1,28 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from uuid import uuid4
-from pydantic import BaseModel, Field
-from src.schema.references import DroneRef
+from typing import TYPE_CHECKING, Any
+from uuid import UUID, uuid4
+from pydantic import BaseModel, Field, ConfigDict, model_validator, PrivateAttr
 from src.core.errors import TrafficError
 from .turn import Turn
-from .itinerary import Itinerary
 
 if TYPE_CHECKING:
     from .transitable_zone import TransitableZone
+    from .itinerary import Itinerary
+    from .hub import Hub
 
 
 class Drone(BaseModel):
-    id: DroneRef = Field(default_factory=lambda: DroneRef(uuid4()))
-    destination: TransitableZone
-    itinerary: Itinerary | None = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    id: UUID = Field(default_factory=lambda: uuid4())
+    origin: Hub
+    destination: Hub
     turn: Turn
-    _location: TransitableZone
+    itinerary: Itinerary | None = None
+    _location: TransitableZone = PrivateAttr()
+
+    def model_post_init(self, context: Any) -> None:
+        self.origin.accept_drone_spawn(self)
+        self._location = self.origin
 
     @property
     def location(self) -> TransitableZone:
@@ -41,10 +47,6 @@ class Drone(BaseModel):
             # if no one returned, not move
             return
         bookings = self.itinerary.bookings
-        if bookings[0].host != self.location:
-            raise TrafficError(
-                "Drone does not have permission to stay in current location"
-            )
         if bookings[0].exit_turn is None:
             # ask TrafficController an itinerary
             # if no one returned, not move
