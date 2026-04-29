@@ -2,7 +2,7 @@ from typing import Any
 from fastapi import UploadFile
 from pydantic import ValidationError
 from pydantic_extra_types import Color
-from src.models import Simulation, Hub, Connection, Vector, Drone
+from src.models import Simulation, Hub, Connection, Vector, Drone, Turn
 from src.core import logger, ParseError
 import logging
 
@@ -28,7 +28,7 @@ def parse_params(raw_params: str) -> dict[str, Any]:
     return params
 
 
-def parse_hub(raw: str) -> Hub:
+def parse_hub(raw: str, turn: Turn) -> Hub:
     splits = raw.split(maxsplit=3)
     name = splits[0].strip()
     try:
@@ -57,13 +57,13 @@ def parse_hub(raw: str) -> Hub:
                 case _:
                     pass
     try:
-        h = Hub(name=name, position=pos, **params)
+        h = Hub(name=name, position=pos, **params, turn=turn)
     except ValidationError as e:
-        raise ParseError(f"Error creating a hub: {e.errors}")
+        raise ParseError(f"Error creating a hub: {e.errors(include_input=False, include_url=False)}")
     return h
 
 
-def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
+def parse_connection(raw: str, hubs: set[Hub], turn: Turn) -> Connection:
     splits = raw.split(maxsplit=2)
     splits = splits[0].split("-")
     if len(splits) != 2:
@@ -87,29 +87,29 @@ def parse_connection(raw: str, hubs: set[Hub]) -> Connection:
                 case _:
                     pass
     try:
-        con = Connection(hubs=frozenset({p1, p2}), **params)
+        con = Connection(hubs=frozenset({p1, p2}), **params, turn=turn)
     except ValidationError as e:
-        raise ParseError(f"Error creating a connection: {e.errors}")
-    p1.connections.add(con)
-    p2.connections.add(con)
+        raise ParseError(f"Error creating a connection: {e.errors(include_input=False, include_url=False)}")
     return con
 
 
-def init_drones(nbr: int, origin: Hub) -> set[Drone]:
+def init_drones(nbr: int, origin: Hub, destination: Hub, turn: Turn) -> set[Drone]:
     drones: set[Drone] = set()
     for _d in range(nbr):
         try:
-            d = Drone(location=origin)
+            d = Drone(origin=origin, destination=destination, turn=turn)
         except ValidationError as e:
-            raise ParseError(f"Error creating a drone: {e.errors}")
+            raise ParseError(f"Error creating a drone: {e.errors(include_input=False, include_url=False)}")
+        except ValueError as e:
+            raise ParseError(f"Error creating a drone: {e}")
         drones.add(d)
-        origin.drones.add(d)
     return drones
 
 
 async def parse_map(file: UploadFile) -> Simulation:
     content = await file.read()
     text = content.decode()
+    turn = Turn(0)
     nb_drones: int | None = None
     hubs: set[Hub] = set()
     origin: Hub | None = None
@@ -143,24 +143,24 @@ async def parse_map(file: UploadFile) -> Simulation:
             case "start_hub":
                 if origin:
                     raise ParseError("Start hub already defined", line)
-                origin = parse_hub(value)
+                origin = parse_hub(value, turn)
                 if origin in hubs:
                     raise ParseError("Duplicated hub names", line)
                 hubs.add(origin)
             case "end_hub":
                 if destination:
                     raise ParseError("Destination hub already defined", line)
-                destination = parse_hub(value)
+                destination = parse_hub(value, turn)
                 if destination in hubs:
                     raise ParseError("Duplicated hub names", line)
                 hubs.add(destination)
             case "hub":
-                h = parse_hub(value)
+                h = parse_hub(value, turn)
                 if h in hubs:
                     raise ParseError("Duplicated hub names", line)
                 hubs.add(h)
             case "connection":
-                c = parse_connection(value, hubs)
+                c = parse_connection(value, hubs, turn)
                 if c in connection:
                     raise ParseError("Duplicated connection", line)
                 connection.add(c)
@@ -175,9 +175,10 @@ async def parse_map(file: UploadFile) -> Simulation:
             raise ParseError(
                 "Number of drones exceed the capacity of start hub"
             )
-        drones = init_drones(nb_drones, origin)
+        drones = init_drones(nb_drones, origin, destination, turn)
     try:
         sim = Simulation(
+            turn=turn,
             hubs=hubs,
             origin=origin,
             destination=destination,
@@ -185,7 +186,7 @@ async def parse_map(file: UploadFile) -> Simulation:
             drones=drones
         )
     except ValidationError as e:
-        raise ParseError(f"Error creating the simulation: {e.errors}")
+        raise ParseError(f"Error creating the simulation: {e.errors(include_input=False, include_url=False)}")
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
             "Simulation created (hubs=%d, connections=%d, drones=%d)",
