@@ -1,3 +1,4 @@
+import src.models._rebuild
 from fastapi import FastAPI
 from src.core.logging import setup_logging
 from src.api import routes
