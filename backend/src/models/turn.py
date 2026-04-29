@@ -1,5 +1,6 @@
-class Turn:
-    __slots__ = ('value')
+from dataclasses import dataclass
 
-    def __init__(self, value: int = 0):
-        self.value: int = value
+
+@dataclass
+class Turn:
+    value: int = 0
