@@ -1,14 +1,30 @@
 import pytest
-from typing import Any
 from dataclasses import dataclass
-from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, TransitableZone
+from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, TransitableZone, SlotBooking
+
 
 @dataclass
 class TestMap:
     turn: Turn
     hubs: dict[str, Hub]
     connections: dict[str, Connection]
-    drones: dict[str, Drone]
+    drones: list[Drone]
+
+
+def assert_bookings(
+        bookings: list[SlotBooking],
+        turns: list[tuple[int, int] | int]
+) -> None:
+    assert len(bookings) == len(turns)
+    for booking, turn in zip(bookings, turns):
+        if isinstance(turn, tuple):
+            assert turn[0] == booking.enter_turn.value
+            assert booking.exit_turn is not None
+            assert turn[1] == booking.exit_turn.value
+        else:
+            assert turn == booking.enter_turn.value
+            assert booking.exit_turn is None
+
 
 @pytest.fixture
 def map_01() -> TestMap:
@@ -25,9 +41,9 @@ def map_01() -> TestMap:
         "AB": Connection(hubs=frozenset({hubs["A"], hubs["B"]}), turn=turn),
         "BC": Connection(hubs=frozenset({hubs["B"], hubs["C"]}), turn=turn)
     }
-    drones = {
-        "1": Drone(origin=hubs["A"], destination=hubs["C"], turn=turn)
-    }
+    drones = [
+        Drone(origin=hubs["A"], destination=hubs["C"], turn=turn)
+    ]
     return TestMap(
         turn=turn,
         hubs=hubs,
@@ -36,30 +52,85 @@ def map_01() -> TestMap:
     )
 
 
-def make_itinerary_01_01(map: TestMap) -> Itinerary:
+@pytest.fixture
+def map_02() -> TestMap:
     """
-    Returns an itinerary for the map 01
+    Makes a linear map: A ── con_ab ── B ── con_bc ── C, with 1 drone
     """
-    hub_a = map.hubs["A"]
-    con_ab = map.connections["AB"]
-    hub_b = map.hubs["B"]
-    con_bc = map.connections["BC"]
-    hub_c = map.hubs["C"]
+    turn = Turn(0)
+    hubs = {
+        "A": Hub(name="A", position=Vector(x=0, y=0), turn=turn, capacity=3),
+        "B": Hub(name="B", position=Vector(x=1, y=0), turn=turn, capacity=1),
+        "C": Hub(name="C", position=Vector(x=2, y=0), turn=turn, capacity=3)
+    }
+    connections = {
+        "AB": Connection(hubs=frozenset({hubs["A"], hubs["B"]}), turn=turn),
+        "BC": Connection(hubs=frozenset({hubs["B"], hubs["C"]}), turn=turn)
+    }
+    drones = [
+        Drone(origin=hubs["A"], destination=hubs["C"], turn=turn),
+        Drone(origin=hubs["A"], destination=hubs["C"], turn=turn),
+        Drone(origin=hubs["A"], destination=hubs["C"], turn=turn)
+    ]
+    return TestMap(
+        turn=turn,
+        hubs=hubs,
+        connections=connections,
+        drones=drones
+    )
 
+
+def itinerary_01_01(map: TestMap) -> Itinerary:
     return Itinerary(
-        drone=map.drones["1"],
-        zones=[hub_a, con_ab, hub_b, con_bc, hub_c],
+        drone=map.drones[0],
+        hubs=[
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ],
         turn=map.turn
     )
 
 
+def itinerary_02_01(map: TestMap) -> list[Itinerary]:
+    return [
+        Itinerary(
+            drone=map.drones[0],
+            hubs=[
+                map.hubs["A"],
+                map.hubs["B"],
+                map.hubs["C"]
+            ],
+            turn=map.turn
+        ),
+        Itinerary(
+            drone=map.drones[1],
+            hubs=[
+                map.hubs["A"],
+                map.hubs["B"],
+                map.hubs["C"]
+            ],
+            turn=map.turn
+        ),
+        Itinerary(
+            drone=map.drones[2],
+            hubs=[
+                map.hubs["A"],
+                map.hubs["B"],
+                map.hubs["C"]
+            ],
+            turn=map.turn
+        ),
+    ]
+
+
 def tick_all(map: TestMap) -> None:
     map.turn.value += 1
-    for z in map.hubs.values():
-        z.tick()
-    for z in map.connections.values():
-        z.tick()
-    for d in map.drones.values():
+    for h in map.hubs.values():
+        h.tick()
+    for c in map.connections.values():
+        c.tick()
+    for d in map.drones:
         d.tick()
         if d.itinerary:
             d.itinerary.tick()
@@ -67,10 +138,57 @@ def tick_all(map: TestMap) -> None:
 # ─── Tests ───────────────────────────────────────────────────────────────────
 
 
-def test_itinerary_books_all_zones(map_01: TestMap) -> None:
-    itinerary = make_itinerary_01_01(map_01)
-    assert isinstance(map_01.drones["1"].itinerary, Itinerary)
+def test_itinerary_booking_01(map_01: TestMap) -> None:
+    itinerary = Itinerary(
+        drone=map_01.drones[0],
+        hubs=[
+            map_01.hubs["A"],
+            map_01.hubs["B"],
+            map_01.hubs["C"]
+        ],
+        turn=map_01.turn
+    )
+    assert itinerary == map_01.drones[0].itinerary
+    assert isinstance(itinerary, Itinerary)
     assert len(itinerary.bookings) == 5
+    for i, (bk, drone) in enumerate(zip(itinerary.bookings, map_01.drones)):
+        assert bk in bk.host.bookings
+        assert bk.guest == drone
+        assert isinstance(bk.enter_turn, Turn)
+        if i != 5:
+            assert isinstance(bk.exit_turn, Turn)
+        else:
+            assert bk.host == map_01.hubs["C"]
+            assert bk.exit_turn is None
+    for h in map_01.hubs.values():
+        assert len(h.bookings) == 1
+    assert_bookings(
+        itinerary.bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2]
+    )
+
+
+def test_itinerary_booking_02(map_02: TestMap) -> None:
+    itineraries = itinerary_02_01(map_02)
+    for i, d in zip(itineraries, map_02.drones):
+        assert isinstance(i, Itinerary)
+        assert i == d.itinerary
+        assert len(i.bookings) == 5
+        for b in i.bookings:
+            assert b in b.host.bookings
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 1), (1, 2), (2, 2), (2, 3), 3]
+    )
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 2), (2, 3), (3, 3), (3, 4), 4]
+    )
+    # assert
 
 
 # def test_itinerary_is_operative(turn, linear_map, drone_at_a):

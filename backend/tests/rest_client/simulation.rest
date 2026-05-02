@@ -5,7 +5,7 @@ Content-Type: multipart/form-data; boundary=MfnBoundry
 Content-Disposition: form-data; name="file"; filename="01_linear_path.txt"
 Content-Type: text/plain
 
-< ../maps/subject/hard/02_capacity_hell.txt
+< ../maps/hard/02_capacity_hell.txt
 # < ../maps/medium/02_circular_loop.txt
 --MfnBoundry--
 
