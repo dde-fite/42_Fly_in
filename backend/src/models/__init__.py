@@ -9,3 +9,4 @@ from .vector import Vector
 from .turn import Turn
 from .simulation_token import SimulationToken
 from .itinerary import Itinerary
+from .slot_booking import SlotBooking

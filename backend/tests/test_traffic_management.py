@@ -15,15 +15,31 @@ def assert_bookings(
         bookings: list[SlotBooking],
         turns: list[tuple[int, int] | int]
 ) -> None:
-    assert len(bookings) == len(turns)
-    for booking, turn in zip(bookings, turns):
+    assert len(bookings) == len(turns), (
+        f"Expected {len(turns)} bookings, got {len(bookings)}"
+    )
+    for i, (booking, turn) in enumerate(zip(bookings, turns)):
         if isinstance(turn, tuple):
-            assert turn[0] == booking.enter_turn.value
-            assert booking.exit_turn is not None
-            assert turn[1] == booking.exit_turn.value
+            assert turn[0] == booking.enter_turn.value, (
+                f"Booking[{i}]: expected enter_turn={turn[0]}, got "
+                f"{booking.enter_turn.value}"
+            )
+            assert booking.exit_turn is not None, (
+                f"Booking[{i}]: expected exit_turn={turn[1]}, got None"
+            )
+            assert turn[1] == booking.exit_turn.value, (
+                f"Booking[{i}]: expected exit_turn={turn[1]}, got "
+                f"{booking.exit_turn.value}"
+            )
         else:
-            assert turn == booking.enter_turn.value
-            assert booking.exit_turn is None
+            assert turn == booking.enter_turn.value, (
+                f"Booking[{i}]: expected enter_turn={turn}, got "
+                f"{booking.enter_turn.value}"
+            )
+            assert booking.exit_turn is None, (
+                f"Booking[{i}]: expected exit_turn=None, got "
+                f"{booking.exit_turn.value}"
+            )
 
 
 @pytest.fixture
@@ -185,7 +201,7 @@ def test_itinerary_booking_02(map_02: TestMap) -> None:
         [(0, 1), (1, 2), (2, 2), (2, 3), 3]
     )
     assert_bookings(
-        itineraries[0].bookings,
+        itineraries[2].bookings,
         [(0, 2), (2, 3), (3, 3), (3, 4), 4]
     )
     # assert
