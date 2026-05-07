@@ -1,6 +1,6 @@
 import pytest
 from dataclasses import dataclass
-from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, TransitableZone, SlotBooking
+from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, SlotBooking, Simulation
 
 
 @dataclass
@@ -40,6 +40,19 @@ def assert_bookings(
                 f"Booking[{i}]: expected exit_turn=None, got "
                 f"{booking.exit_turn.value}"
             )
+
+
+def test_map_to_simulation(map: TestMap) -> Simulation:
+    hubs = list(map.hubs.values())
+
+    return Simulation(
+        turn=map.turn,
+        hubs=set(hubs),
+        origin=hubs[0],
+        destination=hubs[-1],
+        connections={c for c in map.connections.values()},
+        drones=set(map.drones),
+    )
 
 
 @pytest.fixture
@@ -155,15 +168,7 @@ def tick_all(map: TestMap) -> None:
 
 
 def test_itinerary_booking_01(map_01: TestMap) -> None:
-    itinerary = Itinerary(
-        drone=map_01.drones[0],
-        hubs=[
-            map_01.hubs["A"],
-            map_01.hubs["B"],
-            map_01.hubs["C"]
-        ],
-        turn=map_01.turn
-    )
+    itinerary = itinerary_01_01(map_01)
     assert itinerary == map_01.drones[0].itinerary
     assert isinstance(itinerary, Itinerary)
     assert len(itinerary.bookings) == 5
@@ -205,6 +210,12 @@ def test_itinerary_booking_02(map_02: TestMap) -> None:
         [(0, 2), (2, 3), (3, 3), (3, 4), 4]
     )
     # assert
+
+
+def test_traffic_controller_01(map_01: TestMap) -> None:
+    sim: Simulation = test_map_to_simulation(map_01)
+    expected = itinerary_01_01(map_01)
+    out = sim.controller.request_itinerary(map_01.drones[0], sim)
 
 
 # def test_itinerary_is_operative(turn, linear_map, drone_at_a):
