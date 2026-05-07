@@ -38,7 +38,11 @@ class Connection(TransitableZone):
             return None
         return HubCost[direction.access]
 
-    def get_next_available_entry(self, from_turn: Turn, destination: Hub | None = None) -> Turn:
+    def get_next_available_entry(
+        self,
+        from_turn: Turn,
+        destination: Hub | None = None
+    ) -> Turn:
         """Return the earliest turn >= *from_turn* where a slot is free."""
         if not destination:
             raise TrafficError("It is required destination for calculate enty")
@@ -58,14 +62,19 @@ class Connection(TransitableZone):
             i = Turn(i.value + 1)
         return i
 
-    def get_next_available_exit(self, from_turn: Turn, destination: Hub) -> Turn:
+    def get_next_available_exit(
+        self,
+        from_turn: Turn,
+        destination: Hub
+    ) -> Turn:
         """
         Return the earliest turn at which a drone can exit this connection
         into *destination*.
         """
         if destination not in self.hubs:
             raise TrafficError(
-                f"Hub '{destination.name}' is not an endpoint of this connection"
+                f"Hub '{destination.name}' is not an endpoint of this "
+                "connection"
             )
         mov_cost = self.get_movement_cost(destination)
         if not mov_cost:
