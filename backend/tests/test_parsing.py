@@ -3,10 +3,11 @@ import os
 from typing import Any
 from glob import glob
 from pathlib import Path
+from backend.tests.utils import file_to_uploadfile
 from src.core.errors import ParseError
 from src.models import Simulation, Hub, Connection, Drone
 from src.utils.parser import parse_map
-from tests.utils import assert_uuid, load_map
+from tests.utils import assert_uuid
 
 
 SUBJECT_MAPS_DIR = Path(__file__).parent / "maps"
@@ -82,7 +83,7 @@ def assert_simulation(
 # Subject's maps
 @pytest.mark.asyncio
 async def test_parsing_ok_easy_01() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -95,7 +96,7 @@ async def test_parsing_ok_easy_01() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_easy_02() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "easy/02_simple_fork.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/02_simple_fork.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -108,7 +109,7 @@ async def test_parsing_ok_easy_02() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_easy_03() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "easy/03_basic_capacity.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/03_basic_capacity.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -121,7 +122,7 @@ async def test_parsing_ok_easy_03() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_medium_01() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "medium/01_dead_end_trap.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/01_dead_end_trap.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -134,7 +135,7 @@ async def test_parsing_ok_medium_01() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_medium_02() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "medium/02_circular_loop.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/02_circular_loop.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -147,7 +148,7 @@ async def test_parsing_ok_medium_02() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_medium_03() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -160,7 +161,7 @@ async def test_parsing_ok_medium_03() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_hard_01() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "hard/01_maze_nightmare.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/01_maze_nightmare.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -173,7 +174,7 @@ async def test_parsing_ok_hard_01() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_hard_02() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "hard/02_capacity_hell.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/02_capacity_hell.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -186,7 +187,7 @@ async def test_parsing_ok_hard_02() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_hard_03() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -199,7 +200,7 @@ async def test_parsing_ok_hard_03() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_challenger() -> None:
-    file = load_map(SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt")
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -213,7 +214,7 @@ async def test_parsing_ok_challenger() -> None:
 # Own maps
 @pytest.mark.asyncio
 async def test_parsing_ok_01() -> None:
-    file = load_map(OWN_MAPS_DIR / "ok/parse_ok01.txt")
+    file = file_to_uploadfile(OWN_MAPS_DIR / "ok/parse_ok01.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -226,7 +227,7 @@ async def test_parsing_ok_01() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_02() -> None:
-    file = load_map(OWN_MAPS_DIR / "ok/parse_ok02.txt")
+    file = file_to_uploadfile(OWN_MAPS_DIR / "ok/parse_ok02.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -239,7 +240,7 @@ async def test_parsing_ok_02() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_03() -> None:
-    file = load_map(OWN_MAPS_DIR / "ok/parse_ok03.txt")
+    file = file_to_uploadfile(OWN_MAPS_DIR / "ok/parse_ok03.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -252,7 +253,7 @@ async def test_parsing_ok_03() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_04() -> None:
-    file = load_map(OWN_MAPS_DIR / "ok/parse_ok04.txt")
+    file = file_to_uploadfile(OWN_MAPS_DIR / "ok/parse_ok04.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -265,7 +266,7 @@ async def test_parsing_ok_04() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_05() -> None:
-    file = load_map(OWN_MAPS_DIR / "ok/parse_ok05.txt")
+    file = file_to_uploadfile(OWN_MAPS_DIR / "ok/parse_ok05.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -278,7 +279,7 @@ async def test_parsing_ok_05() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_06() -> None:
-    file = load_map(OWN_MAPS_DIR / "ok/parse_ok06.txt")
+    file = file_to_uploadfile(OWN_MAPS_DIR / "ok/parse_ok06.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -292,7 +293,7 @@ async def test_parsing_ok_06() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_07() -> None:
-    file = load_map(OWN_MAPS_DIR / "ok/parse_ok07.txt")
+    file = file_to_uploadfile(OWN_MAPS_DIR / "ok/parse_ok07.txt")
     s = await parse_map(file)
     assert_simulation(
         s,
@@ -318,6 +319,6 @@ def parse_error_files() -> list[str]:
 @pytest.mark.parametrize("file_path", parse_error_files())
 @pytest.mark.asyncio
 async def test_parsing_error_batch(file_path: str) -> None:
-    file = load_map(file_path,)
+    file = file_to_uploadfile(file_path,)
     with pytest.raises(ParseError):
         await parse_map(file)
