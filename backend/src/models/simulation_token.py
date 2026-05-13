@@ -3,9 +3,11 @@ from pydantic import AfterValidator
 from typing import Annotated
 
 
-def validate_token(token: str):
+def validate_token(token: str) -> str:
     padding = "=" * (-len(token) % 4)
-    base64.urlsafe_b64decode(token + padding)
+    decoded = base64.urlsafe_b64decode(token + padding)
+    if len(decoded) != 32:
+        raise ValueError("Invalid token bytes")
     return token
 
 
