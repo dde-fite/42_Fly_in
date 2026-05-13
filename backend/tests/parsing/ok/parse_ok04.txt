@@ -84,26 +84,26 @@ hub: ring_b11 5 -2 [zone=restricted color=indigo max_drones=2]
 hub: ring_b12 5 1  [zone=restricted color=indigo max_drones=2]
 
 # Ring C (outer)
-hub: ring_c1  5 3  [zone=restricted color=violet max_drones=1]
-hub: ring_c2  6 3  [zone=restricted color=violet max_drones=1]
-hub: ring_c3  7 3  [zone=restricted color=violet max_drones=1]
-hub: ring_c4  8 3  [zone=restricted color=violet max_drones=1]
-hub: ring_c5  9 3  [zone=restricted color=violet max_drones=1]
-hub: ring_c6  9 2  [zone=restricted color=violet max_drones=1]
-hub: ring_c7  9 1  [zone=restricted color=violet max_drones=1]
-hub: ring_c8  9 0  [zone=restricted color=violet max_drones=1]
-hub: ring_c9  9 -1 [zone=restricted color=violet max_drones=1]
-hub: ring_c10 9 -2 [zone=restricted color=violet max_drones=1]
-hub: ring_c11 9 -3 [zone=restricted color=violet max_drones=1]
-hub: ring_c12 8 -3 [zone=restricted color=violet max_drones=1]
-hub: ring_c13 7 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c1  7 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c2  8 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c3  9 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c4  10 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c5  11 3  [zone=restricted color=violet max_drones=1]
+hub: ring_c6  11 2  [zone=restricted color=violet max_drones=1]
+hub: ring_c7  11 1  [zone=restricted color=violet max_drones=1]
+hub: ring_c8  11 0  [zone=restricted color=violet max_drones=1]
+hub: ring_c9  11 -1 [zone=restricted color=violet max_drones=1]
+hub: ring_c10 11 -2 [zone=restricted color=violet max_drones=1]
+hub: ring_c11 11 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c12 10 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c13 9 -3 [zone=restricted color=violet max_drones=1]
 hub: ring_c14 6 -3 [zone=restricted color=violet max_drones=1]
-hub: ring_c15 5 -3 [zone=restricted color=violet max_drones=1]
-hub: ring_c16 5 -1 [zone=restricted color=violet max_drones=1]
+hub: ring_c15 7 -3 [zone=restricted color=violet max_drones=1]
+hub: ring_c16 9 -1 [zone=restricted color=violet max_drones=1]
 
 # Hidden ring exits (disguised as normal ring nodes by position)
-hub: ring_exit_a 7 0  [color=white max_drones=1]  # overlaps ring_a3
-hub: ring_exit_b 8 0  [color=white max_drones=1]  # overlaps ring_b6
+hub: ring_exit_a 8 4  [color=white max_drones=1]  # overlaps ring_a3
+hub: ring_exit_b 8 6  [color=white max_drones=1]  # overlaps ring_b6
 hub: ring_exit_c 9 0  [color=white max_drones=1]  # overlaps ring_c8
 hub: post_rings  10 0 [color=lime max_drones=1]
 
@@ -115,42 +115,42 @@ hub: post_rings  10 0 [color=lime max_drones=1]
 # Every other path terminates in a black dead end.
 # Dead ends are at unpredictable positions.
 
-hub: hpot_00 11 3  [zone=priority color=gold max_drones=2]
+hub: hpot_00 11 4  [zone=priority color=gold max_drones=2]
 hub: hpot_10 12 3  [zone=priority color=gold max_drones=2]
 hub: hpot_20 13 3  [zone=priority color=gold max_drones=2]
 hub: hpot_30 14 3  [zone=priority color=gold max_drones=2]
 hub: hpot_40 15 3  [zone=priority color=gold max_drones=2]
 hub: hpot_50 16 3  [zone=priority color=gold max_drones=2]
 
-hub: hpot_01 11 2  [zone=priority color=gold max_drones=2]
-hub: hpot_11 12 2  [zone=priority color=gold max_drones=2]
+hub: hpot_01 11 6  [zone=priority color=gold max_drones=2]
+hub: hpot_11 12 4  [zone=priority color=gold max_drones=2]
 hub: hpot_21 13 2  [zone=priority color=gold max_drones=2]
 hub: hpot_31 14 2  [zone=priority color=gold max_drones=2]
 hub: hpot_41 15 2  [zone=priority color=gold max_drones=2]
 hub: hpot_51 16 2  [zone=priority color=gold max_drones=2]
 
-hub: hpot_02 11 1  [zone=priority color=gold max_drones=2]
+hub: hpot_02 12 5  [zone=priority color=gold max_drones=2]
 hub: hpot_12 12 1  [zone=priority color=gold max_drones=2]
 hub: hpot_22 13 1  [zone=priority color=gold max_drones=2]
 hub: hpot_32 14 1  [zone=priority color=gold max_drones=2]
 hub: hpot_42 15 1  [zone=priority color=gold max_drones=2]
 hub: hpot_52 16 1  [zone=priority color=gold max_drones=2]
 
-hub: hpot_03 11 0  [zone=priority color=gold max_drones=2]
+hub: hpot_03 17 3  [zone=priority color=gold max_drones=2]
 hub: hpot_13 12 0  [zone=priority color=gold max_drones=2]
 hub: hpot_23 13 0  [zone=priority color=gold max_drones=2]
 hub: hpot_33 14 0  [zone=priority color=gold max_drones=2]
 hub: hpot_43 15 0  [zone=priority color=gold max_drones=2]
 hub: hpot_53 16 0  [zone=priority color=gold max_drones=2]
 
-hub: hpot_04 11 -1 [zone=priority color=gold max_drones=2]
+hub: hpot_04 18 -1 [zone=priority color=gold max_drones=2]
 hub: hpot_14 12 -1 [zone=priority color=gold max_drones=2]
 hub: hpot_24 13 -1 [zone=priority color=gold max_drones=2]
 hub: hpot_34 14 -1 [zone=priority color=gold max_drones=2]
 hub: hpot_44 15 -1 [zone=priority color=gold max_drones=2]
 hub: hpot_54 16 -1 [zone=priority color=gold max_drones=2]
 
-hub: hpot_05 11 -2 [zone=priority color=gold max_drones=2]
+hub: hpot_05 17 -5 [zone=priority color=gold max_drones=2]
 hub: hpot_15 12 -2 [zone=priority color=gold max_drones=2]
 hub: hpot_25 13 -2 [zone=priority color=gold max_drones=2]
 hub: hpot_35 14 -2 [zone=priority color=gold max_drones=2]
@@ -158,16 +158,16 @@ hub: hpot_45 15 -2 [zone=priority color=gold max_drones=2]
 hub: hpot_55 16 -2 [zone=priority color=gold max_drones=2]
 
 # Dead end clusters (scattered, not in corners, to confuse heuristics)
-hub: hpot_dead01 12 3  [color=black]   # looks like hpot_10 duplicate
-hub: hpot_dead02 14 2  [color=black]
-hub: hpot_dead03 13 1  [color=black]
-hub: hpot_dead04 15 0  [color=black]
-hub: hpot_dead05 11 -1 [color=black]
-hub: hpot_dead06 16 -2 [color=black]
-hub: hpot_dead07 12 -1 [color=black]
-hub: hpot_dead08 14 3  [color=black]
-hub: hpot_dead09 16 1  [color=black]
-hub: hpot_dead10 13 -2 [color=black]
+hub: hpot_dead01 12 2  [color=black]   # looks like hpot_10 duplicate
+hub: hpot_dead02 14 4  [color=black]
+hub: hpot_dead03 10 -1  [color=black]
+hub: hpot_dead04 17 -2  [color=black]
+hub: hpot_dead05 10 -2 [color=black]
+hub: hpot_dead06 15 -3 [color=black]
+hub: hpot_dead07 10 1 [color=black]
+hub: hpot_dead08 13 4  [color=black]
+hub: hpot_dead09 17 1  [color=black]
+hub: hpot_dead10 12 -3 [color=black]
 
 # Single exit from the matrix
 hub: post_matrix 17 0 [color=lime max_drones=1]
@@ -198,7 +198,7 @@ hub: cascade_l3c 20 1  [color=orange max_drones=2]
 hub: cascade_l3d 21 1  [color=orange max_drones=1]
 
 # Lane 4
-hub: cascade_l4a 18 -1 [color=orange max_drones=3]
+hub: cascade_l4a 17 -1 [color=orange max_drones=3]
 hub: cascade_l4b 19 -1 [color=orange max_drones=3]
 hub: cascade_l4c 20 -1 [color=orange max_drones=2]
 hub: cascade_l4d 21 -1 [color=orange max_drones=1]
