@@ -2,11 +2,10 @@ from typing import Any
 from uuid import UUID
 
 
-def assert_is_uuid(value: Any):
+def assert_uuid(value: Any) -> None:
     if isinstance(value, UUID):
-        return True
+        return
     try:
         UUID(value)
-        assert True
     except ValueError:
         assert False, f"Invalid UUID: {value}"
