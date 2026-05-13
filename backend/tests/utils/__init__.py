@@ -1,2 +1,2 @@
 from .assert_uuid import assert_uuid
-from .load_map import load_map
+from .file_to_uploadfile import file_to_uploadfile

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from _typeshed import FileDescriptorOrPath
 
 
-def load_map(file: FileDescriptorOrPath) -> UploadFile:
+def file_to_uploadfile(file: FileDescriptorOrPath) -> UploadFile:
     with open(file, "rb") as f:
         content = f.read()
     return UploadFile(
