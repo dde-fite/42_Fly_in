@@ -41,22 +41,27 @@ class Connection(TransitableZone):
     def get_next_available_entry(
         self,
         from_turn: Turn,
-        destination: Hub | None = None
-    ) -> Turn:
+        destination: TransitableZone | None = None
+    ) -> Turn | None:
         """Return the earliest turn >= *from_turn* where a slot is free."""
         if not destination:
             raise TrafficError("It is required destination for calculate enty")
         mov_cost = self.get_movement_cost(destination)
         if mov_cost is None:
-            raise TrafficError(
-                f"Hub '{destination.name}' does not accepts arrivals"
-            )
+            return None
         i = Turn(from_turn.value)
+        has_exits = [True if slot.exit_turn is None else False
+                     for slot in self._bookings]
+        if has_exits and all(has_exits):
+            return None
         while True:
             full = self.get_occupancy(i) >= self.capacity
-            dest_blocked = destination.get_next_available_entry(
+            dest_entry = destination.get_next_available_entry(
                 Turn(i.value + mov_cost)
-            ).value != i.value + mov_cost
+            )
+            if not dest_entry:
+                continue
+            dest_blocked = dest_entry.value != i.value + mov_cost
             if not full and not dest_blocked:
                 break
             i = Turn(i.value + 1)

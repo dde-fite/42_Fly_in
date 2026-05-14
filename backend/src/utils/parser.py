@@ -1,10 +1,20 @@
-from typing import Any
+from typing import Any, Iterable
 from fastapi import UploadFile
 from pydantic import ValidationError
 from pydantic_extra_types import Color
 from src.models import Simulation, Hub, Connection, Vector, Drone, Turn
 from src.core import logger, ParseError
 import logging
+
+
+def check_hub_conflict(hub: Hub, others: Iterable[Hub], line: str) -> bool:
+    if hub in others:
+        raise ParseError("Duplicated hub names", line)
+    for o in others:
+        if o.position == hub.position:
+            raise ParseError(f"Conflict with hub '{o.name}' and '{hub.name}'"
+                             " coordinates", line)
+    return False
 
 
 def parse_params(raw_params: str) -> dict[str, Any]:
@@ -144,20 +154,17 @@ async def parse_map(file: UploadFile) -> Simulation:
                 if origin:
                     raise ParseError("Start hub already defined", line)
                 origin = parse_hub(value, turn)
-                if origin in hubs:
-                    raise ParseError("Duplicated hub names", line)
+                check_hub_conflict(origin, hubs, line)
                 hubs.add(origin)
             case "end_hub":
                 if destination:
                     raise ParseError("Destination hub already defined", line)
                 destination = parse_hub(value, turn)
-                if destination in hubs:
-                    raise ParseError("Duplicated hub names", line)
+                check_hub_conflict(destination, hubs, line)
                 hubs.add(destination)
             case "hub":
                 h = parse_hub(value, turn)
-                if h in hubs:
-                    raise ParseError("Duplicated hub names", line)
+                check_hub_conflict(h, hubs, line)
                 hubs.add(h)
             case "connection":
                 c = parse_connection(value, hubs, turn)

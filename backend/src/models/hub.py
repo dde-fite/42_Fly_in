@@ -90,14 +90,18 @@ class Hub(TransitableZone):
         """Hubs always cost 1 turn to pass through (unless blocked)."""
         return 0
 
-    def get_next_available_entry(self, from_turn: Turn, destination: Hub | None = None) -> Turn:
+    def get_next_available_entry(
+        self,
+        from_turn: Turn,
+        destination: TransitableZone | None = None
+    ) -> Turn:
         """Return the earliest turn >= *from_turn* where a slot is free."""
         i = Turn(from_turn.value)
         while self.get_occupancy(i) >= self.capacity:
             i.value += 1
         return i
 
-    def get_next_available_exit(self, from_turn: Turn, destination: Hub) -> Turn:
+    def get_next_available_exit(self, from_turn: Turn, destination: Hub) -> Turn | None:
         """
         Return the earliest turn at which a drone can leave this hub toward
         *destination*, factoring in the connection's availability.

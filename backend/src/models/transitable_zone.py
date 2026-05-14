@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
+from functools import lru_cache
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict, PrivateAttr
 from src.core.errors import TrafficError, ZoneNotAvailable
@@ -20,7 +21,8 @@ class TransitableZone(BaseModel, ABC):
         - Track which drones are physically present (``drones``).
         - Maintain a list of time-slot bookings (``_bookings``).
         - Provide helpers to query occupancy and availability.
-        - Enforce capacity constraints when accepting drones from a neighbouring zone.
+        - Enforce capacity constraints when accepting drones from \
+            a neighbouring zone.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -31,7 +33,7 @@ class TransitableZone(BaseModel, ABC):
     capacity_defined: bool = False
     turn: Turn
 
-    _bookings: list[SlotBooking] = PrivateAttr(list())
+    _bookings: list[SlotBooking] = PrivateAttr(default_factory=list)
 
     # ------------------------------------------------------------------
     # Booking access
@@ -51,6 +53,7 @@ class TransitableZone(BaseModel, ABC):
     # Occupancy helpers
     # ------------------------------------------------------------------
 
+    @lru_cache(maxsize=1000)
     def get_occupancy(self, turn: Turn, exclude: Drone | None = None) -> int:
         """
         Return the number of drones occupying (or booked to occupy) at *turn*.
@@ -76,11 +79,36 @@ class TransitableZone(BaseModel, ABC):
                 occ.add(b.guest)
         return len(occ)
 
+    # def get_occupancy_slots(self, turn: Turn, exclude: Drone | None = None) -> SlotBooking:
+    #     """
+    #     Return the number of drones occupying (or booked to occupy) at *turn*.
+
+    #     ``exclude`` lets the itinerary planner ignore bookings that
+    #     already belong to the drone being routed, so a drone's own spawn
+    #     booking does not block it from being assigned a slot in the same zone.
+    #     """
+    #     if turn.value == self.turn.value:
+    #         return sum(1 for d in self.drones if d != exclude)
+
+    #     occ: set[Drone] = set()
+    #     for b in self._bookings:
+    #         if exclude is not None and b.guest == exclude:
+    #             continue
+    #         enters = turn.value >= b.enter_turn.value
+    #         exits, special = False, False
+    #         if b.exit_turn is not None:
+    #             exits = turn.value >= b.exit_turn.value
+    #             special = (b.enter_turn.value == b.exit_turn.value ==
+    #                        turn.value)
+    #         if (enters and not exits) or special:
+    #             occ.add(b.guest)
+    #     return len(occ)
+
     # ------------------------------------------------------------------
     # Booking management
     # ------------------------------------------------------------------
 
-    def book(self, slot: SlotBooking, direction: Hub | None = None) -> bool:
+    def book(self, slot: SlotBooking, direction: Hub | None = None) -> None:
         """
         Attempt to reserve *slot* in this zone.
 
@@ -88,7 +116,7 @@ class TransitableZone(BaseModel, ABC):
         blocked (movement cost is None) or capacity is exceeded.
         """
         if slot in self._bookings:
-            return False
+            raise ZoneNotAvailable("Drone have multiple bookings in the same zone")
 
         mov_cost = self.get_movement_cost(direction)
         if mov_cost is None:
@@ -102,8 +130,8 @@ class TransitableZone(BaseModel, ABC):
             # Ensure the booking spans at least the required movement cost.
             if end - slot.enter_turn.value < mov_cost:
                 raise ZoneNotAvailable(
-                    f"Booking duration ({end - slot.enter_turn.value}) is less "
-                    f"than the required movement cost ({mov_cost})"
+                    f"Booking duration ({end - slot.enter_turn.value}) is less"
+                    f" than the required movement cost ({mov_cost})"
                 )
         else:
             # Final destination: only check the entry turn.
@@ -117,11 +145,12 @@ class TransitableZone(BaseModel, ABC):
                 )
 
         self._bookings.append(slot)
-        return True
+        self.get_occupancy.cache_clear()
 
     def unbook(self, slot: SlotBooking) -> None:
         if slot in self._bookings:
             self._bookings.remove(slot)
+        self.get_occupancy.cache_clear()
 
     # ------------------------------------------------------------------
     # Physical movement
@@ -145,6 +174,7 @@ class TransitableZone(BaseModel, ABC):
             raise TrafficError("Zone capacity exceeded")
 
         self.drones.add(drone)
+        self.get_occupancy.cache_clear()
         drone.location = self
 
     # ------------------------------------------------------------------
@@ -158,14 +188,18 @@ class TransitableZone(BaseModel, ABC):
             if b.exit_turn and b.exit_turn.value < self.turn.value
         ]
         for b in expired:
-            self._bookings.remove(b)
+            self.unbook(b)
 
     # ------------------------------------------------------------------
     # Abstract interface
     # ------------------------------------------------------------------
 
     @abstractmethod
-    def get_next_available_entry(self, from_turn: Turn, destination: Hub | None = None) -> Turn:
+    def get_next_available_entry(
+        self,
+        from_turn: Turn,
+        destination: TransitableZone | None = None
+    ) -> Turn | None:
         """Return the earliest turn >= *from_turn* where a slot is free."""
         ...
 
@@ -175,7 +209,7 @@ class TransitableZone(BaseModel, ABC):
         ...
 
     @abstractmethod
-    def get_next_available_exit(self, from_turn: Turn, destination: Hub) -> Turn:
+    def get_next_available_exit(self, from_turn: Turn, destination: Hub) -> Turn | None:
         """Return the earliest turn at which a drone can exit toward *destination*."""
         ...
 

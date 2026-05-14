@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, PrivateAttr
 from src.core.errors import TrafficError
 from .turn import Turn
 from .hub import Hub
@@ -32,10 +32,12 @@ class Simulation(BaseModel):
     destination: Hub
     connections: set[Connection]
     drones: set[Drone] = Field(default_factory=set[Drone])
-    controller: TrafficController = Field(default_factory=TrafficController)
+    _controller: TrafficController | None = PrivateAttr(None)
 
     model_config = {"arbitrary_types_allowed": True}
 
+    def model_post_init(self, context: Any) -> None:
+        self._controller = TrafficController(self)
     # ------------------------------------------------------------------
     # Validation
     # ------------------------------------------------------------------
@@ -140,6 +142,12 @@ class Simulation(BaseModel):
                 return t
             self.tick()
         return max_turns
+
+    @property
+    def controller(self) -> TrafficController:
+        if not self._controller:
+            raise TrafficError("There is not traffic controller")
+        return self._controller
 
     # ------------------------------------------------------------------
     # Diagnostics

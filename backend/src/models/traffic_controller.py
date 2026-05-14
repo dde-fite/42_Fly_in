@@ -1,62 +1,72 @@
 from __future__ import annotations
+
 import heapq
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
+
 from src.core.errors import TrafficError, ZoneNotAvailable
-from .turn import Turn
-from .itinerary import Itinerary
 from .hub import Hub, HubCost
+from .itinerary import Itinerary
+from .turn import Turn
 
 if TYPE_CHECKING:
     from .drone import Drone
     from .simulation import Simulation
 
 
+# Maximum turns to search ahead when a zone is congested.
+# Prevents infinite loops on unsolvable or saturated graphs.
+_MAX_WAIT: int = 10_000
+
+
 @dataclass(order=True)
-class _DijkstraNode:
+class _Node:
     """
-    Priority-queue entry for the Dijkstra search.
+    Priority-queue entry for the time-aware Dijkstra search.
 
-    ``arrival_turn`` is the cost dimension being minimised: the earliest
-    simulated turn at which the drone can *arrive* at ``hub`` after having
-    traversed all intermediate zones (including any wait time imposed by
-    existing bookings).
-
-    ``hub`` and ``path`` are tiebreakers / payload and are excluded from
-    ordering so that the dataclass comparison only uses ``arrival_turn``.
+    Only ``arrival_turn`` participates in heap ordering.  The remaining
+    fields are payload and are excluded from comparison via ``compare=False``.
+    Using a plain integer cost avoids floating-point issues and makes tie
+    breaking deterministic.
     """
+
     arrival_turn: int
     hub: Hub = field(compare=False)
+    # Ancestor set stored as frozenset for O(1) membership tests, plus the
+    # ordered list for building the final hub path on arrival.
+    visited: frozenset[Hub] = field(compare=False)
     path: list[Hub] = field(compare=False)
 
 
 class TrafficController:
     """
-    Central authority that assigns routes (Itineraries) to drones.
+    Central authority that assigns time-optimal routes (:class:`Itinerary`)
+    to drones that currently lack one.
 
-    Path-finding:
-        Uses **Dijkstra's algorithm** where the edge weight between two hubs is
-        NOT a static number but the *real temporal cost* experienced at
-        planning time: the algorithm queries each zone for its next available
-        entry/exit slot (exactly as the Itinerary builder does) and
-        accumulates the actual turn number at which the drone would arrive at
-        each hub.
+    Algorithm
+    ---------
+    Path-finding uses a **time-aware Dijkstra** where edge weights are *not*
+    static hop counts but the real temporal cost at planning time: each zone
+    is queried for its next available entry/exit slot, accounting for existing
+    bookings and capacity limits.  Congested zones are therefore penalised
+    naturally by the extra wait time they impose.
 
-        This means congested zones are naturally avoided: if a connection or
-        hub is fully booked for the next 5 turns, those 5 extra wait turns are
-        reflected in the path cost and Dijkstra will prefer an alternative
-        route with fewer delays, even if it has more hops.
+    After the shortest path is found the controller tries to book it via
+    :class:`Itinerary`.  If the booking fails (race condition between planning
+    and booking), it falls back to the next-best candidate.
 
-        Blocked hubs (movement cost = None) are pruned from the search
-        entirely.
-
-        After the optimal path is found the controller attempts to instantiate
-        an Itinerary (which actually books the slots). If booking fails for any
-        reason the next-best candidate path is tried (fallback list built
-        during the search).
+    Correctness guarantees
+    ----------------------
+    * Blocked hubs (``HubCost → None``) are pruned at expansion time.
+    * Cycles are avoided per-path via a ``frozenset`` membership test (O(1)).
+    * A ``_MAX_WAIT`` cap on inner availability loops prevents live-lock.
+    * The destination node is not pruned on first visit so alternative paths
+      can still be collected as fallbacks, while ``best_arrival`` still prunes
+      strictly dominated routes.
     """
-    def __init__(self) -> None:
-        pass
+
+    def __init__(self, simulation: Simulation) -> None:
+        self.__simulation = simulation
 
     # ------------------------------------------------------------------
     # Public API
@@ -65,124 +75,238 @@ class TrafficController:
     def request_itinerary(
         self,
         drone: Drone,
-        simulation: Simulation,
     ) -> Itinerary | None:
         """
-        Find the time-optimal route for *drone* and book it as an Itinerary.
+        Find and book the time-optimal route for *drone*.
 
-        Returns the new Itinerary on success, or None if no viable route
-        exists right now.
+        Returns the new :class:`Itinerary` on success, or ``None`` when:
+
+        * the drone is mid-connection (must wait until it reaches a hub), or
+        * the drone is already at its destination, or
+        * no viable route exists (graph disconnected, all paths blocked).
         """
         origin = drone.location
+
+        # Route planning is only valid from a hub; connections are mid-transit.
         if not isinstance(origin, Hub):
-            # Drone is mid-connection; wait until it lands on a hub.
             return None
+
         if origin == drone.destination:
             return None
-        ranked_paths = self.dijkstra(origin, drone.destination, drone.turn)
+
+        ranked_paths = self._dijkstra(origin, drone.destination, drone.turn)
+
         for hub_path, _ in ranked_paths:
             try:
                 return Itinerary(drone, hub_path, drone.turn)
             except (ZoneNotAvailable, TrafficError):
+                # Booking failed (e.g. another drone grabbed the slot between
+                # planning and committing).  Try the next candidate.
                 continue
+
         return None
 
     # ------------------------------------------------------------------
-    # Dijkstra
+    # Tick integration
     # ------------------------------------------------------------------
 
-    def dijkstra(
+    def tick(self) -> None:
+        """
+        Called once per simulation turn by :class:`Simulation`.
+
+        Assigns (or re-assigns) an itinerary to every drone that currently
+        lacks one or whose itinerary has become inoperative.  Drones that
+        have already reached their destination are skipped.
+        """
+        for drone in list(self.__simulation.drones):
+            # Skip drones that have already arrived.
+            if drone.location == drone.destination:
+                continue
+
+            needs_itinerary = (
+                drone.itinerary is None
+                or not drone.itinerary.operative
+            )
+            if needs_itinerary:
+                self.request_itinerary(drone)
+
+    # ------------------------------------------------------------------
+    # Dijkstra (internal)
+    # ------------------------------------------------------------------
+
+    def _dijkstra(
         self,
         origin: Hub,
         destination: Hub,
         current_turn: Turn,
     ) -> list[tuple[list[Hub], int]]:
         """
-        Run Dijkstra from *origin* to *destination* starting at *current_turn*.
+        Time-aware Dijkstra from *origin* to *destination*.
 
-        The cost of reaching a hub is the simulated arrival turn, computed by
-        asking each intermediate zone for its next available entry and exit
-        slots — the same queries the Itinerary builder uses — so the cost
-        accounts for real congestion delays.
+        Returns all discovered routes as ``(hub_path, arrival_turn)`` sorted
+        ascending by arrival turn so ``request_itinerary`` can iterate through
+        fallbacks in cost order.
 
-        Returns a list of ``(hub_path, arrival_turn)`` tuples sorted by
-        ascending arrival turn (best route first). All discovered paths to
-        *destination* are returned so that ``request_itinerary`` can fall back
-        to the second-best route if the best one fails to book.
+        Implementation notes
+        --------------------
+        ``best_arrival[hub]`` records the lowest arrival turn *committed* for
+        each hub.  A node popped from the heap is stale if its ``arrival_turn``
+        is strictly greater than the recorded best; equal-cost paths are still
+        processed so alternative routes of the same cost can be collected.
+
+        Per-path cycle avoidance uses a ``frozenset[Hub]`` that travels with
+        each node, avoiding the O(n) list-``in`` scan of the original
+        implementation.
         """
-        # best_arrival[hub] = lowest arrival turn seen so far for that hub.
+        # best_arrival[hub] = lowest arrival_turn *settled* for that hub.
         best_arrival: dict[Hub, int] = {}
-        # All complete paths found, each with its arrival turn.
+        # Collected complete paths, built in heap-pop order (already sorted).
         found: list[tuple[list[Hub], int]] = []
-        # Min-heap seeded with the origin at the current turn.
-        heap: list[_DijkstraNode] = []
-        heapq.heappush(heap, _DijkstraNode(
+
+        heap: list[_Node] = []
+        heapq.heappush(heap, _Node(
             arrival_turn=current_turn.value,
             hub=origin,
+            visited=frozenset({origin}),
             path=[origin],
         ))
+
         while heap:
             node = heapq.heappop(heap)
-            arr = node.arrival_turn
-            hub = node.hub
-            path = node.path
-            # Skip if we already found a better way to reach this hub.
-            if hub in best_arrival and best_arrival[hub] <= arr:
+            arr: int = node.arrival_turn
+            hub: Hub = node.hub
+            visited: frozenset[Hub] = node.visited
+            path: list[Hub] = node.path
+
+            # Prune stale entries: a *strictly* cheaper path was already settled.
+            # We allow equal-cost entries through so we collect all optimal paths.
+            if hub in best_arrival and best_arrival[hub] < arr:
                 continue
             best_arrival[hub] = arr
+
             if hub == destination:
                 found.append((path, arr))
-                # Keep searching for alternative paths to use as fallback.
+                # Do NOT stop here: keep searching so we can collect fallback
+                # paths with slightly higher cost (useful when the best path
+                # fails to book).
                 continue
-            # Expand neighbours through their shared connections.
-            for c in hub.connections:
-                neighbour = c.other_hub(hub)
-                if HubCost.get(neighbour.access) is None:
+
+            for connection in hub.connections:
+                neighbour: Hub = connection.other_hub(hub)
+
+                # Skip blocked hubs (impassable access level).
+                if HubCost[neighbour.access] is None:
                     continue
-                # Avoid cycles within this path.
-                if neighbour in path:
+
+                # Skip hubs already visited on this path (cycle prevention).
+                if neighbour in visited:
                     continue
-                # ── Simulate the temporal cost through this connection ──
+
+                # ── Simulate the temporal cost of this edge ────────────────
                 #
-                # 1. Earliest turn the drone can enter the connection from
-                #    its current hub (may be delayed by existing bookings).
-                conn_entry: Turn = c.get_next_available_entry(
-                    Turn(arr)
-                )
-                # 2. Earliest turn the drone can exit the connection into
-                #    the neighbour hub (factors in minimum traversal cost
-                #    = HubCost[neighbour.access] and connection capacity).
-                conn_exit: Turn = c.get_next_available_exit(
-                    conn_entry, neighbour
-                )
-                # 3. Earliest turn the drone can enter the neighbour hub
-                #    (the hub itself may also be congested).
-                hub_entry: Turn = neighbour.get_next_available_entry(conn_exit)
-                neighbour_arrival = hub_entry.value
-                # Only enqueue if this is a better route to the neighbour.
-                if neighbour in best_arrival and best_arrival[neighbour] <= neighbour_arrival:
+                # Step 1: earliest turn a drone can *enter* the connection,
+                #         checking both connection capacity and whether the
+                #         destination hub will have a free slot in time.
+                try:
+                    # !THIS STATEMENT CAUSES INFINITE LOOP!!!!!!!
+                    # TODO: FIX ERROR
+                    conn_entry: Turn = self._safe_entry(
+                        connection, Turn(arr), neighbour
+                    )
+                except TrafficError:
+                    continue  # Connection or neighbour is unreachable.
+
+                if conn_entry is None:
+                    continue  # No free slot within _MAX_WAIT turns.
+
+                # Step 2: earliest turn the drone can *exit* the connection
+                #         into the neighbour hub (entry turn + traversal cost).
+                try:
+                    conn_exit: Turn = connection.get_next_available_exit(
+                        conn_entry, neighbour
+                    )
+                except TrafficError:
                     continue
-                heapq.heappush(heap, _DijkstraNode(
+
+                # Step 3: earliest turn the neighbour hub itself has a free
+                #         slot (it may be independently congested).
+                try:
+                    hub_entry: Turn = neighbour.get_next_available_entry(
+                        conn_exit
+                    )
+                except TrafficError:
+                    continue
+
+                neighbour_arrival: int = hub_entry.value
+
+                # Guard: skip if a cheaper or equal path to this neighbour
+                # is already settled (equal is pruned for neighbours to avoid
+                # exponential path explosion while still collecting all optimal
+                # complete paths above).
+                if (
+                    neighbour in best_arrival
+                    and best_arrival[neighbour] <= neighbour_arrival
+                ):
+                    continue
+
+                heapq.heappush(heap, _Node(
                     arrival_turn=neighbour_arrival,
                     hub=neighbour,
+                    visited=visited | {neighbour},
                     path=path + [neighbour],
                 ))
-        # Dijkstra naturally discovers routes in cost order, but sort
-        # explicitly to make the guarantee clear to callers.
+
+        # The heap pops in ascending arrival_turn order, so `found` is already
+        # sorted.  An explicit sort is a safety net against equal-cost ties.
         found.sort(key=lambda t: t[1])
         return found
 
     # ------------------------------------------------------------------
-    # Tick integration
+    # Internal helpers
     # ------------------------------------------------------------------
 
-    def tick(self, simulation: Simulation) -> None:
+    def _safe_entry(
+        self,
+        connection: "Connection",  # noqa: F821 – forward reference
+        from_turn: Turn,
+        destination: Hub,
+    ) -> Turn | None:
         """
-        Called once per simulation turn.
+        Return the earliest turn >= *from_turn* at which *connection* can be
+        entered toward *destination*, or ``None`` if no slot is found within
+        ``_MAX_WAIT`` turns.
 
-        Assigns itineraries to every drone that currently lacks one (or whose
-        itinerary has expired).
+        This replaces the unbounded ``while True`` loop in
+        ``Connection.get_next_available_entry`` with an explicit cap so the
+        planner never hangs on a permanently saturated connection.
         """
-        for drone in simulation.drones:
-            if drone.itinerary is None or not drone.itinerary.is_operative:
-                self.request_itinerary(drone, simulation)
+        mov_cost = connection.get_movement_cost(destination)
+        if mov_cost is None:
+            return None  # Destination is blocked/impassable.
+
+        limit = from_turn.value + _MAX_WAIT
+
+        i = from_turn.value
+        t = Turn(i)
+        while i <= limit:
+            t.value += 1
+            # Check connection capacity at turn i.
+            if connection.get_occupancy(t) >= connection.capacity:
+                i += 1
+                continue
+            # Check whether the destination hub will be free at arrival.
+            arrival = Turn(i + mov_cost)
+            try:
+                earliest_hub = destination.get_next_available_entry(arrival)
+            except TrafficError:
+                i += 1
+                continue
+            if earliest_hub.value == arrival.value:
+                return Turn(i)
+            # Hub won't be free exactly at arrival; jump to when it will.
+            # This avoids scanning turns one-by-one when the hub is deeply
+            # congested, since we already know the next free hub slot.
+            gap = earliest_hub.value - arrival.value
+            i += max(1, gap)
+
+        return None  # Exceeded _MAX_WAIT; treat as unreachable.

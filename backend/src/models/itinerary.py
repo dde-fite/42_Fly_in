@@ -48,7 +48,8 @@ class Itinerary:
                 connection = hub.get_connection_by_hub(hubs[i + 1])
                 if connection is None:
                     raise TrafficError(
-                        f"No connection between '{hub.name}' and '{hubs[i + 1].name}'"
+                        f"No connection between '{hub.name}' and "
+                        f"'{hubs[i + 1].name}'"
                     )
                 zones.append(connection)
 
@@ -56,48 +57,45 @@ class Itinerary:
 
         first = True
         for i, zone in enumerate(zones):
-            next_zone: TransitableZone | None = zones[i + 1] if i + 1 < len(zones) else None
-
+            next_zone = zones[i + 1] if i + 1 < len(zones) else None
             if first:
+                if zone != drone.location:
+                    raise TrafficError("Itineraries have to start at current "
+                                       "drone location")
                 entry = Turn(self.__turn.value)
                 first = False
             else:
                 entry = zone.get_next_available_entry(current, next_zone)
-
+                if not entry:
+                    raise TrafficError("There is no space for movement")
             if next_zone is not None:
-                # next_zone is always a Hub when zone is a Connection, and vice-versa.
-                # get_next_available_exit needs the *destination hub*.
+                # next_zone is always a Hub when zone is a Connection, and
+                # vice-versa. get_next_available_exit needs the
+                # destination hub.
                 destination_hub: Hub = (
                     next_zone
                     if isinstance(next_zone, Hub)
                     else hubs[(i + 1) // 2 + 1]
                 )
                 exit_turn: Turn | None = zone.get_next_available_exit(entry, destination_hub)
+                if not exit_turn:
+                    raise TrafficError("There is no space for movement")
             else:
                 exit_turn = None
-
             booking = SlotBooking(
                 host=zone,
                 guest=drone,
                 enter_turn=entry,
                 exit_turn=exit_turn,
             )
-
             try:
-                booked = zone.book(booking, direction=next_zone)
-                if not booked:
-                    self.destroy()
-                    raise ZoneNotAvailable(
-                        f"Could not book zone '{zone}' at turn {entry.value}"
-                    )
+                zone.book(booking, direction=next_zone)
             except ZoneNotAvailable:
                 self.destroy()
                 raise
-
             self.__bookings.append(booking)
             if exit_turn is not None:
                 current = Turn(exit_turn.value)
-
         self.__drone.itinerary = self
         self.__operative = True
 
@@ -114,10 +112,6 @@ class Itinerary:
         return self.__bookings.copy()
 
     @property
-    def is_operative(self) -> bool:
-        return self.__operative
-
-    # kept for backwards compatibility
     def operative(self) -> bool:
         return self.__operative
 
