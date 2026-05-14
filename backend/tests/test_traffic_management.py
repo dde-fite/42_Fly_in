@@ -1,6 +1,13 @@
 import pytest
 from dataclasses import dataclass
+from pathlib import Path
+from src.utils.parser import parse_map
 from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, SlotBooking, Simulation
+from src.core.errors import TrafficError
+from tests.utils import file_to_uploadfile
+
+
+SUBJECT_MAPS_DIR = Path(__file__).parent / "maps"
 
 
 @dataclass
@@ -13,12 +20,23 @@ class TestMap:
 
 def assert_bookings(
         bookings: list[SlotBooking],
-        turns: list[tuple[int, int] | int]
+        turns: list[tuple[int, int] | int],
+        hubs: list[Hub] | None = None
 ) -> None:
+    h_copy: list[Hub] | None = None
+    is_h = True
+    if hubs:
+        h_copy = hubs.copy()
     assert len(bookings) == len(turns), (
         f"Expected {len(turns)} bookings, got {len(bookings)}"
     )
     for i, (booking, turn) in enumerate(zip(bookings, turns)):
+        if is_h:
+            assert isinstance(booking.host, Hub)
+            if hubs:
+                assert h_copy
+                assert h_copy.pop(0)
+        is_h = not is_h
         if isinstance(turn, tuple):
             assert turn[0] == booking.enter_turn.value, (
                 f"Booking[{i}]: expected enter_turn={turn[0]}, got "
@@ -42,9 +60,8 @@ def assert_bookings(
             )
 
 
-def test_map_to_simulation(map: TestMap) -> Simulation:
+def map_to_simulation(map: TestMap) -> Simulation:
     hubs = list(map.hubs.values())
-
     return Simulation(
         turn=map.turn,
         hubs=set(hubs),
@@ -55,8 +72,7 @@ def test_map_to_simulation(map: TestMap) -> Simulation:
     )
 
 
-@pytest.fixture
-def map_01() -> TestMap:
+def make_map_01() -> TestMap:
     """
     Makes a linear map: A ── con_ab ── B ── con_bc ── C, with 1 drone
     """
@@ -81,8 +97,7 @@ def map_01() -> TestMap:
     )
 
 
-@pytest.fixture
-def map_02() -> TestMap:
+def make_map_02() -> TestMap:
     """
     Makes a linear map: A ── con_ab ── B ── con_bc ── C, with 1 drone
     """
@@ -109,7 +124,7 @@ def map_02() -> TestMap:
     )
 
 
-def itinerary_01_01(map: TestMap) -> Itinerary:
+def make_itinerary_01(map: TestMap) -> Itinerary:
     return Itinerary(
         drone=map.drones[0],
         hubs=[
@@ -121,7 +136,7 @@ def itinerary_01_01(map: TestMap) -> Itinerary:
     )
 
 
-def itinerary_02_01(map: TestMap) -> list[Itinerary]:
+def make_itinerary_02(map: TestMap) -> list[Itinerary]:
     return [
         Itinerary(
             drone=map.drones[0],
@@ -167,55 +182,268 @@ def tick_all(map: TestMap) -> None:
 # ─── Tests ───────────────────────────────────────────────────────────────────
 
 
-def test_itinerary_booking_01(map_01: TestMap) -> None:
-    itinerary = itinerary_01_01(map_01)
-    assert itinerary == map_01.drones[0].itinerary
+def test_itinerary_booking_ok_01() -> None:
+    map = make_map_01()
+    itinerary = make_itinerary_01(map)
+    assert itinerary == map.drones[0].itinerary
     assert isinstance(itinerary, Itinerary)
     assert len(itinerary.bookings) == 5
-    for i, (bk, drone) in enumerate(zip(itinerary.bookings, map_01.drones)):
+    assert itinerary.operative
+    for i, (bk, drone) in enumerate(zip(itinerary.bookings, map.drones)):
         assert bk in bk.host.bookings
         assert bk.guest == drone
         assert isinstance(bk.enter_turn, Turn)
         if i != 5:
             assert isinstance(bk.exit_turn, Turn)
         else:
-            assert bk.host == map_01.hubs["C"]
+            assert bk.host == map.hubs["C"]
             assert bk.exit_turn is None
-    for h in map_01.hubs.values():
+    for h in map.hubs.values():
         assert len(h.bookings) == 1
     assert_bookings(
         itinerary.bookings,
-        [(0, 0), (0, 1), (1, 1), (1, 2), 2]
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
     )
 
 
-def test_itinerary_booking_02(map_02: TestMap) -> None:
-    itineraries = itinerary_02_01(map_02)
-    for i, d in zip(itineraries, map_02.drones):
+def test_itinerary_booking_ok_02() -> None:
+    map = make_map_02()
+    itineraries = make_itinerary_02(map)
+    for i, d in zip(itineraries, map.drones):
         assert isinstance(i, Itinerary)
         assert i == d.itinerary
         assert len(i.bookings) == 5
         for b in i.bookings:
             assert b in b.host.bookings
+        assert i.operative
     assert_bookings(
         itineraries[0].bookings,
-        [(0, 0), (0, 1), (1, 1), (1, 2), 2]
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
     )
     assert_bookings(
         itineraries[1].bookings,
-        [(0, 1), (1, 2), (2, 2), (2, 3), 3]
+        [(0, 1), (1, 2), (2, 2), (2, 3), 3],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
     )
     assert_bookings(
         itineraries[2].bookings,
-        [(0, 2), (2, 3), (3, 3), (3, 4), 4]
+        [(0, 2), (2, 3), (3, 3), (3, 4), 4],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
     )
-    # assert
 
 
-def test_traffic_controller_01(map_01: TestMap) -> None:
-    sim: Simulation = test_map_to_simulation(map_01)
-    expected = itinerary_01_01(map_01)
-    out = sim.controller.request_itinerary(map_01.drones[0], sim)
+def test_itinerary_booking_bad_01() -> None:
+    map = make_map_01()
+    with pytest.raises(TrafficError):
+        Itinerary(
+            drone=map.drones[0],
+            hubs=[
+                map.hubs["C"],
+                map.hubs["B"],
+                map.hubs["A"]
+            ],
+            turn=map.turn
+        )
+
+
+def test_itinerary_booking_bad_02() -> None:
+    map = make_map_01()
+    with pytest.raises(TrafficError):
+        Itinerary(
+            drone=map.drones[0],
+            hubs=[
+                map.hubs["B"],
+                map.hubs["A"],
+                map.hubs["C"]
+            ],
+            turn=map.turn
+        )
+
+
+def test_itinerary_booking_bad_03() -> None:
+    map = make_map_02()
+    with pytest.raises(TrafficError):
+        Itinerary(
+            drone=map.drones[0],
+            hubs=[
+                map.hubs["B"],
+                map.hubs["A"],
+                map.hubs["C"]
+            ],
+            turn=map.turn
+        )
+
+
+def test_itinerary_booking_bad_04() -> None:
+    map = make_map_02()
+    Itinerary(
+        drone=map.drones[0],
+        hubs=[
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ],
+        turn=map.turn
+    )
+    with pytest.raises(TrafficError):
+        Itinerary(
+            drone=map.drones[0],
+            hubs=[
+                map.hubs["A"],
+                map.hubs["B"],
+                map.hubs["C"]
+            ],
+            turn=map.turn
+        )
+
+
+# def test_itinerary_booking_bad_02() -> None:
+#     map = make_map_02()
+#     itineraries = make_itinerary_02(map)
+#     for i, d in zip(itineraries, map.drones):
+#         assert isinstance(i, Itinerary)
+#         assert i == d.itinerary
+#         assert len(i.bookings) == 5
+#         for b in i.bookings:
+#             assert b in b.host.bookings
+#         assert i.operative
+#     assert_bookings(
+#         itineraries[0].bookings,
+#         [(0, 0), (0, 1), (1, 1), (1, 2), 2]
+#     )
+#     assert_bookings(
+#         itineraries[1].bookings,
+#         [(0, 1), (1, 2), (2, 2), (2, 3), 3]
+#     )
+#     assert_bookings(
+#         itineraries[2].bookings,
+#         [(0, 2), (2, 3), (3, 3), (3, 4), 4]
+#     )
+
+
+def test_controller_request_ok_01() -> None:
+    map = make_map_01()
+    sim = map_to_simulation(map)
+    itinerary = sim.controller.request_itinerary(map.drones[0])
+    assert itinerary
+    assert_bookings(
+        itinerary.bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
+    )
+
+
+def test_controller_request_ok_02() -> None:
+    map = make_map_02()
+    sim = map_to_simulation(map)
+    itineraries: list[Itinerary] = []
+    for d in map.drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 1), (1, 2), (2, 2), (2, 3), 3],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 2), (2, 3), (3, 3), (3, 4), 4],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
+    )
+
+
+async def test_controller_request_ok_easy_01() -> None:
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt")
+    sim = await parse_map(file)
+    itineraries: list[Itinerary] = []
+    drones = list(sim.drones)
+    for d in drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 1), (1, 2), (2, 2), (2, 3), 3],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 2), (2, 3), (3, 3), (3, 4), 4],
+        [
+            map.hubs["A"],
+            map.hubs["B"],
+            map.hubs["C"]
+        ]
+    )
+
+
+# def test_controller_request_03() -> None:
+#     map_exp = make_map_02()
+#     map_out = make_map_02()
+#     make_itinerary_02(map_exp)
+#     sim = map_to_simulation(map_out)
+#     for d in map_out.drones:
+#         sim.controller.request_itinerary(d)
+#     for de, do in zip(map_exp.drones, map_out.drones):
+#         assert de.itinerary
+#         assert do.itinerary
+#         for ie, io in zip(de.itinerary.bookings, do.itinerary.bookings):
+#             assert ie.enter_turn == io.enter_turn
+#             assert ie.exit_turn == io.exit_turn
+#             assert ie.host == io.host
 
 
 # def test_itinerary_is_operative(turn, linear_map, drone_at_a):

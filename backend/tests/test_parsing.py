@@ -3,7 +3,7 @@ import os
 from typing import Any
 from glob import glob
 from pathlib import Path
-from backend.tests.utils import file_to_uploadfile
+from tests.utils import file_to_uploadfile
 from src.core.errors import ParseError
 from src.models import Simulation, Hub, Connection, Drone
 from src.utils.parser import parse_map
@@ -319,6 +319,6 @@ def parse_error_files() -> list[str]:
 @pytest.mark.parametrize("file_path", parse_error_files())
 @pytest.mark.asyncio
 async def test_parsing_error_batch(file_path: str) -> None:
-    file = file_to_uploadfile(file_path,)
+    file = file_to_uploadfile(file_path)
     with pytest.raises(ParseError):
         await parse_map(file)
