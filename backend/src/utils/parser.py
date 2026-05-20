@@ -177,10 +177,12 @@ async def parse_map(file: UploadFile) -> Simulation:
         raise ParseError("Start hub and end hub is mandatory")
     if not origin.capacity_defined:
         origin.capacity = nb_drones
+    if not destination.capacity_defined:
+        destination.capacity = nb_drones
     if nb_drones is not None:
-        if nb_drones > origin.capacity:
+        if nb_drones > origin.capacity or nb_drones > destination.capacity:
             raise ParseError(
-                "Number of drones exceed the capacity of start hub"
+                "Number of drones exceed the capacity of start hub or end hub"
             )
         drones = init_drones(nb_drones, origin, destination, turn)
     try:
