@@ -61,6 +61,12 @@ class Simulation(BaseModel):
     # Public helpers
     # ------------------------------------------------------------------
 
+    def get_hub_by_name(self, hub_name: str) -> Hub | None:
+        for h in self.hubs:
+            if h.name == hub_name:
+                return h
+        return None
+
     def add_drone(
         self,
         origin: Hub | None = None,

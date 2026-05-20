@@ -46,7 +46,7 @@ class Hub(TransitableZone):
     position: Vector
     access: HubAccess = HubAccess.NORMAL
     color: str | None = None
-    connections: set[Connection] = Field(default_factory=set)
+    connections: set[Connection] = Field(default_factory=set["Connection"])
 
     # ------------------------------------------------------------------
     # Validators
@@ -86,6 +86,9 @@ class Hub(TransitableZone):
     # TransitableZone interface
     # ------------------------------------------------------------------
 
+    def get_collaterals(self) -> list[TransitableZone]:
+        return list(self.connections)
+
     def get_movement_cost(self, direction: Hub | None = None) -> int | None:
         """Hubs always cost 1 turn to pass through (unless blocked)."""
         return 0
@@ -94,7 +97,7 @@ class Hub(TransitableZone):
         self,
         from_turn: Turn,
         destination: TransitableZone | None = None
-    ) -> Turn:
+    ) -> Turn | None:
         """Return the earliest turn >= *from_turn* where a slot is free."""
         i = Turn(from_turn.value)
         while self.get_occupancy(i) >= self.capacity:

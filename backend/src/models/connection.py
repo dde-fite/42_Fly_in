@@ -29,6 +29,9 @@ class Connection(TransitableZone):
     # TransitableZone interface
     # ------------------------------------------------------------------
 
+    def get_collaterals(self) -> list[TransitableZone]:
+        return list(self.hubs)
+
     def get_movement_cost(self, direction: Hub | None = None) -> int | None:
         """
         Return the cost (in turns) to traverse this connection toward
@@ -71,7 +74,7 @@ class Connection(TransitableZone):
         self,
         from_turn: Turn,
         destination: Hub
-    ) -> Turn:
+    ) -> Turn | None:
         """
         Return the earliest turn at which a drone can exit this connection
         into *destination*.
@@ -83,9 +86,7 @@ class Connection(TransitableZone):
             )
         mov_cost = self.get_movement_cost(destination)
         if not mov_cost:
-            raise TrafficError(
-                f"Hub '{destination.name}' does not accepts arrivals"
-            )
+            return None
         return Turn(from_turn.value + mov_cost)
 
     def request_exit(self, drone: Drone) -> None:

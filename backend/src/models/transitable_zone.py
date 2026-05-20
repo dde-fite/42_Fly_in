@@ -116,7 +116,9 @@ class TransitableZone(BaseModel, ABC):
         blocked (movement cost is None) or capacity is exceeded.
         """
         if slot in self._bookings:
-            raise ZoneNotAvailable("Drone have multiple bookings in the same zone")
+            raise ZoneNotAvailable(
+                "Drone have multiple bookings in the same zone"
+            )
 
         mov_cost = self.get_movement_cost(direction)
         if mov_cost is None:
@@ -165,6 +167,8 @@ class TransitableZone(BaseModel, ABC):
         """
         if drone in self.drones:
             raise TrafficError("Drone is already in this zone")
+        if drone.location in self.get_collaterals():
+            raise TrafficError("Drone is not at a collateral position")
 
         b = self.get_booking_for_drone(drone)
         if not b:
@@ -193,6 +197,10 @@ class TransitableZone(BaseModel, ABC):
     # ------------------------------------------------------------------
     # Abstract interface
     # ------------------------------------------------------------------
+
+    @abstractmethod
+    def get_collaterals(self) -> list[TransitableZone]:
+        ...
 
     @abstractmethod
     def get_next_available_entry(
