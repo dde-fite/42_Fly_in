@@ -44,13 +44,24 @@ def assert_hub(hub: Any) -> None:
 def assert_simulation(
     sim: Simulation,
     turn: int,
-    hubs: int,
+    hubs: int | list[str],
     connections: int,
     drones: int
 ) -> None:
     assert sim.turn.value == turn
     #  Hubs
-    assert len(sim.hubs) == hubs
+    if isinstance(hubs, int):
+        assert len(sim.hubs) == hubs
+    else:
+        assert len(sim.hubs) == len(hubs)
+        for hub_name in hubs:
+            assert sim.get_hub_by_name(hub_name)
+        origin = sim.get_hub_by_name(hubs[0])
+        destination = sim.get_hub_by_name(hubs[-1])
+        assert origin
+        assert destination
+        assert origin.capacity >= drones
+        assert destination.capacity >= drones
     for h in sim.hubs:
         assert_hub(h)
         assert h.turn == sim.turn
@@ -88,7 +99,7 @@ async def test_parsing_ok_easy_01() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=4,
+        hubs=["start", "waypoint1", "waypoint2", "goal"],
         connections=3,
         drones=2
     )
@@ -101,7 +112,7 @@ async def test_parsing_ok_easy_02() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=5,
+        hubs=["start", "junction", "path_a", "path_b", "goal"],
         connections=5,
         drones=3
     )
@@ -114,7 +125,7 @@ async def test_parsing_ok_easy_03() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=4,
+        hubs=["start", "bottleneck", "wide_area", "goal"],
         connections=3,
         drones=4
     )
@@ -127,7 +138,10 @@ async def test_parsing_ok_medium_01() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=6,
+        hubs=[
+            "start", "junction", "dead_end", "correct_path",
+            "intermediate", "goal"
+        ],
         connections=5,
         drones=5
     )
@@ -140,7 +154,10 @@ async def test_parsing_ok_medium_02() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=7,
+        hubs=[
+            "start", "loop_a", "loop_b", "loop_c", "loop_d",
+            "exit_point", "goal"
+        ],
         connections=7,
         drones=6
     )
@@ -153,7 +170,10 @@ async def test_parsing_ok_medium_03() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=8,
+        hubs=[
+            "start", "slow_path1", "slow_path2", "slow_path3",
+            "fast_junction", "fast_path", "merge_point", "goal"
+        ],
         connections=8,
         drones=4
     )
@@ -166,7 +186,12 @@ async def test_parsing_ok_hard_01() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=17,
+        hubs=[
+            "start", "maze_a1", "maze_a2", "maze_b1", "maze_b2", "maze_c1",
+            "maze_c2", "dead_end1", "dead_end2", "dead_end3", "trap_loop1",
+            "trap_loop2", "bottleneck", "final_stretch1", "final_stretch2",
+            "final_stretch3", "goal"
+        ],
         connections=20,
         drones=8
     )
@@ -179,7 +204,12 @@ async def test_parsing_ok_hard_02() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=15,
+        hubs=[
+            "start", "gate1", "gate2", "gate3", "waiting_area1",
+            "waiting_area2", "waiting_area3", "restricted_tunnel1",
+            "restricted_tunnel2", "restricted_tunnel3", "priority_bypass1",
+            "priority_bypass2", "convergence", "final_bottleneck", "goal"
+        ],
         connections=18,
         drones=12
     )
@@ -192,7 +222,16 @@ async def test_parsing_ok_hard_03() -> None:
     assert_simulation(
         s,
         turn=0,
-        hubs=31,
+        hubs=[
+            "start", "dist_gate1", "dist_gate2", "dist_gate3", "maze_trap1",
+            "maze_trap2", "maze_loop1", "maze_loop2", "maze_loop3",
+            "maze_loop4", "maze_correct", "bottleneck1", "bottleneck2",
+            "overflow1", "overflow2", "priority_hub", "priority_trap1",
+            "priority_trap2", "priority_dead_end", "priority_correct",
+            "conv_restricted1", "conv_restricted2", "conv_normal1",
+            "conv_normal2", "conv_priority1", "conv_priority2", "final_merge",
+            "final_gate1", "final_gate2", "final_gate3", "goal"
+        ],
         connections=37,
         drones=15
     )
