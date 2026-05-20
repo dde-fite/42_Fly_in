@@ -21,11 +21,12 @@ class TestMap:
 def assert_bookings(
         bookings: list[SlotBooking],
         turns: list[tuple[int, int] | int],
-        hubs: list[Hub] | None = None
+        hubs: list[Hub | None] | None = None
 ) -> None:
     h_copy: list[Hub] | None = None
     is_h = True
     if hubs:
+        assert None not in hubs
         h_copy = hubs.copy()
     assert len(bookings) == len(turns), (
         f"Expected {len(turns)} bookings, got {len(bookings)}"
@@ -392,43 +393,58 @@ def test_controller_request_ok_02() -> None:
     )
 
 
+@pytest.mark.asyncio
 async def test_controller_request_ok_easy_01() -> None:
     file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt")
     sim = await parse_map(file)
     itineraries: list[Itinerary] = []
-    drones = list(sim.drones)
-    for d in drones:
+    for d in sim.drones:
         i = sim.controller.request_itinerary(d)
         assert i
         itineraries.append(i)
     assert_bookings(
         itineraries[0].bookings,
-        [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
         [
-            map.hubs["A"],
-            map.hubs["B"],
-            map.hubs["C"]
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("waypoint1"),
+            sim.get_hub_by_name("waypoint2"),
+            sim.get_hub_by_name("goal")
         ]
     )
     assert_bookings(
         itineraries[1].bookings,
-        [(0, 1), (1, 2), (2, 2), (2, 3), 3],
+        [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
         [
-            map.hubs["A"],
-            map.hubs["B"],
-            map.hubs["C"]
-        ]
-    )
-    assert_bookings(
-        itineraries[2].bookings,
-        [(0, 2), (2, 3), (3, 3), (3, 4), 4],
-        [
-            map.hubs["A"],
-            map.hubs["B"],
-            map.hubs["C"]
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("waypoint1"),
+            sim.get_hub_by_name("waypoint2"),
+            sim.get_hub_by_name("goal")
         ]
     )
 
+
+@pytest.mark.asyncio
+async def test_controller_request_ok_easy_02() -> None:
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/02_simple_fork.txt")
+    sim = await parse_map(file)
+    itineraries: list[Itinerary] = []
+    for d in sim.drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+    print("hola")
+    # assert_bookings(
+    #     itineraries[0].bookings,
+    #     [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+    #     [
+    #         sim.get_hub_by_name("start"),
+    #         sim.get_hub_by_name("junction"),
+    #         sim.get_hub_by_name("path_a"),
+    #         sim.get_hub_by_name("path_b"),
+    #         sim.get_hub_by_name("goal")
+    #     ]
+    # )
 
 # def test_controller_request_03() -> None:
 #     map_exp = make_map_02()
