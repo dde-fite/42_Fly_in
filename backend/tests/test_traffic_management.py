@@ -251,6 +251,135 @@ def test_itinerary_booking_ok_02() -> None:
     )
 
 
+def test_itinerary_booking_ok_03() -> None:
+    turn = Turn(0)
+    A = Hub(name="A", position=Vector(x=0, y=0), turn=turn, capacity=3)
+    B = Hub(name="B", position=Vector(x=1, y=0), turn=turn, capacity=3)
+    C = Hub(name="C", position=Vector(x=2, y=0), turn=turn, capacity=2)
+    D = Hub(name="D", position=Vector(x=3, y=0), turn=turn, capacity=3)
+    Connection(hubs=frozenset({A, B}), turn=turn, capacity=2)
+    Connection(hubs=frozenset({B, C}), turn=turn)
+    Connection(hubs=frozenset({C, D}), turn=turn)
+    drones = [
+        Drone(origin=A, destination=D, turn=turn),
+        Drone(origin=A, destination=D, turn=turn),
+        Drone(origin=A, destination=D, turn=turn)
+    ]
+    itineraries = [
+        Itinerary(drone=drones[0], hubs=[A, B, C, D], turn=turn),
+        Itinerary(drone=drones[1], hubs=[A, B, C, D], turn=turn),
+        Itinerary(drone=drones[2], hubs=[A, B, C, D], turn=turn)
+    ]
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+        [A, B, C, D]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 0), (0, 1), (1, 2), (2, 3), (3, 3), (3, 4), 4],
+        [A, B, C, D]
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 1), (1, 2), (2, 3), (3, 4), (4, 4), (4, 5), 5],
+        [A, B, C, D]
+    )
+
+
+def test_itinerary_booking_ok_04() -> None:
+    turn = Turn(0)
+    A = Hub(name="A", position=Vector(x=0, y=0), turn=turn, capacity=10)
+    B = Hub(name="B", position=Vector(x=1, y=0), turn=turn, capacity=10)
+    C = Hub(name="C", position=Vector(x=2, y=0), turn=turn, capacity=10)
+    Connection(hubs=frozenset({A, B}), turn=turn, capacity=10)
+    Connection(hubs=frozenset({B, C}), turn=turn, capacity=1)
+    drones = [
+        Drone(origin=A, destination=C, turn=turn),
+        Drone(origin=A, destination=C, turn=turn),
+        Drone(origin=A, destination=C, turn=turn),
+    ]
+    itineraries = [
+        Itinerary(drone=drones[0], hubs=[A, B, C], turn=turn),
+        Itinerary(drone=drones[1], hubs=[A, B, C], turn=turn),
+        Itinerary(drone=drones[2], hubs=[A, B, C], turn=turn),
+    ]
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+        [A, B, C]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 0), (0, 1), (1, 2), (2, 3), 3],
+        [A, B, C]
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 0), (0, 1), (1, 3), (3, 4), 4],
+        [A, B, C]
+    )
+
+
+def test_itinerary_booking_ok_05() -> None:
+    turn = Turn(0)
+    A = Hub(name="A", position=Vector(0, 0), turn=turn, capacity=10)
+    B = Hub(name="B", position=Vector(1, 0), turn=turn, capacity=10)
+    C = Hub(name="C", position=Vector(2, 0), turn=turn, capacity=10)
+    D = Hub(name="D", position=Vector(3, 0), turn=turn, capacity=10)
+    E = Hub(name="E", position=Vector(4, 0), turn=turn, capacity=10)
+    F = Hub(name="F", position=Vector(5, 0), turn=turn, capacity=10)
+    Connection(hubs=frozenset({A, B}), turn=turn, capacity=5)
+    Connection(hubs=frozenset({B, C}), turn=turn, capacity=4)
+    Connection(hubs=frozenset({C, D}), turn=turn, capacity=3)
+    Connection(hubs=frozenset({D, E}), turn=turn, capacity=2)
+    Connection(hubs=frozenset({E, F}), turn=turn, capacity=1)
+    drones = [
+        Drone(origin=A, destination=F, turn=turn),
+        Drone(origin=A, destination=F, turn=turn),
+        Drone(origin=A, destination=F, turn=turn),
+        Drone(origin=A, destination=F, turn=turn),
+        Drone(origin=A, destination=F, turn=turn),
+    ]
+    itineraries = [
+        Itinerary(drones[0], [A, B, C, D, E, F], turn),
+        Itinerary(drones[1], [A, B, C, D, E, F], turn),
+        Itinerary(drones[2], [A, B, C, D, E, F], turn),
+        Itinerary(drones[3], [A, B, C, D, E, F], turn),
+        Itinerary(drones[4], [A, B, C, D, E, F], turn),
+    ]
+    assert_bookings(
+        itineraries[0].bookings,
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+        [A, B, C, D, E, F]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 5), (5, 6), 6],
+        [A, B, C, D, E, F]
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), 7],
+        [A, B, C, D, E, F]
+    )
+    assert_bookings(
+        itineraries[3].bookings,
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 3), (3, 4), (4, 4), (4, 5), (5, 7), (7, 8), 8],
+        [A, B, C, D, E, F]
+    )
+    assert_bookings(
+        itineraries[4].bookings,
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
+        [(0, 0), (0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 5), (5, 6), (6, 8), (8, 9), 9],
+        [A, B, C, D, E, F]
+    )
+
+
 def test_itinerary_booking_bad_01() -> None:
     map = make_map_01()
     with pytest.raises(TrafficError):
@@ -314,6 +443,7 @@ def test_itinerary_booking_bad_04() -> None:
             ],
             turn=map.turn
         )
+
 
 
 # def test_itinerary_booking_bad_02() -> None:
