@@ -62,10 +62,7 @@ class TransitableZone(BaseModel, ABC):
         already belong to the drone being routed, so a drone's own spawn
         booking does not block it from being assigned a slot in the same zone.
         """
-        if turn.value == self.turn.value:
-            return sum(1 for d in self.drones if d != exclude)
-
-        occ: set[Drone] = set()
+        occ: list[Drone] = []
         for b in self._bookings:
             if exclude is not None and b.guest == exclude:
                 continue
@@ -76,7 +73,11 @@ class TransitableZone(BaseModel, ABC):
                 special = (b.enter_turn.value == b.exit_turn.value ==
                            turn.value)
             if (enters and not exits) or special:
-                occ.add(b.guest)
+                occ.append(b.guest)
+        if (turn.value == self.turn.value):
+            for d in self.drones:
+                if not self.get_booking_for_drone(d):
+                    occ.append(d)
         return len(occ)
 
     # def get_occupancy_slots(self, turn: Turn, exclude: Drone | None = None) -> SlotBooking:
@@ -136,7 +137,6 @@ class TransitableZone(BaseModel, ABC):
                     f" than the required movement cost ({mov_cost})"
                 )
         else:
-            # Final destination: only check the entry turn.
             end = slot.enter_turn.value
 
         # Verify capacity across every turn the booking spans.
@@ -145,7 +145,6 @@ class TransitableZone(BaseModel, ABC):
                 raise ZoneNotAvailable(
                     f"Zone is at capacity({self.capacity}) at turn {t}"
                 )
-
         self._bookings.append(slot)
         self.get_occupancy.cache_clear()
 
@@ -169,14 +168,11 @@ class TransitableZone(BaseModel, ABC):
             raise TrafficError("Drone is already in this zone")
         if drone.location in self.get_collaterals():
             raise TrafficError("Drone is not at a collateral position")
-
         b = self.get_booking_for_drone(drone)
         if not b:
             raise TrafficError("Drone does not have a booking in this zone")
-
         if len(self.drones) + 1 > self.capacity:
             raise TrafficError("Zone capacity exceeded")
-
         self.drones.add(drone)
         self.get_occupancy.cache_clear()
         drone.location = self
