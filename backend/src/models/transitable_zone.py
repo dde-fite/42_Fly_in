@@ -74,10 +74,6 @@ class TransitableZone(BaseModel, ABC):
                            turn.value)
             if (enters and not exits) or special:
                 occ.append(b.guest)
-        if (turn.value == self.turn.value):
-            for d in self.drones:
-                if not self.get_booking_for_drone(d):
-                    occ.append(d)
         return len(occ)
 
     # def get_occupancy_slots(self, turn: Turn, exclude: Drone | None = None) -> SlotBooking:
