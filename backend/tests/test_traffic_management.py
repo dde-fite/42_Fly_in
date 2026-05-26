@@ -350,32 +350,42 @@ def test_itinerary_booking_ok_05() -> None:
     ]
     assert_bookings(
         itineraries[0].bookings,
-        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
-        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4),
+         #  E     E<->F   F
+         (4, 4), (4, 5), 5],
         [A, B, C, D, E, F]
     )
     assert_bookings(
         itineraries[1].bookings,
-        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
-        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 5), (5, 6), 6],
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4),
+         #  E     E<->F   F
+         (4, 5), (5, 6), 6],
         [A, B, C, D, E, F]
     )
     assert_bookings(
         itineraries[2].bookings,
-        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
-        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), 7],
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 4), (4, 5),
+         #  E     E<->F   F
+         (5, 6), (6, 7), 7],
         [A, B, C, D, E, F]
     )
     assert_bookings(
         itineraries[3].bookings,
-        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
-        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 3), (3, 4), (4, 4), (4, 5), (5, 7), (7, 8), 8],
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 3), (3, 4), (4, 4), (4, 5),
+         #  E     E<->F   F
+         (5, 7), (7, 8), 8],
         [A, B, C, D, E, F]
     )
     assert_bookings(
         itineraries[4].bookings,
-        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E     E     E<->F   F
-        [(0, 0), (0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 5), (5, 6), (6, 8), (8, 9), 9],
+        #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
+        [(0, 0), (0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 5), (5, 6),
+         #  E     E<->F   F
+         (6, 8), (8, 9), 9],
         [A, B, C, D, E, F]
     )
 
@@ -443,7 +453,6 @@ def test_itinerary_booking_bad_04() -> None:
             ],
             turn=map.turn
         )
-
 
 
 # def test_itinerary_booking_bad_02() -> None:
@@ -563,18 +572,327 @@ async def test_controller_request_ok_easy_02() -> None:
         i = sim.controller.request_itinerary(d)
         assert i
         itineraries.append(i)
-    print("hola")
-    # assert_bookings(
-    #     itineraries[0].bookings,
-    #     [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
-    #     [
-    #         sim.get_hub_by_name("start"),
-    #         sim.get_hub_by_name("junction"),
-    #         sim.get_hub_by_name("path_a"),
-    #         sim.get_hub_by_name("path_b"),
-    #         sim.get_hub_by_name("goal")
-    #     ]
-    # )
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("path_a"),
+            sim.get_hub_by_name("goal")
+        ]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("path_b"),
+            sim.get_hub_by_name("goal")
+        ]
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("path_a"),
+            sim.get_hub_by_name("goal")
+        ]
+    )
+
+
+@pytest.mark.asyncio
+async def test_controller_request_ok_easy_03() -> None:
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/03_basic_capacity.txt")
+    sim = await parse_map(file)
+    itineraries: list[Itinerary] = []
+    for d in sim.drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("bottleneck"),
+            sim.get_hub_by_name("wide_area"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("bottleneck"),
+            sim.get_hub_by_name("wide_area"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("bottleneck"),
+            sim.get_hub_by_name("wide_area"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+
+    assert_bookings(
+        itineraries[3].bookings,
+        [(0, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("bottleneck"),
+            sim.get_hub_by_name("wide_area"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+
+
+@pytest.mark.asyncio
+async def test_controller_request_ok_medium_01() -> None:
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/01_dead_end_trap.txt")
+    sim = await parse_map(file)
+    itineraries: list[Itinerary] = []
+    for d in sim.drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("correct_path"),
+            sim.get_hub_by_name("intermediate"),
+            sim.get_hub_by_name("goal"),
+        ]
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("correct_path"),
+            sim.get_hub_by_name("intermediate"),
+            sim.get_hub_by_name("goal"),
+        ]
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("correct_path"),
+            sim.get_hub_by_name("intermediate"),
+            sim.get_hub_by_name("goal"),
+        ]
+    )
+    assert_bookings(
+        itineraries[3].bookings,
+        [(0, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), 7],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("correct_path"),
+            sim.get_hub_by_name("intermediate"),
+            sim.get_hub_by_name("goal"),
+        ]
+    )
+    assert_bookings(
+        itineraries[4].bookings,
+        [(0, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), (7, 8), 8],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("junction"),
+            sim.get_hub_by_name("correct_path"),
+            sim.get_hub_by_name("intermediate"),
+            sim.get_hub_by_name("goal"),
+        ]
+    )
+
+
+@pytest.mark.asyncio
+async def test_controller_request_ok_medium_02() -> None:
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/02_circular_loop.txt")
+    sim = await parse_map(file)
+    itineraries: list[Itinerary] = []
+    for d in sim.drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+    assert_bookings(
+        itineraries[0].bookings,
+        # start srt<->a  loop_a  a<->b      b     b-exit  exit  ex<->gl goal
+        [(0, 0), (0, 2), (2, 2), (2, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("loop_a"),
+            sim.get_hub_by_name("loop_b"),
+            sim.get_hub_by_name("exit_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        # start srt<->a  loop_a  a<->b      b     b-exit  exit  ex<->gl goal
+        [(0, 2), (2, 4), (4, 4), (4, 6), (6, 6), (6, 7), (7, 7), (7, 8), 8],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("loop_a"),
+            sim.get_hub_by_name("loop_b"),
+            sim.get_hub_by_name("exit_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        # start srt<->a  loop_a  a<->b      b     b-exit  exit  ex<->gl goal
+        [(0, 4), (4, 6), (6, 6), (6, 8), (8, 8), (8, 9), (9, 9), (9, 10), 10],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("loop_a"),
+            sim.get_hub_by_name("loop_b"),
+            sim.get_hub_by_name("exit_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[3].bookings,
+        # start srt<->a  loop_a   a<->b       b      b-exit     exit
+        [(0, 6), (6, 8), (8, 8), (8, 10), (10, 10), (10, 11), (11, 11),
+         # ex<->gl goal
+         (11, 12), 12],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("loop_a"),
+            sim.get_hub_by_name("loop_b"),
+            sim.get_hub_by_name("exit_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[4].bookings,
+        # start  srt<->a   loop_a     a<->b       b      b-exit     exit
+        [(0, 8), (8, 10), (10, 10), (10, 12), (12, 12), (12, 13), (13, 13),
+         # ex<->gl goal
+         (13, 14), 14],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("loop_a"),
+            sim.get_hub_by_name("loop_b"),
+            sim.get_hub_by_name("exit_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[5].bookings,
+        # start   srt<->a   loop_a     a<->b       b      b-exit     exit
+        [(0, 10), (10, 12), (12, 12), (12, 14), (14, 14), (14, 15), (15, 15),
+         # ex<->gl goal
+         (15, 16), 16],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("loop_a"),
+            sim.get_hub_by_name("loop_b"),
+            sim.get_hub_by_name("exit_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+
+
+@pytest.mark.asyncio
+async def test_controller_request_ok_medium_03() -> None:
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt")
+    sim = await parse_map(file)
+    itineraries: list[Itinerary] = []
+    for d in sim.drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+    assert_bookings(
+        itineraries[0].bookings,
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("fast_junction"),
+            sim.get_hub_by_name("fast_path"),
+            sim.get_hub_by_name("merge_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[1].bookings,
+        [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("fast_junction"),
+            sim.get_hub_by_name("fast_path"),
+            sim.get_hub_by_name("merge_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[2].bookings,
+        [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("fast_junction"),
+            sim.get_hub_by_name("fast_path"),
+            sim.get_hub_by_name("merge_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+    assert_bookings(
+        itineraries[3].bookings,
+        [(0, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), 7],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("fast_junction"),
+            sim.get_hub_by_name("fast_path"),
+            sim.get_hub_by_name("merge_point"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
+
+
+@pytest.mark.asyncio
+async def test_controller_request_ok_hard_01() -> None:
+    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/01_maze_nightmare.txt")
+    sim = await parse_map(file)
+    itineraries: list[Itinerary] = []
+    for d in sim.drones:
+        i = sim.controller.request_itinerary(d)
+        assert i
+        itineraries.append(i)
+    assert_bookings(
+        itineraries[0].bookings,
+        # start  st<->a1 maze_a1 a1<->b1 maze_b1 b1<->b2 maze_b2 b2<->c1 maze_c1 c1<->bn bottlen bn<->f1 final1  f1<->gl goal
+        [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), 7],
+        [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("maze_a1"),
+            sim.get_hub_by_name("maze_b1"),
+            sim.get_hub_by_name("maze_b2"),
+            sim.get_hub_by_name("maze_c2"),
+            sim.get_hub_by_name("bottleneck"),
+            sim.get_hub_by_name("final_stretch1"),
+            sim.get_hub_by_name("goal"),
+        ],
+    )
 
 # def test_controller_request_03() -> None:
 #     map_exp = make_map_02()
