@@ -31,7 +31,7 @@ class TransitableZone(BaseModel, ABC):
     drones: set[Drone] = Field(default_factory=set[Drone])
     capacity: int = Field(ge=1, default=1)
     capacity_defined: bool = False
-    turn: Turn
+    turn: Turn = Turn(0)
 
     _bookings: list[SlotBooking] = PrivateAttr(default_factory=list)
 
@@ -162,7 +162,7 @@ class TransitableZone(BaseModel, ABC):
         """
         if drone in self.drones:
             raise TrafficError("Drone is already in this zone")
-        if drone.location in self.get_collaterals():
+        if drone.location not in self.get_collaterals():
             raise TrafficError("Drone is not at a collateral position")
         b = self.get_booking_for_drone(drone)
         if not b:
@@ -170,8 +170,8 @@ class TransitableZone(BaseModel, ABC):
         if len(self.drones) + 1 > self.capacity:
             raise TrafficError("Zone capacity exceeded")
         self.drones.add(drone)
-        self.get_occupancy.cache_clear()
         drone.location = self
+        self.get_occupancy.cache_clear()
 
     # ------------------------------------------------------------------
     # Tick

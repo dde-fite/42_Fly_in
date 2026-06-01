@@ -1,7 +1,9 @@
-import logging
+from logging import (getLogger, CRITICAL, FATAL,
+                     ERROR, WARNING, WARN, INFO,
+                     DEBUG, NOTSET)
 from .config import config
 
-logger = logging.getLogger('uvicorn.error')
+logger = getLogger('uvicorn.error')
 
 
 def setup_logging() -> None:

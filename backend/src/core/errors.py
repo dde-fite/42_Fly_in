@@ -36,3 +36,7 @@ class TrafficError(Exception):
 
 class ExpiredItinerary(Exception):
     pass
+
+
+class SimulationConflict(Exception):
+    pass

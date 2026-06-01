@@ -1,6 +1,6 @@
 from uuid import UUID
 from fastapi import UploadFile
-from src.models.simulation_token import SimulationToken
+from src.models import SimulationToken, Simulation
 from src.core import SimulationAlreadyAllocated
 from src.schema import (
     ResponseSimulation, ResponseDrone, ResponseHub,
@@ -10,10 +10,11 @@ from src.mappers import (
     simulation_to_schema, connection_to_schema,
     hub_to_schema, drone_to_schema
 )
-from src.utils import (
-    parse_map, get_simulation, set_simulation,
+from src.utils.data_wrapper import (
+    get_simulation, set_simulation,
     simulation_exists
 )
+from src.utils.parser import parse_map
 
 
 async def register_simulation(
@@ -24,8 +25,18 @@ async def register_simulation(
         raise SimulationAlreadyAllocated(
             "Simulation token already allocated!"
         )
-    s = await parse_map(file)
+    """
+    Parses the file send from client, creates a simulation and saves to data
+    cache with the token as the key.
+
+    Raises:
+        ParseError
+        ValidationError
+        SimulationConflict
+    """
+    map = await parse_map(file)
     await file.close()
+    s = Simulation(map=map)
     set_simulation(token, s)
     return simulation_to_schema(s)
 
@@ -64,5 +75,5 @@ def fetch_connection(token: SimulationToken, id: UUID
 
 def execute_turn(token: SimulationToken, turns: int = 1) -> ResponseSimulation:
     s = get_simulation(token)
-    s.turn += 1
+    s.tick()
     return simulation_to_schema(s)

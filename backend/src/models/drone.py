@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict, PrivateAttr
-from src.core.errors import TrafficError
+from src.core import TrafficError, logger
+from src.utils.ft import short_id
 from .turn import Turn
 
 if TYPE_CHECKING:
@@ -25,7 +26,7 @@ class Drone(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     origin: Hub
     destination: Hub
-    turn: Turn
+    turn: Turn = Turn(0)
     itinerary: Itinerary | None = None
 
     _location: TransitableZone = PrivateAttr()
@@ -47,7 +48,7 @@ class Drone(BaseModel):
         if not self.itinerary:
             raise TrafficError("Drone needs an itinerary to move")
         # After popping the first booking the next expected zone is bookings[0].
-        expected = self.itinerary.bookings[0].host if self.itinerary.bookings else None
+        expected = self.itinerary.bookings[1].host if len(self.itinerary.bookings) >= 2 else None
         if zone != expected:
             raise TrafficError(
                 "Drone does not have permission to move to that zone"
@@ -62,24 +63,23 @@ class Drone(BaseModel):
     def tick(self) -> None:
         """Advance the drone's state for the current turn."""
         if self._location == self.destination:
-            return  # Already at destination — nothing to do.
+            return  # Already at destination, so nothing to do.
 
         if not self.itinerary:
             # No itinerary yet; the TrafficController should assign one.
             return
 
-        bookings = self.itinerary.bookings
-        if not bookings:
-            return
-
-        current_booking = bookings[0]
-
-        if current_booking.exit_turn is None:
-            # Final slot — no outbound movement planned.
+        if not self.itinerary.bookings:
             return
 
         # Request exit when the scheduled exit turn has been reached.
-        if self.turn.value >= current_booking.exit_turn.value:
+        while True:
+            actual = self.itinerary.bookings[0]
+            if not actual.exit_turn:
+                break
+            if self.turn.value != actual.exit_turn.value:
+                break
+            logger.debug(f"[DRONE {short_id(self.id)}] Requesting exit from zone: {self._location}")
             self._location.request_exit(self)
 
     # ------------------------------------------------------------------

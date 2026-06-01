@@ -125,7 +125,7 @@ class Hub(TransitableZone):
         """
         if drone in self.drones:
             raise TrafficError("Drone is already in this hub")
-        if len(self.drones) + 1 > self.capacity:
+        if len(self.drones) >= self.capacity:
             raise TrafficError("Hub capacity exceeded on spawn")
 
         # # Create an open-ended booking so the itinerary can later add an exit.
