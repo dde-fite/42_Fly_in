@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict, PrivateAttr
-from src.core.errors import TrafficError, ZoneNotAvailable
+from src.core import TrafficError, ZoneNotAvailable, logger
 from .turn import Turn
 from .drone import Drone
 
@@ -169,6 +169,8 @@ class TransitableZone(BaseModel, ABC):
             raise TrafficError("Drone does not have a booking in this zone")
         if len(self.drones) + 1 > self.capacity:
             raise TrafficError("Zone capacity exceeded")
+        logger.debug(f"[TRANSITABLE ZONE {self}] Accepted drone {drone} from "
+                     f"colateral zone '{drone.location}'")
         self.drones.add(drone)
         drone.location = self
         self.get_occupancy.cache_clear()

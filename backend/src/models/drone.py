@@ -53,34 +53,40 @@ class Drone(BaseModel):
             raise TrafficError(
                 "Drone does not have permission to move to that zone"
             )
+        prev = self._location
         self._location = zone
+        logger.debug(f"[DRONE {self}] Moved from '{prev}' to '{zone}'")
         self.itinerary.pop_booking()
 
     # ------------------------------------------------------------------
     # Tick
     # ------------------------------------------------------------------
 
-    def tick(self) -> None:
+    def tick(self) -> bool:
         """Advance the drone's state for the current turn."""
         if self._location == self.destination:
-            return  # Already at destination, so nothing to do.
+            return False  # Already at destination, so nothing to do.
 
         if not self.itinerary:
             # No itinerary yet; the TrafficController should assign one.
-            return
+            return False
 
         if not self.itinerary.bookings:
-            return
+            return False
 
         # Request exit when the scheduled exit turn has been reached.
+        moved = False
         while True:
             actual = self.itinerary.bookings[0]
             if not actual.exit_turn:
                 break
             if self.turn.value != actual.exit_turn.value:
                 break
-            logger.debug(f"[DRONE {short_id(self.id)}] Requesting exit from zone: {self._location}")
+            logger.debug(f"[DRONE {self}] Requesting exit from zone"
+                         f"'{self._location}'")
             self._location.request_exit(self)
+            moved = True
+        return moved
 
     # ------------------------------------------------------------------
     # Dunder helpers
@@ -101,3 +107,6 @@ class Drone(BaseModel):
             f"destination={self.destination.name!r}, "
             f"turn={self.turn.value})"
         )
+
+    def __str__(self) -> str:
+        return f"D{short_id(self.id).upper()}"

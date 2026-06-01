@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from src.core.errors import ZoneNotAvailable, ExpiredItinerary, TrafficError
+from src.core import ZoneNotAvailable, ExpiredItinerary, TrafficError, logger
 from .drone import Drone
 from .hub import Hub
 from .turn import Turn
@@ -159,7 +159,11 @@ class Itinerary:
             except Exception:
                 pass  # best-effort cleanup
         self.__bookings.clear()
+        logger.debug(f"[ITINERARY {self}] Destroyed")
 
         if self.__drone.itinerary is self:
             self.__drone.itinerary = None
         self.__operative = False
+
+    def __str__(self) -> str:
+        return f"ITI-{self.drone}"

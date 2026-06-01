@@ -1,10 +1,8 @@
 from __future__ import annotations
-
 import heapq
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
-
-from src.core.errors import TrafficError, ZoneNotAvailable
+from dataclasses import dataclass, field
+from src.core import TrafficError, ZoneNotAvailable, logger
 from .hub import Hub, HubCost
 from .itinerary import Itinerary
 from .turn import Turn
@@ -92,7 +90,10 @@ class TrafficController:
         ranked_paths = self._dijkstra(origin, drone.destination, drone.turn)
         for hub_path, _ in ranked_paths:
             try:
-                return Itinerary(drone, hub_path, drone.turn)
+                itinerary = Itinerary(drone, hub_path, drone.turn)
+                logger.debug("[TRAFFIC CONTROLLER] Created itinerary for "
+                             f"drone {drone}")
+                return itinerary
             except (ZoneNotAvailable, TrafficError):
                 # Booking failed (e.g. another drone grabbed the slot between
                 # planning and committing).  Try the next candidate.

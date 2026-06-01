@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 from pydantic import Field
-from src.core.errors import TrafficError
+from src.core import TrafficError, logger
 from .transitable_zone import TransitableZone
 from .turn import Turn
 from .hub import Hub, HubCost
@@ -105,8 +105,11 @@ class Connection(TransitableZone):
 
         next_booking = drone.itinerary.bookings[1]
         try:
+            logger.debug(f"[CONNECTION {self}] Requesting exit for drone "
+                         f"{drone} at colateral zone '{next_booking.host}'")
             next_booking.host.accept_from_colateral(drone)
         except TrafficError:
+            logger.debug(f"[CONNECTION {self}] Denied exit for drone {drone}")
             return
 
         self.unbook(b)
@@ -138,3 +141,7 @@ class Connection(TransitableZone):
     def __repr__(self) -> str:
         names = " <-> ".join(h.name for h in self.hubs)
         return f"Connection({names})"
+
+    def __str__(self) -> str:
+        names = "<->".join(h.name for h in self.hubs)
+        return names

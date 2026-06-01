@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any, Iterable, TYPE_CHECKING, cast
 from src.core import TrafficError, SimulationConflict, logger, DEBUG
+from src.utils.ft import short_id
 from .turn import Turn
 from .hub import Hub
 from .drone import Drone
@@ -287,7 +288,11 @@ class Simulation():
             3. Each Drone attempts to move (request_exit on its current zone).
             4. Each TransitableZone purges expired bookings.
             5. The global turn counter is incremented.
+            6. Print drones moved
         """
+        logger.debug(f"*********  BEGIN TURN {self.turn.value + 1} *********")
+        drones_moved: list[Drone] = []
+
         # 1. Validate itineraries.
         for drone in list(self.drones):
             if drone.itinerary:
@@ -301,7 +306,8 @@ class Simulation():
 
         # 3. Drone movement.
         for drone in list(self.drones):
-            drone.tick()
+            if drone.tick():
+                drones_moved.append(drone)
 
         # 4. Zone cleanup.
         for hub in self.hubs:
@@ -311,6 +317,13 @@ class Simulation():
 
         # 5. Advance turn.
         self.turn.value += 1
+        logger.debug(f"********* ENDED TURN {self.turn.value} *********")
+
+        # 6. Print drones moved
+        if drones_moved:
+            for d in drones_moved:
+                print(f"{d}-{d.location}", end=" ")
+            print()
 
     def run(self, max_turns: int = 1000) -> int:
         """

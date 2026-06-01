@@ -3,7 +3,7 @@ from typing import Any, TYPE_CHECKING
 from enum import Enum
 from pydantic import Field, field_validator, ConfigDict
 from pydantic_extra_types.color import Color
-from src.core.errors import TrafficError
+from src.core import TrafficError, logger
 from .transitable_zone import TransitableZone
 from .vector import Vector
 from .turn import Turn
@@ -154,8 +154,11 @@ class Hub(TransitableZone):
 
         next_booking = drone.itinerary.bookings[1]
         try:
+            logger.debug(f"[HUB {self}] Requesting exit for drone {drone} at"
+                         f" colateral zone '{next_booking.host}'")
             next_booking.host.accept_from_colateral(drone)
         except TrafficError:
+            logger.debug(f"[HUB {self}] Denied exit for drone {drone}")
             return
 
         self.unbook(b)
@@ -175,3 +178,6 @@ class Hub(TransitableZone):
 
     def __repr__(self) -> str:
         return f"Hub(name={self.name!r}, access={self.access.value})"
+
+    def __str__(self) -> str:
+        return self.name
