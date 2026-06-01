@@ -1,5 +1,5 @@
-# Error in: nb_drones: 6 && nb_drones: 4
-nb_drones: 6
+# Error in nb_drones: -6
+nb_drones: -6
 
 start_hub: start 0 0 [color=green max_drones=6]
 hub: loop_a 1 0 [zone=restricted color=orange]
@@ -16,5 +16,3 @@ connection: loop_c-loop_d
 connection: loop_d-loop_a
 connection: loop_b-exit_point
 connection: exit_point-goal
-
-nb_drones: 4

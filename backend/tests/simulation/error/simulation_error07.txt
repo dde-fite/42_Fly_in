@@ -1,4 +1,4 @@
-# Easy Level 2: Simple fork with two paths
+# Error in conflict between start's and juction's position
 nb_drones: 3
 start_hub: start 256 256 [color=red]
 hub: junction 256 256 [color=yellow max_drones=2]

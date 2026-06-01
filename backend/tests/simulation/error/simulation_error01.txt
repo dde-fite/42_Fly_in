@@ -1,4 +1,4 @@
-# Error in f at the end of file
+# Error in connection: fast_path-merge_point:
 nb_drones: 4
 
 start_hub: start 0 0 [color=green max_drones=4]
@@ -16,6 +16,6 @@ connection: slow_path1-slow_path2
 connection: slow_path2-slow_path3
 connection: slow_path3-merge_point
 connection: fast_junction-fast_path
-connection: fast_path-merge_point
+connection: fast_path-merge_point:
 connection: merge_point-goal
-f
+

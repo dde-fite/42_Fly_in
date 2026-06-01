@@ -290,7 +290,7 @@ def test_create_simulation_repeated_token_01() -> None:
         files={"file": ("file", map, "text/plain")}
     )
 
-    assert res.status_code == 400
+    assert res.status_code == 409
     data = res.json()
     assert "detail" in data
 
@@ -312,7 +312,7 @@ def test_create_simulation_repeated_token_02() -> None:
             params={"token": token},
             files={"file": ("file", map, "text/plain")}
         )
-        assert res.status_code == 400
+        assert res.status_code == 409
         data = res.json()
         assert "detail" in data
 

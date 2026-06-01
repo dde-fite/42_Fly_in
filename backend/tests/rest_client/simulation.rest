@@ -11,7 +11,7 @@ Content-Type: text/plain
 
 ###
 
-GET http://localhost:8000/api/simulation?token=3w_jyE0ZCXXjDLiZ3eegdIdMm8dIU7B_2D9KX-AVGck HTTP/1.1
+GET http://localhost:8000/api/simulation?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlNI HTTP/1.1
 
 ###
 

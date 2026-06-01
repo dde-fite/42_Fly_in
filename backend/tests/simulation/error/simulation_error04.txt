@@ -1,8 +1,8 @@
-# Error in nb_drones: hola
-nb_drones: hola
+# Error in zone=restrictedd
+nb_drones: 6
 
 start_hub: start 0 0 [color=green max_drones=6]
-hub: loop_a 1 0 [zone=restricted color=orange]
+hub: loop_a 1 0 [zone=restrictedd color=orange]
 hub: loop_b 2 0 [zone=restricted color=orange]
 hub: loop_c 2 1 [zone=restricted color=orange]
 hub: loop_d 1 1 [zone=restricted color=orange]
