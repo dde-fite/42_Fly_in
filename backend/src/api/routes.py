@@ -27,7 +27,7 @@ router = APIRouter()
         "together with its length. Use the token value as the `token` query "
         "parameter in the other endpoints."
     ),
-    tags=["Debug"],
+    tags=["Simulation"],
     include_in_schema=True,
 )
 def generate_token() -> str:
