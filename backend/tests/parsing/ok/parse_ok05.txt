@@ -1,4 +1,5 @@
 # Unordered statements
+nb_drones: 4
 
 start_hub: start 0 0 [color=green]
 hub: slow_path1 1 -1 [zone=restricted color=red]
@@ -12,7 +13,6 @@ connection: slow_path2-slow_path3
 
 
 
-nb_drones: 4
 
 
 

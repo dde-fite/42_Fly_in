@@ -9,83 +9,83 @@ nb_drones: 25
 start_hub: start 0 0 [color=green max_drones=25]
 
 # Single-file entry gates (extreme bottleneck)
-hub: gate_hell1 1 0 [color=red max_drones=1]
-hub: gate_hell2 2 0 [color=red max_drones=1]
-hub: gate_hell3 3 0 [color=red max_drones=1]
-hub: gate_hell4 4 0 [color=red max_drones=1]
-hub: gate_hell5 5 0 [color=red max_drones=1]
+hub: gate_hell1 2 0 [color=red max_drones=1]
+hub: gate_hell2 3 0 [color=red max_drones=1]
+hub: gate_hell3 4 0 [color=red max_drones=1]
+hub: gate_hell4 5 0 [color=red max_drones=1]
+hub: gate_hell5 6 0 [color=red max_drones=1]
 
 # === LAYER 1: The Maze of Despair ===
 # Multiple interconnected dead ends and loops
-hub: maze_trap_a1 1 1 [color=purple]
-hub: maze_trap_a2 2 1 [color=purple]
-hub: maze_trap_a3 3 1 [color=purple]
-hub: maze_dead_a 4 1 [color=black]
+hub: maze_trap_a1 2 1 [color=purple]
+hub: maze_trap_a2 3 1 [color=purple]
+hub: maze_trap_a3 4 1 [color=purple]
+hub: maze_dead_a 5 1 [color=black]
 
-hub: maze_trap_b1 1 -1 [color=purple]
-hub: maze_trap_b2 2 -1 [color=purple]
-hub: maze_trap_b3 3 -1 [color=purple]
-hub: maze_dead_b 4 -1 [color=black]
+hub: maze_trap_b1 2 -1 [color=purple]
+hub: maze_trap_b2 3 -1 [color=purple]
+hub: maze_trap_b3 4 -1 [color=purple]
+hub: maze_dead_b 5 -1 [color=black]
 
-hub: maze_loop1 1 2 [zone=restricted color=brown]
-hub: maze_loop2 2 2 [zone=restricted color=brown]
-hub: maze_loop3 3 2 [zone=restricted color=brown]
-hub: maze_loop4 4 2 [zone=restricted color=brown]
-hub: maze_loop5 5 2 [zone=restricted color=brown]
-hub: maze_loop6 5 1 [zone=restricted color=brown]
+hub: maze_loop1 2 2 [zone=restricted color=brown]
+hub: maze_loop2 3 2 [zone=restricted color=brown]
+hub: maze_loop3 4 2 [zone=restricted color=brown]
+hub: maze_loop4 5 2 [zone=restricted color=brown]
+hub: maze_loop5 6 2 [zone=restricted color=brown]
+hub: maze_loop6 6 1 [zone=restricted color=brown]
 
 # === LAYER 2: The Capacity Nightmare ===
-hub: micro_gate1 6 0 [color=orange max_drones=1]
-hub: micro_gate2 7 0 [color=orange max_drones=1]
-hub: micro_gate3 8 0 [color=orange max_drones=1]
+hub: micro_gate1 7 0 [color=orange max_drones=1]
+hub: micro_gate2 8 0 [color=orange max_drones=1]
+hub: micro_gate3 9 0 [color=orange max_drones=1]
 
 # Overflow areas with terrible costs
-hub: overflow_hell1 6 1 [zone=restricted color=maroon max_drones=2]
-hub: overflow_hell2 7 1 [zone=restricted color=maroon max_drones=2]
-hub: overflow_hell3 8 1 [zone=restricted color=maroon max_drones=2]
-hub: overflow_hell4 6 -1 [zone=restricted color=maroon max_drones=2]
-hub: overflow_hell5 7 -1 [zone=restricted color=maroon max_drones=2]
-hub: overflow_hell6 8 -1 [zone=restricted color=maroon max_drones=2]
+hub: overflow_hell1 7 1 [zone=restricted color=maroon max_drones=2]
+hub: overflow_hell2 8 1 [zone=restricted color=maroon max_drones=2]
+hub: overflow_hell3 9 1 [zone=restricted color=maroon max_drones=2]
+hub: overflow_hell4 7 -1 [zone=restricted color=maroon max_drones=2]
+hub: overflow_hell5 8 -1 [zone=restricted color=maroon max_drones=2]
+hub: overflow_hell6 9 -1 [zone=restricted color=maroon max_drones=2]
 
 # === LAYER 3: The False Hope Section ===
 # Priority zones that lead to more traps
-hub: false_hope1 9 0 [zone=priority color=gold max_drones=3]
-hub: false_hope2 10 0 [zone=priority color=gold max_drones=2]
-hub: false_hope3 11 0 [zone=priority color=gold max_drones=1]
+hub: false_hope1 10 0 [zone=priority color=gold max_drones=3]
+hub: false_hope2 11 0 [zone=priority color=gold max_drones=2]
+hub: false_hope3 12 0 [zone=priority color=gold max_drones=1]
 
 # More dead ends disguised as good paths
-hub: priority_trap1 9 1 [zone=priority color=gold]
-hub: priority_trap2 10 1 [zone=priority color=gold]
-hub: priority_dead 11 1 [color=black]
+hub: priority_trap1 10 1 [zone=priority color=gold]
+hub: priority_trap2 11 1 [zone=priority color=gold]
+hub: priority_dead 12 1 [color=black]
 
-hub: priority_trap3 9 -1 [zone=priority color=gold]
-hub: priority_trap4 10 -1 [zone=priority color=gold]
-hub: priority_dead2 11 -1 [color=black]
+hub: priority_trap3 10 -1 [zone=priority color=gold]
+hub: priority_trap4 11 -1 [zone=priority color=gold]
+hub: priority_dead2 12 -1 [color=black]
 
 # === LAYER 4: The Convergence Hell ===
 # Multiple restricted paths that must merge
-hub: conv_restricted1 12 2 [zone=restricted color=darkred max_drones=1]
-hub: conv_restricted2 13 2 [zone=restricted color=darkred max_drones=1]
-hub: conv_restricted3 14 2 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted1 13 2 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted2 14 2 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted3 15 2 [zone=restricted color=darkred max_drones=1]
 
-hub: conv_restricted4 12 0 [zone=restricted color=darkred max_drones=1]
-hub: conv_restricted5 13 0 [zone=restricted color=darkred max_drones=1]
-hub: conv_restricted6 14 0 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted4 13 0 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted5 14 0 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted6 15 0 [zone=restricted color=darkred max_drones=1]
 
-hub: conv_restricted7 12 -2 [zone=restricted color=darkred max_drones=1]
-hub: conv_restricted8 13 -2 [zone=restricted color=darkred max_drones=1]
-hub: conv_restricted9 14 -2 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted7 13 -2 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted8 14 -2 [zone=restricted color=darkred max_drones=1]
+hub: conv_restricted9 15 -2 [zone=restricted color=darkred max_drones=1]
 
 # === LAYER 5: The Final Gauntlet of Doom ===
-hub: final_merge 15 0 [color=violet max_drones=5]
-hub: final_torture1 16 0 [color=crimson max_drones=2]
-hub: final_torture2 17 0 [color=crimson max_drones=1]
-hub: final_torture3 18 0 [color=crimson max_drones=1]
-hub: final_torture4 19 0 [color=crimson max_drones=1]
-hub: final_torture5 20 0 [color=crimson max_drones=1]
+hub: final_merge 16 0 [color=violet max_drones=5]
+hub: final_torture1 17 0 [color=crimson max_drones=2]
+hub: final_torture2 18 0 [color=crimson max_drones=1]
+hub: final_torture3 19 0 [color=crimson max_drones=1]
+hub: final_torture4 20 0 [color=crimson max_drones=1]
+hub: final_torture5 21 0 [color=crimson max_drones=1]
 
 # The ultimate goal
-end_hub: impossible_goal 21 0 [color=rainbow max_drones=25]
+end_hub: impossible_goal 23 0 [color=rainbow max_drones=25]
 
 # === CONNECTIONS: The Web of Suffering ===
 
