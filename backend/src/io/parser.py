@@ -1,29 +1,9 @@
-from typing import Any, TypedDict
+from typing import Any
 from fastapi import UploadFile
 from pydantic_extra_types import Color
 from src.models import Vector, HubAccess
 from src.core import logger, DEBUG, ParseError
-
-
-class ParsedHub(TypedDict):
-    name: str
-    position: Vector
-    access: str
-    color: str | None
-    capacity: int | None
-    is_origin: bool
-    is_destination: bool
-
-
-class ParsedConnection(TypedDict):
-    hubs: list[str]
-    capacity: int | None
-
-
-class ParsedMap(TypedDict):
-    nb_drones: int | None
-    hubs: list[ParsedHub]
-    connection: list[ParsedConnection]
+from .types import ParsedConnection, ParsedHub, ParsedMap
 
 
 def parse_params(raw_params: str) -> dict[str, Any]:
@@ -40,7 +20,7 @@ def parse_params(raw_params: str) -> dict[str, Any]:
     raw_params = raw_params.strip()
     if not raw_params or \
        not (raw_params.startswith("[") and raw_params.endswith("]")):
-        raise ParseError("Params contains sintax errors", raw_params)
+        raise ParseError("Params contains Syntax errors", raw_params)
     raw_params = raw_params.removeprefix("[").removesuffix("]")
     for arg in raw_params.split():
         if "=" not in arg:
@@ -67,7 +47,7 @@ def parse_hub(key: str, value: Any) -> ParsedHub:
     }
     splits = value.split(maxsplit=3)
     if len(splits) < 3:
-        raise ParseError("Sintax error for hub", f"{key} {value}")
+        raise ParseError("Syntax error for hub", f"{key} {value}")
     params["name"] = splits[0].strip()
     # Origin/Destination and Normal hub type handling
     if key == "hub":
@@ -136,7 +116,7 @@ def parse_connection(raw: str) -> ParsedConnection:
     # Hub name parsing
     splits = splits[0].split("-")
     if len(splits) != 2:
-        raise ParseError("Sintax error for connection", raw)
+        raise ParseError("Syntax error for connection", raw)
     params["hubs"].append(splits[0])
     params["hubs"].append(splits[1])
     # Parsing of extra arguments
@@ -164,7 +144,7 @@ async def parse_map(file: UploadFile) -> ParsedMap:
             continue
         splits = line.split(":", 1)
         if len(splits) < 2:
-            raise ParseError("Map contains sintax errors", line)
+            raise ParseError("Map contains Syntax errors", line)
         key, value = splits
         match key.strip():
             case "nb_drones":
@@ -189,7 +169,5 @@ async def parse_map(file: UploadFile) -> ParsedMap:
             case _:
                 raise ParseError(f"Type {key} not recognized", line)
     if logger.isEnabledFor(DEBUG):
-        logger.debug(
-            f"Map parsed: {params}"
-        )
+        logger.debug(f"Map parsed: {params}")
     return params
