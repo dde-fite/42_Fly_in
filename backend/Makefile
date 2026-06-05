@@ -16,6 +16,9 @@ RESET		:= \033[0m
 install:
 	@pip install -r requirements.txt
 
+install-dev: install
+	@pip install -r requirements_dev.txt
+
 run:
 	@fastapi run $(SRC)
 
