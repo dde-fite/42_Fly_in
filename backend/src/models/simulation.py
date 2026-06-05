@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Any, Iterable, TYPE_CHECKING, cast
 from src.core import TrafficError, SimulationConflict, logger, DEBUG
-from src.utils.ft import short_id
 from .turn import Turn
 from .hub import Hub
 from .drone import Drone
@@ -9,7 +8,7 @@ from .connection import Connection
 from .traffic_controller import TrafficController
 
 if TYPE_CHECKING:
-    from src.utils.parser import ParsedMap, ParsedConnection
+    from src.io import ParsedMap, ParsedConnection
 
 
 class Simulation():
@@ -175,6 +174,7 @@ class Simulation():
             raise SimulationConflict(
                 "Drone destination is not part of this simulation"
             )
+        drone.turn = self.turn
         self.drones.add(drone)
 
     def make_drone(
@@ -200,8 +200,7 @@ class Simulation():
             )
         drone = Drone(origin=o, destination=d, turn=self.turn)
         # In case of error, raises ValidationError
-        drone.turn = self.turn
-        self.drones.add(drone)
+        self.add_drone(drone)
         return drone
 
     def remove_drone(self, drone: Drone) -> None:
@@ -304,6 +303,8 @@ class Simulation():
         # 2. Route planning.
         self.controller.tick()
 
+        # 5. Advance turn.
+        self.turn.value += 1
         # 3. Drone movement.
         for drone in list(self.drones):
             if drone.tick():
@@ -315,8 +316,6 @@ class Simulation():
         for connection in self.connections:
             connection.tick()
 
-        # 5. Advance turn.
-        self.turn.value += 1
         logger.debug(f"********* ENDED TURN {self.turn.value} *********")
 
         # 6. Print drones moved

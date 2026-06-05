@@ -80,7 +80,7 @@ class Drone(BaseModel):
             actual = self.itinerary.bookings[0]
             if not actual.exit_turn:
                 break
-            if self.turn.value != actual.exit_turn.value:
+            if actual.exit_turn.value != self.turn.value:
                 break
             logger.debug(f"[DRONE {self}] Requesting exit from zone"
                          f"'{self._location}'")

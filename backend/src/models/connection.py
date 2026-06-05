@@ -39,7 +39,13 @@ class Connection(TransitableZone):
         """
         if direction is None:
             return None
-        return HubCost[direction.access]
+        hub_cost = HubCost[direction.access]
+        if hub_cost is None:
+            return None
+        origin_cost = self.other_hub(direction).get_movement_cost()
+        if origin_cost is None:
+            origin_cost = 0
+        return max(0, hub_cost - origin_cost)
 
     def get_next_available_entry(
         self,
@@ -53,9 +59,9 @@ class Connection(TransitableZone):
         if mov_cost is None:
             return None
         i = Turn(from_turn.value)
-        has_exits = [True if slot.exit_turn is None else False
+        has_exits = [False if slot.exit_turn is None else True
                      for slot in self._bookings]
-        if has_exits and all(has_exits):
+        if has_exits and not all(has_exits):
             return None
         while True:
             full = self.get_occupancy(i) >= self.capacity
@@ -85,7 +91,7 @@ class Connection(TransitableZone):
                 "connection"
             )
         mov_cost = self.get_movement_cost(destination)
-        if not mov_cost:
+        if mov_cost is None:
             return None
         return Turn(from_turn.value + mov_cost)
 

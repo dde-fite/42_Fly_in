@@ -57,6 +57,8 @@ class Hub(TransitableZone):
     def check_name(cls, value: str) -> str:
         if "-" in value:
             raise ValueError("Hub names cannot contain dashes (-)")
+        if " " in value:
+            raise ValueError("Hub names cannot contain spaces ( )")
         return value
 
     @field_validator("color", mode="after")
@@ -91,7 +93,7 @@ class Hub(TransitableZone):
 
     def get_movement_cost(self, direction: Hub | None = None) -> int | None:
         """Hubs always cost 1 turn to pass through (unless blocked)."""
-        return 0
+        return 1
 
     def get_next_available_entry(
         self,
@@ -114,7 +116,11 @@ class Hub(TransitableZone):
             raise TrafficError(
                 f"No connection between hub '{self.name}' and '{destination.name}'"
             )
-        return connection.get_next_available_entry(from_turn, destination)
+        mov_cost = self.get_movement_cost()
+        if mov_cost is None:
+            mov_cost = 0
+        new_turn = Turn(from_turn.value + mov_cost)
+        return connection.get_next_available_entry(new_turn, destination)
 
     def accept_drone_spawn(self, drone: Drone) -> None:
         """
