@@ -33,7 +33,7 @@ router = APIRouter()
 def generate_token() -> str:
     import secrets
     token = secrets.token_urlsafe(32)
-    return token + f"  Len: {len(token)}"
+    return token
 # ---------------
 
 
@@ -102,10 +102,6 @@ async def create_simulation(
             422,
             f"Simulation conflict: {e}"
         )
-    except SimulationAlreadyAllocated:
-        raise HTTPException(
-            409,
-            "Simulation is already allocated for token")
 
 
 @router.post(
