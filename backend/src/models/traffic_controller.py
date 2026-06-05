@@ -205,7 +205,7 @@ class TrafficController:
                 conn_exit = connection.get_next_available_exit(
                         conn_entry, neighbour
                     )
-                if not conn_entry:
+                if not conn_entry or not conn_exit:
                     continue
                 # Guard: skip if a cheaper or equal path to this neighbour
                 # is already settled (equal is pruned for neighbours to avoid
