@@ -4,6 +4,7 @@ from src.models import Connection
 
 def connection_to_schema(c: Connection) -> ResponseConnection:
     return ResponseConnection(
+        name=str(c),
         hubs=[hub.id for hub in c.hubs],
         capacity=c.capacity
     )
