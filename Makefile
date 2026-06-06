@@ -12,6 +12,10 @@ install:
 	@$(MAKE) -C $(BACKEND_DIR) install
 	@$(MAKE) -C $(FRONTEND_DIR) install
 
+install-dev:
+	@$(MAKE) -C $(BACKEND_DIR) install-dev
+	@$(MAKE) -C $(FRONTEND_DIR) install-dev
+
 debug:
 	@$(MAKE) -C $(BACKEND_DIR) debug
 
