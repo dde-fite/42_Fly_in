@@ -1,7 +1,6 @@
 from uuid import UUID
 from fastapi import UploadFile
 from src.models import SimulationToken, Simulation
-from src.core import config
 from src.schema import (
     ResponseSimulation, ResponseDrone, ResponseHub,
     ResponseConnection
@@ -13,11 +12,7 @@ from src.mappers import (
 from src.utils.data_wrapper import (
     get_simulation, set_simulation
 )
-
-if config.STRICT_PARSER:
-    from src.io.parser_strict import parse_map
-else:
-    from src.io.parser import parse_map
+from src.io.parser import parse_map
 
 
 async def register_simulation(

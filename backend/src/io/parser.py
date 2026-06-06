@@ -2,7 +2,7 @@ from typing import Any
 from fastapi import UploadFile
 from pydantic_extra_types import Color
 from src.models import Vector, HubAccess
-from src.core import logger, DEBUG, ParseError
+from src.core import logger, DEBUG, config, ParseError
 from .types import ParsedConnection, ParsedHub, ParsedMap
 
 
@@ -72,7 +72,13 @@ def parse_hub(key: str, value: Any) -> ParsedHub:
         for key, value in parse_params(splits[3]).items():
             match key:
                 case "zone":
-                    params["access"] = value
+                    try:
+                        params["access"] = HubAccess(value).value
+                    except ValueError:
+                        raise ParseError(
+                            f"Hub '{params['name']}' access type is unknown",
+                            f"{key} {value}"
+                        )
                 case "color":
                     if not isinstance(value, str) or not value.isalpha():
                         raise ParseError(
@@ -131,6 +137,8 @@ def parse_connection(raw: str) -> ParsedConnection:
 
 
 async def parse_map(file: UploadFile) -> ParsedMap:
+    strict_first_meaningful_line = True
+    strict_hubs_declared: list[str] = []
     params: ParsedMap = {
         "nb_drones": None,
         "hubs": [],
@@ -148,6 +156,13 @@ async def parse_map(file: UploadFile) -> ParsedMap:
         key, value = splits
         match key.strip():
             case "nb_drones":
+                if config.STRICT_PARSER:
+                    if not strict_first_meaningful_line:
+                        raise ParseError(
+                            "Strict mode error - nb_drones has to at the top"
+                            "of the file",
+                            line
+                        )
                 if params["nb_drones"] is not None:
                     raise ParseError(
                         "Number of drones can not be declared more"
@@ -163,11 +178,26 @@ async def parse_map(file: UploadFile) -> ParsedMap:
                     )
                 params["nb_drones"] = int(value.strip())
             case "hub" | "start_hub" | "end_hub":
+                h = parse_hub(key, value)
+                if config.STRICT_PARSER:
+                    strict_hubs_declared.append(h["name"])
                 params["hubs"].append(parse_hub(key, value))
             case "connection":
-                params["connection"].append(parse_connection(value))
+                c = parse_connection(value)
+                # If strict mode is enabled, check if hubs were declared
+                if config.STRICT_PARSER:
+                    for h_name in c["hubs"]:
+                        if h_name not in strict_hubs_declared:
+                            raise ParseError(
+                                f"Strict mode error - hub '{h_name}' is not"
+                                " declared for connection"
+                                f"'{c['hubs'][0]}<->{c['hubs'][1]}'",
+                                line
+                            )
+                params["connection"].append(c)
             case _:
                 raise ParseError(f"Type {key} not recognized", line)
+        strict_first_meaningful_line = False
     if logger.isEnabledFor(DEBUG):
         logger.debug(f"Map parsed: {params}")
     return params
