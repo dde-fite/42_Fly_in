@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import type { ResponseSimulation, ResponseHub, ResponseDrone, ResponseConnection } from '../types'
+import type { ResponseSimulation, ResponseHub, ResponseDrone, ResponseConnection } from '../types/api'
 import { getHub, getDrone, getConnection } from '../services/api'
 import './SimulationCanvas.css'
 

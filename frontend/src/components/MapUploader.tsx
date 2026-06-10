@@ -30,25 +30,23 @@ export default function MapUploader({ onMapUploaded, isLoading }: MapUploaderPro
   }
 
   return (
-    <div className="map-uploader">
-      <h3>Map File</h3>
-      <div className="upload-area">
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".txt"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
-        <button
-          className="upload-btn"
-          onClick={triggerFileSelect}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Loading...' : fileName || 'Upload Map'}
-        </button>
-      </div>
-      {fileName && <div className="file-name">📄 {fileName}</div>}
+    <div className="upload-area">
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".txt"
+        onChange={handleFileSelect}
+        style={{ display: 'none' }}
+      />
+      <button
+        className="relative overflow-hidden px-5 py-2.5 bg-gray-900 text-white rounded transition-all duration-300 cursor-pointer hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-800 hover:ring-offset-1 active:ring-0"
+        onClick={triggerFileSelect}
+        disabled={isLoading}
+      >
+        <span className="relative">
+          {isLoading ? 'Loading...' : fileName || 'New simulation'}
+        </span>
+      </button>
     </div>
   )
 }

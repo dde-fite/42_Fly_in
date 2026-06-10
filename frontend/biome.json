@@ -11,7 +11,7 @@
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
-		"lineWidth": 79,
+		"lineWidth": 80,
 		"lineEnding":"lf",
 		"trailingNewline": true,
 		"bracketSameLine": true,
@@ -21,20 +21,23 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"a11y": "on"
 		}
 	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",
-			"jsxQuoteStyle":"single",
-			"semicolons": null
+			"jsxQuoteStyle": "single",
+			"semicolons": "asNeeded",
+			"arrowParentheses": "asNeeded"
 		}
 	},
 	"assist": {
 		"enabled": true,
 		"actions": {
 			"source": {
+				"recommended": true,
 				"organizeImports": "on"
 			}
 		}

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import MapUploader from './components/MapUploader'
+import Header from './components/Header'
 import SimulationCanvas from './components/SimulationCanvas'
-import Controls from './components/Controls'
 import TokenDisplay from './components/TokenDisplay'
-import { getSimulation, generateToken, createSimulation, advanceSimulation } from './services/api'
-import type { ResponseSimulation } from './types'
+import { createSimulation, advanceSimulation } from './services/api'
+import { useSessionStore } from './store/sessionStore.ts'
+import type { ResponseSimulation } from './types/api'
 import './App.css'
 
 interface SimulationWithToken {
@@ -13,37 +13,23 @@ interface SimulationWithToken {
 }
 
 function App() {
-  const [token, setToken] = useState<string>('')
   const [simulationWithToken, setSimulationWithToken] = useState<SimulationWithToken | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string>('')
   const [showTokenModal, setShowTokenModal] = useState(false)
-
   const hasSimulation = simulationWithToken !== null
   const currentTurn = simulationWithToken?.data.turn ?? 0
 
-  const generateNewToken = async () => {
-    try {
-      const newToken = await generateToken()
-      console.log('Generated new token:', newToken.substring(0, 10) + '...')
-      setToken(newToken)
-      setError('')
-    } catch (err) {
-      setError('Failed to generate token')
-      console.error(err)
-    }
-  }
+  const fetchToken = useSessionStore(state => state.fetchToken)
+  const token = useSessionStore(state => state.token)
+  const setIsLoading = useSessionStore(state => state.setIsLoading)
+  const error = useSessionStore(state => state.error)
+  const setError = useSessionStore(state => state.setError)
 
   const handleMapUploaded = async (file: File) => {
     try {
       setIsLoading(true)
       setError('')
 
-      console.log('Creating simulation with token:', token.substring(0, 10) + '...')
-      // Create simulation with the current token
-      const sim = await createSimulation(token, file)
-      console.log('Simulation created:', sim)
-      
+      const sim = await createSimulation(file)
       // Store both simulation and token together to avoid desync
       setSimulationWithToken({ data: sim, token })
     } catch (err: any) {
@@ -65,9 +51,8 @@ function App() {
       console.log('=== ADVANCING SIMULATION ===')
       console.log('Current turn:', simulationWithToken.data.turn)
       console.log('Steps to advance:', steps)
-      console.log('Token:', simToken.substring(0, 10) + '...')
-      
-      const sim = await advanceSimulation(simToken, steps)
+
+      const sim = await advanceSimulation(steps)
       
       console.log('✅ Simulation advanced')
       console.log('New turn:', sim.turn)
@@ -84,41 +69,17 @@ function App() {
   }
 
   useEffect(() => {
-    console.log('App mounted, generating initial token')
-    generateNewToken()
+    fetchToken()
   }, [])
 
   return (
-    <div className="ctc-interface">
-      {/* Header */}
-      <header className="header">
-        <div className="header-title">
-          <h1>Fly In Visualizer</h1>
-          <p><a href='https://github.com/dde-fite'>dde-fite</a></p>
-        </div>
-        <div className="header-info">
-          {hasSimulation && <span className="turn-display">Turn: {currentTurn}</span>}
-          <button className="token-btn" onClick={() => setShowTokenModal(true)}>
-            Token
-          </button>
-        </div>
-      </header>
-
+    <div className="flex flex-col h-screen overflow-hidden">
+      <Header />
       {/* Main Layout */}
-      <div className="main-layout">
-        {/* Left Panel */}
-        <aside className="left-panel">
-          <MapUploader onMapUploaded={handleMapUploaded} isLoading={isLoading} />
-
-          {hasSimulation && (
-            <Controls onAdvanceSteps={handleAdvanceSteps} isLoading={isLoading} />
-          )}
-
-          {error && <div className="error-message">{error}</div>}
-        </aside>
-
+      <div className="relative bg-black">
+        {error && <div className="error-message">{error}</div>}
         {/* Center Panel */}
-        <main className="center-panel">
+        <main className="relative">
           {!hasSimulation ? (
             <div className="empty-state">
               <p>Upload a map file to begin</p>
@@ -129,7 +90,7 @@ function App() {
         </main>
 
         {/* Right Panel */}
-        <aside className="right-panel">
+        <aside className="absolute top-4 right-4 p-1 overflow-y-auto">
           {hasSimulation && (
             <div className="info-section">
               <h3>Network Status</h3>
@@ -153,7 +114,7 @@ function App() {
       {/* Token Modal */}
       {showTokenModal && (
         <div className="modal-overlay" onClick={() => setShowTokenModal(false)}>
-          <TokenDisplay token={token} onClose={() => setShowTokenModal(false)} />
+          <TokenDisplay onClose={() => setShowTokenModal(false)} />
         </div>
       )}
     </div>

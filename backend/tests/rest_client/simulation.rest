@@ -19,7 +19,7 @@ GET http://localhost:8000/api/drone?token=3w_jyE0ZCXXjDLiZ3eegdIdMm8dIU7B_2D9KX-
 
 ###
 
-POST http://localhost:8000/api/simulation/step?token=Q2Yk8CZW-95IRnmRm06cOYOsgXLuecomUR0AF-llhvI HTTP/1.1
+POST http://localhost:8000/api/simulation/step?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlNI HTTP/1.1
 
 ###
 GET http://localhost:8000/api/token

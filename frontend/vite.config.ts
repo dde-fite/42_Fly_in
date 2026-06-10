@@ -11,11 +11,11 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     define: {
       // Provide an explicit app-level constant derived from an env var.
-      __FRONTEND_URL__: JSON.stringify(env.FRONTEND_URL),
+      PORT: JSON.stringify(env.FRONTEND_URL),
     },
     // Example: use an env var to set the dev server port conditionally.
     server: {
-      port: env.FRONTEND_URL ? Number(env.FRONTEND_URL) : 3000,
+      port: env.PORT ? Number(env.PORT) : 3000,
     },
   }
 })

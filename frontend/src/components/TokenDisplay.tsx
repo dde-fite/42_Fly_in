@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import { useSessionStore } from '../store/sessionStore'
 import './TokenDisplay.css'
 
 interface TokenDisplayProps {
-  token: string
   onClose: () => void
 }
 
-export default function TokenDisplay({ token, onClose }: TokenDisplayProps) {
+export default function TokenDisplay({ onClose }: TokenDisplayProps) {
   const [copied, setCopied] = useState(false)
+  const token = useSessionStore(state => state.token) ?? ""
 
   const copyToClipboard = async () => {
     try {
@@ -34,7 +35,7 @@ export default function TokenDisplay({ token, onClose }: TokenDisplayProps) {
         <div className="modal-body">
           <p className="token-label">Current Token:</p>
           <div className="token-display">
-            <code>{token}</code>
+            <code className='select-all'>{token}</code>
             <button className="copy-btn" onClick={copyToClipboard}>
               {copied ? '✓ Copied' : 'Copy'}
             </button>
