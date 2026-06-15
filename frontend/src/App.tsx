@@ -3,53 +3,34 @@ import Header from './components/Header'
 import SimulationCanvas from './components/SimulationCanvas'
 import TokenDisplay from './components/TokenDisplay'
 import { createSimulation, advanceSimulation } from './services/api'
-import { useSessionStore } from './store/sessionStore.ts'
-import type { ResponseSimulation } from './types/api'
+import { useSessionStore } from './store/sessionStore'
+import { useSimulationStore } from './store/simulationStore'
 import './App.css'
 
-interface SimulationWithToken {
-  data: ResponseSimulation
-  token: string
-}
 
 function App() {
-  const [simulationWithToken, setSimulationWithToken] = useState<SimulationWithToken | null>(null)
-  const [showTokenModal, setShowTokenModal] = useState(false)
-  const hasSimulation = simulationWithToken !== null
-  const currentTurn = simulationWithToken?.data.turn ?? 0
-
+  const simulation = useSimulationStore(state => state.simulation)
   const fetchToken = useSessionStore(state => state.fetchToken)
   const token = useSessionStore(state => state.token)
   const setIsLoading = useSessionStore(state => state.setIsLoading)
   const error = useSessionStore(state => state.error)
   const setError = useSessionStore(state => state.setError)
 
-  const handleMapUploaded = async (file: File) => {
-    try {
-      setIsLoading(true)
-      setError('')
+  const [showTokenModal, setShowTokenModal] = useState(false)  
+  
+  const hasSimulation = simulation !== null
 
-      const sim = await createSimulation(file)
-      // Store both simulation and token together to avoid desync
-      setSimulationWithToken({ data: sim, token })
-    } catch (err: any) {
-      setError(err.message || 'Failed to create simulation')
-      console.error(err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+
 
   const handleAdvanceSteps = async (steps: number) => {
-    if (!simulationWithToken) return
+    if (!simulation) return
 
     try {
       setIsLoading(true)
       setError('')
 
-      const simToken = simulationWithToken.token
       console.log('=== ADVANCING SIMULATION ===')
-      console.log('Current turn:', simulationWithToken.data.turn)
+      console.log('Current turn:', simulation.turn)
       console.log('Steps to advance:', steps)
 
       const sim = await advanceSimulation(steps)
@@ -59,7 +40,7 @@ function App() {
       console.log('Drones in simulation:', sim.drones)
       
       // Keep the same token
-      setSimulationWithToken({ data: sim, token: simToken })
+      setsimulation({ data: sim, token: token })
     } catch (err: any) {
       setError(err.message || 'Failed to advance simulation')
       console.error(err)
@@ -85,7 +66,7 @@ function App() {
               <p>Upload a map file to begin</p>
             </div>
           ) : (
-            <SimulationCanvas simulation={simulationWithToken!.data} token={simulationWithToken!.token} />
+            <SimulationCanvas simulation={simulation} token={token} />
           )}
         </main>
 
@@ -96,15 +77,15 @@ function App() {
               <h3>Network Status</h3>
               <div className="status-item">
                 <span>Hubs:</span>
-                <strong>{simulationWithToken!.data.hubs.length}</strong>
+                <strong>{simulation!.hubs.length}</strong>
               </div>
               <div className="status-item">
                 <span>Connections:</span>
-                <strong>{simulationWithToken!.data.connections.length}</strong>
+                <strong>{simulation!.connections.length}</strong>
               </div>
               <div className="status-item">
                 <span>Active Drones:</span>
-                <strong>{simulationWithToken!.data.drones.length}</strong>
+                <strong>{simulation!.drones.length}</strong>
               </div>
             </div>
           )}

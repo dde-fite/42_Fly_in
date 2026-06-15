@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { IconPlayerPauseFilled, IconPlayerPlayFilled, IconPlayerTrackNextFilled } from '@tabler/icons-react';
+import { useSessionStore } from '../store/sessionStore';
+import { useSimulationStore } from '../store/simulationStore'
 import useKeypress from '../hooks/useKeypress';
 
 const TURN_DELAY = 1000
@@ -17,12 +19,14 @@ enum StatesMultiplier {
 }
 
 interface ControlsProps {
-  currentTurn: number
   onAdvanceSteps: (steps: number) => void
-  isLoading?: boolean
 }
 
-export default function TurnControls({ currentTurn, onAdvanceSteps, isLoading }: ControlsProps) {
+export default function TurnControls({ onAdvanceSteps }: ControlsProps) {
+  const isLoading = useSessionStore(state => state.isLoading)
+  const simulation = useSimulationStore(state => state.simulation)
+  const currentTurn = simulation?.data.turn ?? 0
+
   const [player, setPlayer] = useState<PlayerStates>(PlayerStates.PAUSE)
 
   const handleChange = (e) => {

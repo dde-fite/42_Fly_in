@@ -10,6 +10,22 @@ export default function MapUploader({ onMapUploaded, isLoading }: MapUploaderPro
   const fileInput = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string>('')
 
+  const handleMapUploaded = async (file: File) => {
+    try {
+      setIsLoading(true)
+      setError('')
+
+      const sim = await createSimulation(file)
+      // Store both simulation and token together to avoid desync
+      setsimulation({ data: sim, token })
+    } catch (err: any) {
+      setError(err.message || 'Failed to create simulation')
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0]
 

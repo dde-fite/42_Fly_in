@@ -1,15 +1,18 @@
 import { create } from "zustand";
-import { SimulationData } from "../types/simulation";
+import type { SimulationData } from "../types/simulation";
+import type { Token } from "../types/api";
 
 interface SimulationStore {
 	simulation: SimulationData | null;
-	setSimulation: (data: SimulationData) => void;
+	token: Token | null;
+	setSimulation: (data: SimulationData | null) => void;
 }
 
 export const useSimulationStore = create<SimulationStore>((set, get) => {
 	return {
 		simulation: null,
 
-		setSimulation: (simulation: SimulationData) => set(() => ({ simulation })),
+		newSimulation: (token: Token, file: File) =>
+		setSimulation: (simulation: SimulationData | null) => set(() => ({ simulation }))
 	};
 });
