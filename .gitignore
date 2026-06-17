@@ -346,3 +346,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# tsc -b emitDeclarationOnly artifact
+frontend/vite.config.d.ts
+
+# The Python `lib/` rule above must not hide frontend source
+!frontend/src/lib/
