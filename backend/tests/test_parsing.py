@@ -4,7 +4,8 @@ from glob import glob
 from pathlib import Path
 from tests.utils import file_to_uploadfile
 from src.core.errors import ParseError
-from src.utils.parser import parse_map, ParsedMap, ParsedConnection, ParsedHub
+from src.io import ParsedMap, ParsedConnection, ParsedHub
+from src.io.parser import parse_map
 
 
 SUBJECT_MAPS_DIR = Path(__file__).parent / "maps"
@@ -127,7 +128,7 @@ async def test_parsing_ok_easy_02() -> None:
         s,
         hubs=["start", "junction", "path_a", "path_b", "goal"],
         connections=5,
-        drones=3
+        drones=4
     )
 
 
@@ -180,11 +181,11 @@ async def test_parsing_ok_medium_03() -> None:
     assert_map(
         s,
         hubs=[
-            "start", "slow_path1", "slow_path2", "slow_path3",
-            "fast_junction", "fast_path", "merge_point", "goal"
+            "start", "slow_path1", "slow_path2", "fast_junction", "fast_path",
+            "merge_point", "goal"
         ],
-        connections=8,
-        drones=4
+        connections=7,
+        drones=5
     )
 
 

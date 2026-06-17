@@ -8,7 +8,7 @@ from src.core.errors import ParseError, SimulationConflict, TrafficError
 from src.models import Simulation, Hub, Connection, Drone
 from src.models.turn import Turn
 from src.models.vector import Vector
-from src.utils.parser import parse_map
+from backend.src.io.parser import parse_map
 from tests.utils import file_to_uploadfile, assert_uuid
 
 

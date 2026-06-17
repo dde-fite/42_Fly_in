@@ -1,7 +1,7 @@
 import pytest
 from dataclasses import dataclass
 from pathlib import Path
-from src.utils.parser import parse_map
+from backend.src.io.parser import parse_map
 from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, SlotBooking, Simulation
 from src.core.errors import TrafficError
 from tests.utils import file_to_uploadfile
@@ -203,7 +203,7 @@ class TestItineraryInit:
             assert len(h.bookings) == 1
         assert_bookings(
             itinerary.bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+            [(0, 1), (1, 1), (1, 2), (2, 2), 2],
             [
                 map.hubs["A"],
                 map.hubs["B"],
@@ -224,7 +224,7 @@ class TestItineraryInit:
             assert i.operative
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+            [(0, 1), (1, 1), (1, 2), (2, 2), 2],
             [
                 map.hubs["A"],
                 map.hubs["B"],
@@ -233,7 +233,7 @@ class TestItineraryInit:
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 2), (2, 2), (2, 3), 3],
+            [(0, 2), (2, 2), (2, 3), (3, 3), 3],
             [
                 map.hubs["A"],
                 map.hubs["B"],
@@ -242,14 +242,13 @@ class TestItineraryInit:
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 2), (2, 3), (3, 3), (3, 4), 4],
+            [(0, 3), (3, 3), (3, 4), (4, 4), 4],
             [
                 map.hubs["A"],
                 map.hubs["B"],
                 map.hubs["C"]
             ]
         )
-
 
     def test_itinerary_booking_ok_03(self) -> None:
         turn = Turn(0)
@@ -272,20 +271,19 @@ class TestItineraryInit:
         ]
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), 3],
             [A, B, C, D]
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 0), (0, 1), (1, 2), (2, 3), (3, 3), (3, 4), 4],
+            [(0, 1), (1, 1), (1, 3), (3, 3), (3, 4), (4, 4), 4],
             [A, B, C, D]
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 4), (4, 5), 5],
+            [(0, 2), (2, 2), (2, 4), (4, 4), (4, 5), (5, 5), 5],
             [A, B, C, D]
         )
-
 
     def test_itinerary_booking_ok_04(self) -> None:
         turn = Turn(0)
@@ -306,17 +304,17 @@ class TestItineraryInit:
         ]
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+            [(0, 1), (1, 1), (1, 2), (2, 2), 2],
             [A, B, C]
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 0), (0, 1), (1, 2), (2, 3), 3],
+            [(0, 1), (1, 1), (1, 3), (3, 3), 3],
             [A, B, C]
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 0), (0, 1), (1, 3), (3, 4), 4],
+            [(0, 1), (1, 1), (1, 4), (4, 4), 4],
             [A, B, C]
         )
 
@@ -350,44 +348,43 @@ class TestItineraryInit:
         assert_bookings(
             itineraries[0].bookings,
             #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4),
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4),
              #  E     E<->F   F
-             (4, 4), (4, 5), 5],
+             (4, 5), (5, 5), 5],
             [A, B, C, D, E, F]
         )
         assert_bookings(
             itineraries[1].bookings,
             #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4),
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4),
              #  E     E<->F   F
-             (4, 5), (5, 6), 6],
+             (4, 6), (6, 6), 6],
             [A, B, C, D, E, F]
         )
         assert_bookings(
             itineraries[2].bookings,
             #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 4), (4, 5),
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 5), (5, 5),
              #  E     E<->F   F
-             (5, 6), (6, 7), 7],
+             (5, 7), (7, 7), 7],
             [A, B, C, D, E, F]
         )
         assert_bookings(
             itineraries[3].bookings,
             #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 3), (3, 4), (4, 4), (4, 5),
-            #  E     E<->F   F
-            (5, 7), (7, 8), 8],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 4), (4, 4), (4, 5), (5, 5),
+             #  E     E<->F   F
+             (5, 8), (8, 8), 8],
             [A, B, C, D, E, F]
         )
         assert_bookings(
             itineraries[4].bookings,
             #   A     A<->B     B     B<->C     C     C<->D     D     D<->E
-            [(0, 0), (0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 5), (5, 6),
+            [(0, 1), (1, 1), (1, 3), (3, 3), (3, 4), (4, 4), (4, 6), (6, 6),
              #  E     E<->F   F
-             (6, 8), (8, 9), 9],
+             (6, 9), (9, 9), 9],
             [A, B, C, D, E, F]
         )
-
 
     def test_itinerary_booking_bad_01(self) -> None:
         map = make_map_01()
@@ -485,14 +482,13 @@ class TestControllerRequest:
         assert itinerary
         assert_bookings(
             itinerary.bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+            [(0, 1), (1, 1), (1, 2), (2, 2), 2],
             [
                 map.hubs["A"],
                 map.hubs["B"],
                 map.hubs["C"]
             ]
         )
-
 
     def test_controller_request_ok_02(self) -> None:
         map = make_map_02()
@@ -504,7 +500,7 @@ class TestControllerRequest:
             itineraries.append(i)
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), 2],
+            [(0, 1), (1, 1), (1, 2), (2, 2), 2],
             [
                 map.hubs["A"],
                 map.hubs["B"],
@@ -513,7 +509,7 @@ class TestControllerRequest:
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 2), (2, 2), (2, 3), 3],
+            [(0, 2), (2, 2), (2, 3), (3, 3), 3],
             [
                 map.hubs["A"],
                 map.hubs["B"],
@@ -522,13 +518,49 @@ class TestControllerRequest:
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 2), (2, 3), (3, 3), (3, 4), 4],
+            [(0, 3), (3, 3), (3, 4), (4, 4), 4],
             [
                 map.hubs["A"],
                 map.hubs["B"],
                 map.hubs["C"]
             ]
         )
+
+    # def test_controller_request_ok_03(self) -> None:
+    #     turn = Turn(0)
+    #     A = Hub(name="A", position=Vector(x=0, y=0), turn=turn, capacity=3)
+    #     B = Hub(name="B", position=Vector(x=1, y=1), turn=turn, capacity=2)
+    #     C = Hub(name="C", position=Vector(x=1, y=0), turn=turn, capacity=10, access=HubAccess.RESTRICTED)
+    #     D = Hub(name="C", position=Vector(x=2, y=0), turn=turn, capacity=3)
+    #     Connection(hubs=frozenset({A, B}), turn=turn, capacity=2)
+    #     Connection(hubs=frozenset({A, C}), turn=turn, capacity=10)
+    #     Connection(hubs=frozenset({B, D}), turn=turn, capacity=1)
+    #     Connection(hubs=frozenset({C, D}), turn=turn, capacity=10)
+    #     drones = [
+    #         Drone(origin=A, destination=D, turn=turn),
+    #         Drone(origin=A, destination=D, turn=turn),
+    #         Drone(origin=A, destination=D, turn=turn),
+    #     ]
+    #     itineraries = [
+    #         Itinerary(drone=drones[0], hubs=[A, B, C], turn=turn),
+    #         Itinerary(drone=drones[1], hubs=[A, B, C], turn=turn),
+    #         Itinerary(drone=drones[2], hubs=[A, B, C], turn=turn),
+    #     ]
+    #     assert_bookings(
+    #         itineraries[0].bookings,
+    #         [(0, 1), (1, 1), (1, 2), (2, 2), 2],
+    #         [A, B, C]
+    #     )
+    #     assert_bookings(
+    #         itineraries[1].bookings,
+    #         [(0, 1), (1, 1), (1, 3), (3, 3), 3],
+    #         [A, B, C]
+    #     )
+    #     assert_bookings(
+    #         itineraries[2].bookings,
+    #         [(0, 1), (1, 1), (1, 4), (4, 4), 4],
+    #         [A, B, C]
+    #     )
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_easy_01(self) -> None:
@@ -548,12 +580,12 @@ class TestControllerRequest:
         ]
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), 3],
             route_hubs
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
             route_hubs
         )
 
@@ -569,7 +601,7 @@ class TestControllerRequest:
             itineraries.append(i)
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), 3],
             [
                 sim.get_hub_by_name("start"),
                 sim.get_hub_by_name("junction"),
@@ -579,7 +611,7 @@ class TestControllerRequest:
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
             [
                 sim.get_hub_by_name("start"),
                 sim.get_hub_by_name("junction"),
@@ -589,7 +621,7 @@ class TestControllerRequest:
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
             [
                 sim.get_hub_by_name("start"),
                 sim.get_hub_by_name("junction"),
@@ -616,25 +648,25 @@ class TestControllerRequest:
         ]
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), 3],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), 3],
             route_hubs
         )
 
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
             route_hubs
         )
 
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
             route_hubs
         )
 
         assert_bookings(
             itineraries[3].bookings,
-            [(0, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
+            [(0, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
             route_hubs
         )
 
@@ -657,27 +689,27 @@ class TestControllerRequest:
         ]
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
             route_hubs
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
             route_hubs
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
+            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
             route_hubs
         )
         assert_bookings(
             itineraries[3].bookings,
-            [(0, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), 7],
+            [(0, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), 7],
             route_hubs
         )
         assert_bookings(
             itineraries[4].bookings,
-            [(0, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), (7, 8), 8],
+            [(0, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), (7, 8), (8, 8), 8],
             route_hubs
         )
 
@@ -1020,27 +1052,27 @@ class TestControllerRequest:
             assert_bookings(
                 itinerary.bookings,
                 [
-                    (0, i),      (i,    i+1),
-                    (i+1, i+1),  (i+1,  i+2),
-                    (i+2, i+2),  (i+2,  i+3),
-                    (i+3, i+3),  (i+3,  i+4),
-                    (i+4, i+4),  (i+4,  i+5),
-                    (i+5, i+5),  (i+5,  i+6),
-                    (i+6, i+6),  (i+6,  i+7),
-                    (i+7, i+7),  (i+7,  i+8),
-                    (i+8, i+8),  (i+8,  i+9),
-                    (i+9, i+9),  (i+9,  i+10),
-                    (i+10, i+10),(i+10, i+11),
-                    (i+11, i+11),(i+11, i+13),  # conn restricted → coste 2
-                    (i+13, i+13),(i+13, i+15),  # conn restricted → coste 2
-                    (i+15, i+15),(i+15, i+17),  # conn restricted → coste 2
-                    (i+17, i+17),(i+17, i+18),
-                    (i+18, i+18),(i+18, i+19),
-                    (i+19, i+19),(i+19, i+20),
-                    (i+20, i+20),(i+20, i+21),
-                    (i+21, i+21),(i+21, i+22),
-                    (i+22, i+22),(i+22, i+23),
-                    (i+23, i+23),(i+23, i+24),
+                    (0, i),       (i,    i+1),
+                    (i+1, i+1),   (i+1,  i+2),
+                    (i+2, i+2),   (i+2,  i+3),
+                    (i+3, i+3),   (i+3,  i+4),
+                    (i+4, i+4),   (i+4,  i+5),
+                    (i+5, i+5),   (i+5,  i+6),
+                    (i+6, i+6),   (i+6,  i+7),
+                    (i+7, i+7),   (i+7,  i+8),
+                    (i+8, i+8),   (i+8,  i+9),
+                    (i+9, i+9),   (i+9,  i+10),
+                    (i+10, i+10), (i+10, i+11),
+                    (i+11, i+11), (i+11, i+13),  # conn restricted → coste 2
+                    (i+13, i+13), (i+13, i+15),  # conn restricted → coste 2
+                    (i+15, i+15), (i+15, i+17),  # conn restricted → coste 2
+                    (i+17, i+17), (i+17, i+18),
+                    (i+18, i+18), (i+18, i+19),
+                    (i+19, i+19), (i+19, i+20),
+                    (i+20, i+20), (i+20, i+21),
+                    (i+21, i+21), (i+21, i+22),
+                    (i+22, i+22), (i+22, i+23),
+                    (i+23, i+23), (i+23, i+24),
                     i+24,
                 ],
                 route_hubs,
@@ -1065,19 +1097,24 @@ class TestTick:
         drones = list(s.drones)
         s.tick()
         assert s.turn.value == 1
-        assert drones[0].location == map.connections["AB"]
+        assert drones[0].location == map.hubs["B"]
         assert drones[1].location == map.hubs["A"]
         assert drones[2].location == map.hubs["A"]
         s.tick()
         assert s.turn.value == 2
-        assert drones[0].location == map.hubs["B"]
-        assert drones[1].location == map.connections["AB"]
+        assert drones[0].location == map.hubs["C"]
+        assert drones[1].location == map.hubs["B"]
         assert drones[2].location == map.hubs["A"]
         s.tick()
         assert s.turn.value == 3
-        assert drones[0].location == map.connections["BC"]
-        assert drones[1].location == map.hubs["B"]
-        assert drones[2].location == map.connections["AB"]
+        assert drones[0].location == map.hubs["C"]
+        assert drones[1].location == map.hubs["C"]
+        assert drones[2].location == map.hubs["B"]
+        s.tick()
+        assert s.turn.value == 4
+        assert drones[0].location == map.hubs["C"]
+        assert drones[1].location == map.hubs["C"]
+        assert drones[2].location == map.hubs["C"]
 
 
 # def test_controller_request_03() -> None:
