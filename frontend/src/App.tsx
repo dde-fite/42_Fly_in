@@ -1,105 +1,69 @@
-import { useState, useEffect } from 'react'
-import Header from './components/Header'
-import SimulationCanvas from './components/SimulationCanvas'
-import TokenDisplay from './components/TokenDisplay'
-import { createSimulation, advanceSimulation } from './services/api'
-import { useSessionStore } from './store/sessionStore'
-import { useSimulationStore } from './store/simulationStore'
-import './App.css'
-
+import { useEffect } from "react"
+import Header from "./components/Header"
+import SimulationCanvas from "./components/SimulationCanvas"
+import { useSessionStore } from "./store/sessionStore"
+import { useSimulationStore } from "./store/simulationStore"
 
 function App() {
-  const simulation = useSimulationStore(state => state.simulation)
-  const fetchToken = useSessionStore(state => state.fetchToken)
-  const token = useSessionStore(state => state.token)
-  const setIsLoading = useSessionStore(state => state.setIsLoading)
-  const error = useSessionStore(state => state.error)
-  const setError = useSessionStore(state => state.setError)
+	const simulation = useSimulationStore(state => state.simulation)
+	const fetchToken = useSessionStore(state => state.fetchToken)
+	const error = useSessionStore(state => state.error)
 
-  const [showTokenModal, setShowTokenModal] = useState(false)  
-  
-  const hasSimulation = simulation !== null
+	useEffect(() => {
+		fetchToken()
+	}, [fetchToken])
 
+	return (
+		<div className='flex flex-col h-screen overflow-hidden'>
+			<Header />
 
+			<div className='relative bg-black flex-1 overflow-hidden'>
+				{error && (
+					<div className='bg-red-500/10 border border-red-500 text-[#ff7961] px-3 py-3 rounded text-sm mt-4 mx-4'>
+						{error}
+					</div>
+				)}
 
-  const handleAdvanceSteps = async (steps: number) => {
-    if (!simulation) return
+				<main className='relative h-full'>
+					{!simulation ? (
+						<div className='flex items-center justify-center h-full text-gray-500 text-xl'>
+							<p>Upload a map file to begin</p>
+						</div>
+					) : (
+						<SimulationCanvas simulation={simulation} />
+					)}
+				</main>
 
-    try {
-      setIsLoading(true)
-      setError('')
-
-      console.log('=== ADVANCING SIMULATION ===')
-      console.log('Current turn:', simulation.turn)
-      console.log('Steps to advance:', steps)
-
-      const sim = await advanceSimulation(steps)
-      
-      console.log('✅ Simulation advanced')
-      console.log('New turn:', sim.turn)
-      console.log('Drones in simulation:', sim.drones)
-      
-      // Keep the same token
-      setsimulation({ data: sim, token: token })
-    } catch (err: any) {
-      setError(err.message || 'Failed to advance simulation')
-      console.error(err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchToken()
-  }, [])
-
-  return (
-    <div className="flex flex-col h-screen overflow-hidden">
-      <Header />
-      {/* Main Layout */}
-      <div className="relative bg-black">
-        {error && <div className="error-message">{error}</div>}
-        {/* Center Panel */}
-        <main className="relative">
-          {!hasSimulation ? (
-            <div className="empty-state">
-              <p>Upload a map file to begin</p>
-            </div>
-          ) : (
-            <SimulationCanvas simulation={simulation} token={token} />
-          )}
-        </main>
-
-        {/* Right Panel */}
-        <aside className="absolute top-4 right-4 p-1 overflow-y-auto">
-          {hasSimulation && (
-            <div className="info-section">
-              <h3>Network Status</h3>
-              <div className="status-item">
-                <span>Hubs:</span>
-                <strong>{simulation!.hubs.length}</strong>
-              </div>
-              <div className="status-item">
-                <span>Connections:</span>
-                <strong>{simulation!.connections.length}</strong>
-              </div>
-              <div className="status-item">
-                <span>Active Drones:</span>
-                <strong>{simulation!.drones.length}</strong>
-              </div>
-            </div>
-          )}
-        </aside>
-      </div>
-
-      {/* Token Modal */}
-      {showTokenModal && (
-        <div className="modal-overlay" onClick={() => setShowTokenModal(false)}>
-          <TokenDisplay onClose={() => setShowTokenModal(false)} />
-        </div>
-      )}
-    </div>
-  )
+				{simulation && (
+					<aside className='absolute top-4 right-4 p-1 overflow-y-auto'>
+						<div className='bg-green-500/10 border border-green-900 rounded p-4'>
+							<h3 className='m-0 mb-3 text-green-400 text-[0.95rem] uppercase tracking-widest'>
+								Network Status
+							</h3>
+							<div className='flex justify-between py-2 border-b border-green-900/30 text-sm'>
+								<span>Hubs:</span>
+								<strong className='text-green-400 font-bold'>
+									{Object.keys(simulation.hubs).length}
+								</strong>
+							</div>
+							<div className='flex justify-between py-2 border-b border-green-900/30 text-sm'>
+								<span>Connections:</span>
+								<strong className='text-green-400 font-bold'>
+									{Object.keys(simulation.connections).length}
+								</strong>
+							</div>
+							<div className='flex justify-between py-2 text-sm'>
+								<span>Active Drones:</span>
+								<strong className='text-green-400 font-bold'>
+									{Object.keys(simulation.drones).length}
+								</strong>
+							</div>
+						</div>
+					</aside>
+				)}
+			</div>
+		</div>
+	)
 }
 
 export default App

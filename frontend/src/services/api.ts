@@ -1,130 +1,123 @@
-import { ConnectionSchema } from "../schemas/connection";
-import { DroneSchema } from "../schemas/drone";
-import { HubSchema } from "../schemas/hub";
-import { TokenSchema } from "../schemas/token";
-import { useSessionStore } from "../store/sessionStore";
-import type { ResponseSimulation, Token } from "../types/api";
-import type { Connection, Drone, Hub } from "../types/simulation";
+import { ConnectionSchema } from "../schemas/connection"
+import { DroneSchema } from "../schemas/drone"
+import { HubSchema } from "../schemas/hub"
+import { RawSimulationSchema, SimulationSchema } from "../schemas/simulation"
+import { TokenSchema } from "../schemas/token"
+import { useSessionStore } from "../store/sessionStore"
+import type { Token } from "../types/api"
+import type { Connection, Drone, Hub, Simulation } from "../types/simulation"
 
-const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`;
+const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`
 
 export async function generateToken(): Promise<Token> {
-	const response = await fetch(`${API_BASE}/token`);
+	const response = await fetch(`${API_BASE}/token`)
 	if (!response.ok) {
-		throw new Error("Failed to generate token");
+		throw new Error("Failed to generate token")
 	}
-	const data = await response.json();
-	return TokenSchema.parse(data);
+	const data = await response.json()
+	return TokenSchema.parse(data)
 }
 
-export async function createSimulation(
-	file: File,
-): Promise<ResponseSimulation> {
-	const token = useSessionStore((state) => state.token);
-	if (!token) {
-		throw new Error(`Token is null`);
-	}
-	const formData = new FormData();
-	formData.append("file", file);
+// ── Individual item fetches ───────────────────────────────────────────────────
+
+async function fetchById<T>(
+	resource: string,
+	label: string,
+	schema: { parse: (data: unknown) => T },
+	token: Token,
+	id: string,
+): Promise<T> {
+	const response = await fetch(
+		`${API_BASE}/${resource}?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`,
+	)
+	if (!response.ok) throw new Error(`${label} ${id} not found`)
+	return schema.parse(await response.json())
+}
+
+const fetchHubById = (token: Token, id: string): Promise<Hub> =>
+	fetchById("hub", "Hub", HubSchema, token, id)
+
+const fetchDroneById = (token: Token, id: string): Promise<Drone> =>
+	fetchById("drone", "Drone", DroneSchema, token, id)
+
+const fetchConnectionById = (token: Token, id: string): Promise<Connection> =>
+	fetchById("connection", "Connection", ConnectionSchema, token, id)
+
+// ── Enrichment ────────────────────────────────────────────────────────────────
+
+async function enrichSimulation(
+	token: Token,
+	raw: {
+		turn: number
+		hubs: string[]
+		origin: string
+		destination: string
+		connections: string[]
+		drones: string[]
+	},
+): Promise<Simulation> {
+	const [hubEntries, connectionEntries, droneEntries] = await Promise.all([
+		Promise.all(
+			raw.hubs.map(async id => [id, await fetchHubById(token, id)] as const),
+		),
+		Promise.all(
+			raw.connections.map(
+				async id => [id, await fetchConnectionById(token, id)] as const,
+			),
+		),
+		Promise.all(
+			raw.drones.map(
+				async id => [id, await fetchDroneById(token, id)] as const,
+			),
+		),
+	])
+
+	return SimulationSchema.parse({
+		turn: raw.turn,
+		origin: raw.origin,
+		destination: raw.destination,
+		hubs: Object.fromEntries(hubEntries),
+		connections: Object.fromEntries(connectionEntries),
+		drones: Object.fromEntries(droneEntries),
+	})
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+function requireToken(): Token {
+	const token = useSessionStore.getState().token
+	if (!token) throw new Error("Token is null")
+	return token
+}
+
+export async function createSimulation(file: File): Promise<Simulation> {
+	const token = requireToken()
+
+	const formData = new FormData()
+	formData.append("file", file)
 
 	const response = await fetch(
 		`${API_BASE}/simulation?token=${encodeURIComponent(token)}`,
-		{
-			method: "POST",
-			body: formData,
-		},
-	);
-
+		{ method: "POST", body: formData },
+	)
 	if (!response.ok) {
-		const error = await response.text();
-		throw new Error(`Failed to create simulation: ${error}`);
+		const error = await response.text()
+		throw new Error(`Failed to create simulation: ${error}`)
 	}
 
-	return response.json();
+	const raw = RawSimulationSchema.parse(await response.json())
+	return enrichSimulation(token, raw)
 }
 
-export async function getSimulation(): Promise<ResponseSimulation> {
-	const token = useSessionStore((state) => state.token);
-	if (!token) {
-		throw new Error(`Token is null`);
-	}
-	const response = await fetch(
-		`${API_BASE}/simulation?token=${encodeURIComponent(token)}`,
-	);
+export async function advanceSimulation(steps = 1): Promise<Simulation> {
+	const token = requireToken()
 
-	if (!response.ok) {
-		throw new Error("Simulation not found");
-	}
-
-	return response.json();
-}
-
-export async function advanceSimulation(
-	steps: number = 1,
-): Promise<ResponseSimulation> {
-	const token = useSessionStore((state) => state.token);
-	if (!token) {
-		throw new Error(`Token is null`);
-	}
 	const response = await fetch(
 		`${API_BASE}/simulation/step?token=${encodeURIComponent(token)}&steps=${steps}`,
 		{ method: "POST" },
-	);
+	)
+	if (!response.ok) throw new Error("Failed to advance simulation")
 
-	if (!response.ok) {
-		throw new Error("Failed to advance simulation");
-	}
-
-	return response.json();
-}
-
-export async function getHub(ids: string[]): Promise<Hub> {
-	const token = useSessionStore((state) => state.token);
-	if (!token) {
-		throw new Error(`Token is null`);
-	}
-	let url = `${API_BASE}/hub?token=${encodeURIComponent(token)}`;
-	ids.forEach((id) => {
-		url += `&id=${encodeURIComponent(id)}`;
-	});
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error("Hub not found");
-	}
-	const data = await response.json();
-	return HubSchema.parse(data);
-}
-
-export async function getDrone(ids: string[]): Promise<Drone> {
-	const token = useSessionStore((state) => state.token);
-	if (!token) {
-		throw new Error(`Token is null`);
-	}
-	let url = `${API_BASE}/drone?token=${encodeURIComponent(token)}`;
-	ids.forEach((id) => {
-		url += `&id=${encodeURIComponent(id)}`;
-	});
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error("Drone not found");
-	}
-	const data = await response.json();
-	return DroneSchema.parse(data);
-}
-
-export async function getConnection(ids: string[]): Promise<Connection> {
-	const token = useSessionStore((state) => state.token);
-	if (!token) {
-		throw new Error(`Token is null`);
-	}
-	let url = `${API_BASE}/connection?token=${encodeURIComponent(token)}`;
-	ids.forEach((id) => {
-		url += `&id=${encodeURIComponent(id)}`;
-	});
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error("Connection not found");
-	}
-	const data = await response.json();
-	return ConnectionSchema.parse(data);
+	const raw = RawSimulationSchema.parse(await response.json())
+	return enrichSimulation(token, raw)
 }
