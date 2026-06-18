@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+	type CanvasState,
+	useCanvasInteraction,
+} from "../hooks/useCanvasInteraction"
+import { useDroneAnimation } from "../hooks/useDroneAnimation"
 import { createDroneColorCache } from "../lib/canvas/colors"
+import { isRainbow } from "../lib/canvas/palette"
 import { renderScene } from "../lib/canvas/render"
-import type { Scene } from "../lib/canvas/scene"
-import { computeAutoFit, modelToCanvas } from "../lib/canvas/view"
+import type { DroneMove, Scene } from "../lib/canvas/scene"
+import { computeAutoFit } from "../lib/canvas/view"
 import { useSimulationStore } from "../store/simulationStore"
 import type { Connection, Drone, Hub, Simulation } from "../types/simulation"
 import CanvasToolbar from "./canvas/CanvasToolbar"
@@ -37,7 +43,16 @@ export default function SimulationCanvas({
 	>(null)
 	const getDroneColorRef = useRef(createDroneColorCache())
 
-	const stateRef = useRef({
+	// Animated drone-move frames, written by useDroneAnimation and read by redraw.
+	const movesRef = useRef<Map<string, DroneMove> | null>(null)
+
+	// Current playback multiplier, kept in a ref so the animation reads the latest
+	// value without restarting (see useDroneAnimation).
+	const playbackSpeed = useSimulationStore(state => state.playbackSpeed)
+	const playbackSpeedRef = useRef(playbackSpeed)
+	playbackSpeedRef.current = playbackSpeed
+
+	const stateRef = useRef<CanvasState>({
 		scale: 100,
 		panX: 50,
 		panY: 50,
@@ -75,6 +90,7 @@ export default function SimulationCanvas({
 			destination: simulation.destination,
 			selectedHubId,
 			selectedConnectionId,
+			moves: movesRef.current ?? undefined,
 		}
 		renderScene(ctx, stateRef.current, scene, getDroneColorRef.current)
 	}, [
@@ -87,107 +103,50 @@ export default function SimulationCanvas({
 		selectedConnectionId,
 	])
 
-	const handleCanvasClick = useCallback(
-		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			const canvas = canvasRef.current
-			if (!canvas) return
+	useDroneAnimation({
+		simulation,
+		hubs,
+		connections,
+		playbackSpeedRef,
+		movesRef,
+		redraw,
+	})
 
-			const rect = canvas.getBoundingClientRect()
-			const canvasX = e.clientX - rect.left
-			const canvasY = e.clientY - rect.top
+	const {
+		handleCanvasClick,
+		handleWheel,
+		handleMouseDown,
+		handleMouseMove,
+		handleMouseUp,
+		handleResize,
+		handleFit,
+		handleZoomIn,
+		handleZoomOut,
+	} = useCanvasInteraction({
+		canvasRef,
+		stateRef,
+		hubs,
+		connections,
+		redraw,
+		autoFit,
+		onSelectHub: setSelectedHubId,
+		onSelectConnection: setSelectedConnectionId,
+	})
 
-			for (const [hubId, hub] of hubs) {
-				const [hx, hy] = modelToCanvas(stateRef.current, ...hub.position)
-				if (Math.sqrt((canvasX - hx) ** 2 + (canvasY - hy) ** 2) < 25) {
-					setSelectedHubId(hubId)
-					setSelectedConnectionId(null)
-					return
-				}
-			}
-
-			for (const [connId, connection] of connections) {
-				const hub1 = hubs.get(connection.hubs[0])
-				const hub2 = hubs.get(connection.hubs[1])
-				if (!hub1 || !hub2) continue
-
-				const [x1, y1] = modelToCanvas(stateRef.current, ...hub1.position)
-				const [x2, y2] = modelToCanvas(stateRef.current, ...hub2.position)
-
-				const A = canvasX - x1
-				const B = canvasY - y1
-				const C = x2 - x1
-				const D = y2 - y1
-				const lenSq = C * C + D * D
-				const param = lenSq !== 0 ? (A * C + B * D) / lenSq : -1
-
-				const xx = param < 0 ? x1 : param > 1 ? x2 : x1 + param * C
-				const yy = param < 0 ? y1 : param > 1 ? y2 : y1 + param * D
-
-				if (Math.sqrt((canvasX - xx) ** 2 + (canvasY - yy) ** 2) < 10) {
-					setSelectedConnectionId(connId)
-					setSelectedHubId(null)
-					return
-				}
-			}
-
-			setSelectedHubId(null)
-			setSelectedConnectionId(null)
-		},
-		[hubs, connections],
+	// Keep redrawing while any hub uses the animated "rainbow" colour so its hue
+	// cycles over time. Idle (no rainbow hub) leaves the canvas static.
+	const hasRainbow = useMemo(
+		() => Array.from(hubs.values()).some(h => isRainbow(h.color)),
+		[hubs],
 	)
-
-	const handleWheel = useCallback(
-		(e: React.WheelEvent<HTMLCanvasElement>) => {
-			e.preventDefault()
-			const newScale = stateRef.current.scale * (e.deltaY > 0 ? 0.9 : 1.1)
-			if (newScale >= 5 && newScale <= 8000) {
-				stateRef.current.scale = newScale
-				redraw()
-			}
-		},
-		[redraw],
-	)
-
-	const handleMouseDown = useCallback(
-		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			if (e.button !== 0) return
-			stateRef.current.isDragging = true
-			stateRef.current.dragStartX = e.clientX
-			stateRef.current.dragStartY = e.clientY
-		},
-		[],
-	)
-
-	const handleMouseMove = useCallback(
-		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			if (!stateRef.current.isDragging) return
-			stateRef.current.panX += e.clientX - stateRef.current.dragStartX
-			stateRef.current.panY += e.clientY - stateRef.current.dragStartY
-			stateRef.current.dragStartX = e.clientX
-			stateRef.current.dragStartY = e.clientY
+	useEffect(() => {
+		if (!hasRainbow) return
+		let raf = requestAnimationFrame(function tick() {
 			redraw()
-		},
-		[redraw],
-	)
-
-	const handleMouseUp = useCallback(() => {
-		stateRef.current.isDragging = false
-	}, [])
-
-	const handleResize = useCallback(() => {
-		const canvas = canvasRef.current
-		if (!canvas?.parentElement) return
-		stateRef.current.canvasWidth = canvas.parentElement.clientWidth
-		stateRef.current.canvasHeight = canvas.parentElement.clientHeight
-		canvas.width = stateRef.current.canvasWidth
-		canvas.height = stateRef.current.canvasHeight
-		redraw()
-	}, [redraw])
-
-	const handleFit = useCallback(() => {
-		autoFit(hubs)
-		redraw()
-	}, [hubs, autoFit, redraw])
+			raf = requestAnimationFrame(tick)
+		})
+		return () => cancelAnimationFrame(raf)
+	}, [hasRainbow, redraw])
 
 	const fitViewTrigger = useSimulationStore(state => state.fitViewTrigger)
 
@@ -238,6 +197,8 @@ export default function SimulationCanvas({
 			<CanvasToolbar
 				scale={stateRef.current.scale}
 				onFit={handleFit}
+				onZoomIn={handleZoomIn}
+				onZoomOut={handleZoomOut}
 			/>
 
 			{selectedHub && (
