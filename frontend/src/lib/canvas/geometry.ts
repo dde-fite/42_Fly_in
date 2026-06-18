@@ -1,74 +1,55 @@
-import type { Hub } from "../../types/simulation"
+// ── Uniform camera model ────────────────────────────────────────────────────
+// Everything the canvas draws is sized in *model units* and multiplied by the
+// view `scale` exactly once, at draw time. There are no pixel floors or ceilings
+// anywhere, so the whole scene is a single rigid object the camera zooms in and
+// out of: zooming is perfectly proportional and reversible. Hub positions live
+// on an integer grid (neighbours are 1 unit apart), so these constants are
+// fractions of that grid cell.
+const WORLD = {
+	connTrackSpacing: 0.09, // gap between parallel tracks on a connection
+	stationTrackSpacing: 0.22, // gap between platform tracks inside a station
+	railWidth: 0.03, // rail stroke width
+	fontSize: 0.14, // station name height
+	platformH: 0.05, // height of each platform band
+	platformGap: 0.022, // gap between platform and track area
+	droneSize: 0.09, // drone glyph radius-ish
+	charWidth: 0.1, // box width contributed per name character
+	boxPadX: 0.18, // horizontal box padding
+	minBoxWidth: 0.34, // smallest station box width
+} as const
 
-// Shared, capped rail metrics so the connection tracks and station tracks line
-// up, and so boxes stop growing past a max pixel size (which lets zooming-in
-// actually separate stations instead of growing them at the same rate).
+// Rail spacing/width for connection tracks (pure functions of scale).
 export function railMetrics(scale: number) {
-	const trackSpacing = Math.min(Math.max(7, scale * 0.11), 16)
-	const railWidth = Math.min(Math.max(1, scale * 0.016), 2.4)
-	return { trackSpacing, railWidth }
+	return {
+		trackSpacing: scale * WORLD.connTrackSpacing,
+		railWidth: scale * WORLD.railWidth,
+	}
+}
+
+// Pixel size of a drone glyph at this scale.
+export function droneSizeFor(scale: number) {
+	return scale * WORLD.droneSize
 }
 
 export function getHubBox(name: string, scale: number, capacity = 1) {
-	const fontSize = Math.min(Math.max(8, scale * 0.1), 15)
-	const { trackSpacing } = railMetrics(scale)
-	const platformH = Math.min(Math.max(5, scale * 0.055), 9)
-	const platformGap = Math.min(Math.max(2, scale * 0.025), 4)
-	const innerH = trackSpacing * Math.max(1, capacity)
+	const fontSize = scale * WORLD.fontSize
+	const platformH = scale * WORLD.platformH
+	const platformGap = scale * WORLD.platformGap
+	const trackSpacing = scale * WORLD.connTrackSpacing
+	const stationTrackSpacing = scale * WORLD.stationTrackSpacing
+	const innerH = stationTrackSpacing * Math.max(1, capacity)
 	const boxH = innerH + (platformH + platformGap) * 2
-	const boxW = Math.max(64, fontSize * name.length * 0.72 + 36)
-	return { boxW, boxH, fontSize, trackSpacing, platformH, platformGap, innerH }
-}
-
-// Smallest scale (≥ initialScale) at which no two hub boxes overlap, leaving a
-// margin so the connecting tracks are clearly visible between stations.
-export function fitSeparationScale(hubs: Hub[], initialScale: number): number {
-	if (hubs.length < 2) return initialScale
-	// Cap how far we are willing to zoom in to separate stations, so a pair that
-	// can never be separated (coincident positions) does not lock the view at an
-	// unusable zoom. Boxes are size-capped, so separation converges quickly.
-	const MAX_SCALE = Math.max(initialScale, 2500)
-	let scale = initialScale
-	for (let iter = 0; iter < 60; iter++) {
-		// Constant pixel margin so increasing scale always reduces overlap and the
-		// connecting track stays clearly visible between stations.
-		const margin = 60
-		let overlap = false
-		for (let i = 0; i < hubs.length && !overlap; i++) {
-			const a = getHubBox(hubs[i].name, scale, hubs[i].capacity)
-			for (let j = i + 1; j < hubs.length; j++) {
-				const b = getHubBox(hubs[j].name, scale, hubs[j].capacity)
-				const dx = Math.abs(hubs[i].position[0] - hubs[j].position[0]) * scale
-				const dy = Math.abs(hubs[i].position[1] - hubs[j].position[1]) * scale
-				const needX = (a.boxW + b.boxW) / 2 + margin
-				const needY = (a.boxH + b.boxH) / 2 + margin
-				if (dx < needX && dy < needY) {
-					overlap = true
-					break
-				}
-			}
-		}
-		if (!overlap) break
-		scale *= 1.12
-		if (scale >= MAX_SCALE) {
-			scale = MAX_SCALE
-			break
-		}
+	const boxW =
+		scale *
+		Math.max(WORLD.minBoxWidth, WORLD.charWidth * name.length + WORLD.boxPadX)
+	return {
+		boxW,
+		boxH,
+		fontSize,
+		trackSpacing,
+		stationTrackSpacing,
+		platformH,
+		platformGap,
+		innerH,
 	}
-	return scale
-}
-
-// Point on rectangle edge from its center in direction (ux, uy)
-export function rectEdge(
-	cx: number,
-	cy: number,
-	w: number,
-	h: number,
-	ux: number,
-	uy: number,
-): [number, number] {
-	const tx = Math.abs(ux) > 1e-9 ? w / 2 / Math.abs(ux) : Infinity
-	const ty = Math.abs(uy) > 1e-9 ? h / 2 / Math.abs(uy) : Infinity
-	const t = Math.min(tx, ty)
-	return [cx + ux * t, cy + uy * t]
 }
