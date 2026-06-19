@@ -40,31 +40,20 @@ def fetch_simulation(token: SimulationToken) -> ResponseSimulation:
     return simulation_to_schema(s)
 
 
-def fetch_hub(token: SimulationToken, id: UUID) -> ResponseHub | None:
+def fetch_hubs(token: SimulationToken) -> dict[UUID, ResponseHub]:
     s = get_simulation(token)
-    for hub in s.hubs:
-        if hub.id == id:
-            return hub_to_schema(hub)
-    return None
+    return {hub.id: hub_to_schema(hub) for hub in s.hubs}
 
 
-def fetch_drone(token: SimulationToken, id: UUID) -> ResponseDrone | None:
+def fetch_drones(token: SimulationToken) -> dict[UUID, ResponseDrone]:
     s = get_simulation(token)
-    for drone in s.drones:
-        if drone.id == id:
-            return drone_to_schema(drone)
-    return None
+    return {drone.id: drone_to_schema(drone) for drone in s.drones}
 
 
-def fetch_connection(token: SimulationToken, id: UUID
-                     ) -> ResponseConnection | None:
+def fetch_connections(token: SimulationToken
+                      ) -> dict[UUID, ResponseConnection]:
     s = get_simulation(token)
-    if not s:
-        return None
-    for con in s.connections:
-        if con.id == id:
-            return connection_to_schema(con)
-    return None
+    return {con.id: connection_to_schema(con) for con in s.connections}
 
 
 def execute_turn(token: SimulationToken, turns: int = 1) -> ResponseSimulation:

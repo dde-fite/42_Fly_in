@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, UploadFile
 from src.models import SimulationToken
 from src.services import (
     register_simulation, fetch_simulation, execute_turn,
-    fetch_hub, fetch_drone, fetch_connection
+    fetch_hubs, fetch_drones, fetch_connections
 )
 from src.schema import (
     ResponseSimulation, ResponseDrone, ResponseHub,
@@ -134,29 +134,25 @@ async def advance_simulation(
 # ── Hubs ─────────────────────────────────────────────────────────────────────
 
 @router.get(
-    "/hub",
-    response_model=ResponseHub,
-    summary="Get hub by ID",
+    "/hubs",
+    response_model=dict[UUID, ResponseHub],
+    summary="Get all hubs",
     description=(
-        "Returns the details of a single hub (name, position, capacity, "
-        "access zone, color, connected drones) identified by its UUID within "
-        "the simulation associated with the token."
+        "Returns every hub of the simulation associated with the token, keyed "
+        "by its UUID. Each hub includes name, position, capacity, access zone, "
+        "color and connected drones."
     ),
     responses={
-        200: {"description": "Hub details."},
-        404: {"description": "Simulation not found for the token, or no hub with the given ID exists."},
+        200: {"description": "All hubs keyed by UUID."},
+        404: {"description": "No simulation found for the provided token."},
     },
     tags=["Hubs"],
 )
-async def get_hub(
+async def get_hubs(
     token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
-    id: UUID = Query(..., description="UUID of the hub to retrieve."),
-) -> ResponseHub:
+) -> dict[UUID, ResponseHub]:
     try:
-        h = fetch_hub(token, id)
-        if not h:
-            raise HTTPException(404, "Hub not found")
-        return h
+        return fetch_hubs(token)
     except SimulationNotFound:
         raise HTTPException(404, "Simulation not found for token")
 
@@ -164,29 +160,24 @@ async def get_hub(
 # ── Drones ───────────────────────────────────────────────────────────────────
 
 @router.get(
-    "/drone",
-    response_model=ResponseDrone,
-    summary="Get drone by ID",
+    "/drones",
+    response_model=dict[UUID, ResponseDrone],
+    summary="Get all drones",
     description=(
-        "Returns the details of a single drone (current location, destination, "
-        "itinerary status) identified by its UUID within the simulation "
-        "associated with the token."
+        "Returns every drone of the simulation associated with the token, keyed "
+        "by its UUID. Each drone includes its current location and destination."
     ),
     responses={
-        200: {"description": "Drone details."},
-        404: {"description": "Simulation not found for the token, or no drone with the given ID exists."},
+        200: {"description": "All drones keyed by UUID."},
+        404: {"description": "No simulation found for the provided token."},
     },
     tags=["Drones"],
 )
-async def get_drone(
+async def get_drones(
     token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
-    id: UUID = Query(..., description="UUID of the drone to retrieve."),
-) -> ResponseDrone:
+) -> dict[UUID, ResponseDrone]:
     try:
-        d = fetch_drone(token, id)
-        if not d:
-            raise HTTPException(404, "Drone not found")
-        return d
+        return fetch_drones(token)
     except SimulationNotFound:
         raise HTTPException(404, "Simulation not found for token")
 
@@ -194,28 +185,24 @@ async def get_drone(
 # ── Connections ──────────────────────────────────────────────────────────────
 
 @router.get(
-    "/connection",
-    response_model=ResponseConnection,
-    summary="Get connection by ID",
+    "/connections",
+    response_model=dict[UUID, ResponseConnection],
+    summary="Get all connections",
     description=(
-        "Returns the details of a single connection (the two hubs it links, "
-        "capacity, current drone occupancy) identified by its UUID within the "
-        "simulation associated with the token."
+        "Returns every connection of the simulation associated with the token, "
+        "keyed by its UUID. Each connection includes the two hubs it links and "
+        "its capacity."
     ),
     responses={
-        200: {"description": "Connection details."},
-        404: {"description": "Simulation not found for the token, or no connection with the given ID exists."},
+        200: {"description": "All connections keyed by UUID."},
+        404: {"description": "No simulation found for the provided token."},
     },
     tags=["Connections"],
 )
-async def get_connection(
+async def get_connections(
     token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
-    id: UUID = Query(..., description="UUID of the connection to retrieve."),
-) -> ResponseConnection:
+) -> dict[UUID, ResponseConnection]:
     try:
-        c = fetch_connection(token, id)
-        if not c:
-            raise HTTPException(404, "Connection not found")
-        return c
+        return fetch_connections(token)
     except SimulationNotFound:
         raise HTTPException(404, "Simulation not found for token")

@@ -15,7 +15,15 @@ GET http://localhost:8000/api/simulation?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauG
 
 ###
 
-GET http://localhost:8000/api/drone?token=3w_jyE0ZCXXjDLiZ3eegdIdMm8dIU7B_2D9KX-AVGck&id=723738db-b947-4ab5-ba6d-437e7cda9ef6 HTTP/1.1
+GET http://localhost:8000/api/hubs?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlNI HTTP/1.1
+
+###
+
+GET http://localhost:8000/api/drones?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlNI HTTP/1.1
+
+###
+
+GET http://localhost:8000/api/connections?token=IUA2wRCjqO8xDgpD0vvoX4Cba-2VlIauGjzbwQaHlNI HTTP/1.1
 
 ###
 
