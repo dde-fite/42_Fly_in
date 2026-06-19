@@ -1,3 +1,4 @@
+import { z } from "zod"
 import { ConnectionSchema } from "../schemas/connection"
 import { DroneSchema } from "../schemas/drone"
 import { HubSchema } from "../schemas/hub"
@@ -18,30 +19,33 @@ export async function generateToken(): Promise<Token> {
 	return TokenSchema.parse(data)
 }
 
-// ── Individual item fetches ───────────────────────────────────────────────────
+// ── Bulk category fetches ─────────────────────────────────────────────────────
 
-async function fetchById<T>(
+async function fetchAll<T>(
 	resource: string,
 	label: string,
-	schema: { parse: (data: unknown) => T },
+	schema: { parse: (data: unknown) => Record<string, T> },
 	token: Token,
-	id: string,
-): Promise<T> {
+): Promise<Record<string, T>> {
 	const response = await fetch(
-		`${API_BASE}/${resource}?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`,
+		`${API_BASE}/${resource}?token=${encodeURIComponent(token)}`,
 	)
-	if (!response.ok) throw new Error(`${label} ${id} not found`)
+	if (!response.ok) throw new Error(`Failed to fetch ${label}`)
 	return schema.parse(await response.json())
 }
 
-const fetchHubById = (token: Token, id: string): Promise<Hub> =>
-	fetchById("hub", "Hub", HubSchema, token, id)
+const HubsSchema = z.record(z.string(), HubSchema)
+const ConnectionsSchema = z.record(z.string(), ConnectionSchema)
+const DronesSchema = z.record(z.string(), DroneSchema)
 
-const fetchDroneById = (token: Token, id: string): Promise<Drone> =>
-	fetchById("drone", "Drone", DroneSchema, token, id)
+const fetchHubs = (token: Token): Promise<Record<string, Hub>> =>
+	fetchAll("hubs", "hubs", HubsSchema, token)
 
-const fetchConnectionById = (token: Token, id: string): Promise<Connection> =>
-	fetchById("connection", "Connection", ConnectionSchema, token, id)
+const fetchConnections = (token: Token): Promise<Record<string, Connection>> =>
+	fetchAll("connections", "connections", ConnectionsSchema, token)
+
+const fetchDrones = (token: Token): Promise<Record<string, Drone>> =>
+	fetchAll("drones", "drones", DronesSchema, token)
 
 // ── Enrichment ────────────────────────────────────────────────────────────────
 
@@ -49,36 +53,23 @@ async function enrichSimulation(
 	token: Token,
 	raw: {
 		turn: number
-		hubs: string[]
 		origin: string
 		destination: string
-		connections: string[]
-		drones: string[]
 	},
 ): Promise<Simulation> {
-	const [hubEntries, connectionEntries, droneEntries] = await Promise.all([
-		Promise.all(
-			raw.hubs.map(async id => [id, await fetchHubById(token, id)] as const),
-		),
-		Promise.all(
-			raw.connections.map(
-				async id => [id, await fetchConnectionById(token, id)] as const,
-			),
-		),
-		Promise.all(
-			raw.drones.map(
-				async id => [id, await fetchDroneById(token, id)] as const,
-			),
-		),
+	const [hubs, connections, drones] = await Promise.all([
+		fetchHubs(token),
+		fetchConnections(token),
+		fetchDrones(token),
 	])
 
 	return SimulationSchema.parse({
 		turn: raw.turn,
 		origin: raw.origin,
 		destination: raw.destination,
-		hubs: Object.fromEntries(hubEntries),
-		connections: Object.fromEntries(connectionEntries),
-		drones: Object.fromEntries(droneEntries),
+		hubs,
+		connections,
+		drones,
 	})
 }
 
