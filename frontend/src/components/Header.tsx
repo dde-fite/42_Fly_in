@@ -5,6 +5,7 @@ import { useSessionStore } from "../store/sessionStore"
 import { useSimulationStore } from "../store/simulationStore"
 import AppMenuBar from "./header/AppMenuBar"
 import type { Menu } from "./header/menuTypes"
+import NetworkStatus from "./header/NetworkStatus"
 import PlaybackControls from "./header/PlaybackControls"
 import TokenDisplay from "./TokenDisplay"
 
@@ -155,6 +156,16 @@ export default function Header() {
 						openMenu={openMenu}
 						setOpenMenu={setOpenMenu}
 					/>
+
+					{hasSimulation && simulation && (
+						<div className='ml-auto'>
+							<NetworkStatus
+								hubs={Object.keys(simulation.hubs).length}
+								connections={Object.keys(simulation.connections).length}
+								drones={Object.keys(simulation.drones).length}
+							/>
+						</div>
+					)}
 				</div>
 
 				{/* Right: turn counter + playback controls */}

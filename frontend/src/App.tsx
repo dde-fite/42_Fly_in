@@ -33,34 +33,6 @@ function App() {
 						<SimulationCanvas simulation={simulation} />
 					)}
 				</main>
-
-				{simulation && (
-					<aside className='absolute top-4 right-4 p-1 overflow-y-auto'>
-						<div className='bg-green-500/10 border border-green-900 rounded p-4'>
-							<h3 className='m-0 mb-3 text-green-400 text-[0.95rem] uppercase tracking-widest'>
-								Network Status
-							</h3>
-							<div className='flex justify-between py-2 border-b border-green-900/30 text-sm'>
-								<span>Hubs:</span>
-								<strong className='text-green-400 font-bold'>
-									{Object.keys(simulation.hubs).length}
-								</strong>
-							</div>
-							<div className='flex justify-between py-2 border-b border-green-900/30 text-sm'>
-								<span>Connections:</span>
-								<strong className='text-green-400 font-bold'>
-									{Object.keys(simulation.connections).length}
-								</strong>
-							</div>
-							<div className='flex justify-between py-2 text-sm'>
-								<span>Active Drones:</span>
-								<strong className='text-green-400 font-bold'>
-									{Object.keys(simulation.drones).length}
-								</strong>
-							</div>
-						</div>
-					</aside>
-				)}
 			</div>
 		</div>
 	)
