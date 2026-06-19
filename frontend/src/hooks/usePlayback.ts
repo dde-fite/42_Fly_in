@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useSessionStore } from "../store/sessionStore"
+import { useSimulationStore } from "../store/simulationStore"
 
 export enum Player {
 	PAUSE = "pause",
@@ -23,11 +24,18 @@ export function usePlayback(
 ) {
 	const [player, setPlayer] = useState<Player>(Player.PAUSE)
 	const isLoading = useSessionStore(state => state.isLoading)
+	const setPlaybackSpeed = useSimulationStore(state => state.setPlaybackSpeed)
 
 	// Pause when simulation is cleared
 	useEffect(() => {
 		if (!hasSimulation) setPlayer(Player.PAUSE)
 	}, [hasSimulation])
+
+	// Expose the active multiplier so the canvas scales its move animation to the
+	// playback speed (slower on normal play, faster on fast play).
+	useEffect(() => {
+		setPlaybackSpeed(MULTIPLIER[player])
+	}, [player, setPlaybackSpeed])
 
 	// Auto-advance loop
 	useEffect(() => {

@@ -9,11 +9,15 @@ import { useSessionStore } from "./sessionStore"
 interface SimulationStore {
 	simulation: Simulation | null
 	fitViewTrigger: number
+	// Current playback multiplier (0 paused, 1 play, >1 fast). Drives how fast
+	// the drone-move animation plays so it always finishes before the next turn.
+	playbackSpeed: number
 	newSimulation: (data: File) => Promise<void>
 	setSimulation: (data: Simulation | null) => void
 	clearSimulation: () => void
 	advanceSimulation: (steps: number) => Promise<void>
 	requestFitView: () => void
+	setPlaybackSpeed: (speed: number) => void
 }
 
 // Run a simulation-producing request with shared loading/error handling.
@@ -37,6 +41,7 @@ async function loadSimulation(
 export const useSimulationStore = create<SimulationStore>(set => ({
 	simulation: null,
 	fitViewTrigger: 0,
+	playbackSpeed: 1,
 
 	newSimulation: (data: File) =>
 		loadSimulation(set, () => createSimulation(data)),
@@ -50,4 +55,6 @@ export const useSimulationStore = create<SimulationStore>(set => ({
 
 	requestFitView: () =>
 		set(state => ({ fitViewTrigger: state.fitViewTrigger + 1 })),
+
+	setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
 }))
