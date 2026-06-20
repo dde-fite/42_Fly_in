@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from uuid import UUID, uuid4
 from src.core import (ZoneNotAvailable, ExpiredItinerary, TrafficError, logger,
                       DEBUG, config)
 from .drone import Drone
@@ -35,6 +36,7 @@ class Itinerary:
         if drone.itinerary:
             raise TrafficError("Drone already has an itinerary assigned")
 
+        self.__id: UUID = uuid4()
         self.__drone = drone
         self.__bookings: list[SlotBooking] = []
         self.__turn = turn
@@ -117,6 +119,10 @@ class Itinerary:
     # ------------------------------------------------------------------
     # Properties
     # ------------------------------------------------------------------
+
+    @property
+    def id(self) -> UUID:
+        return self.__id
 
     @property
     def drone(self) -> Drone:

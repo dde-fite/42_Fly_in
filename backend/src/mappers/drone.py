@@ -6,5 +6,6 @@ def drone_to_schema(d: Drone) -> ResponseDrone:
     return ResponseDrone(
         name=str(d),
         location=d.location.id,
-        destination=d.destination.id
+        destination=d.destination.id,
+        itinerary=d.itinerary.id if d.itinerary else None,
     )

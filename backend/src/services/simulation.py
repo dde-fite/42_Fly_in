@@ -3,11 +3,11 @@ from fastapi import UploadFile
 from src.models import SimulationToken, Simulation
 from src.schema import (
     ResponseSimulation, ResponseDrone, ResponseHub,
-    ResponseConnection
+    ResponseConnection, ResponseItinerary
 )
 from src.mappers import (
     simulation_to_schema, connection_to_schema,
-    hub_to_schema, drone_to_schema
+    hub_to_schema, drone_to_schema, itinerary_to_schema
 )
 from src.utils.data_wrapper import (
     get_simulation, set_simulation
@@ -54,6 +54,16 @@ def fetch_connections(token: SimulationToken
                       ) -> dict[UUID, ResponseConnection]:
     s = get_simulation(token)
     return {con.id: connection_to_schema(con) for con in s.connections}
+
+
+def fetch_itineraries(token: SimulationToken
+                      ) -> dict[UUID, ResponseItinerary]:
+    s = get_simulation(token)
+    return {
+        drone.itinerary.id: itinerary_to_schema(drone.itinerary)
+        for drone in s.drones
+        if drone.itinerary is not None
+    }
 
 
 def execute_turn(token: SimulationToken, turns: int = 1) -> ResponseSimulation:

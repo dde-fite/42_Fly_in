@@ -4,11 +4,11 @@ from fastapi import APIRouter, HTTPException, Query, UploadFile
 from src.models import SimulationToken
 from src.services import (
     register_simulation, fetch_simulation, execute_turn,
-    fetch_hubs, fetch_drones, fetch_connections
+    fetch_hubs, fetch_drones, fetch_connections, fetch_itineraries
 )
 from src.schema import (
     ResponseSimulation, ResponseDrone, ResponseHub,
-    ResponseConnection
+    ResponseConnection, ResponseItinerary
 )
 from src.core.errors import (
     ParseError, SimulationAlreadyAllocated, SimulationNotFound,
@@ -204,5 +204,31 @@ async def get_connections(
 ) -> dict[UUID, ResponseConnection]:
     try:
         return fetch_connections(token)
+    except SimulationNotFound:
+        raise HTTPException(404, "Simulation not found for token")
+
+
+# ── Itineraries ──────────────────────────────────────────────────────────────
+
+@router.get(
+    "/itineraries",
+    response_model=dict[UUID, ResponseItinerary],
+    summary="Get all itineraries",
+    description=(
+        "Returns every active drone itinerary of the simulation associated with "
+        "the token, keyed by its UUID. Each itinerary lists its booked slots in "
+        "travel order with the zone, its kind, and the enter/exit turns."
+    ),
+    responses={
+        200: {"description": "All itineraries keyed by UUID."},
+        404: {"description": "No simulation found for the provided token."},
+    },
+    tags=["Itineraries"],
+)
+async def get_itineraries(
+    token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
+) -> dict[UUID, ResponseItinerary]:
+    try:
+        return fetch_itineraries(token)
     except SimulationNotFound:
         raise HTTPException(404, "Simulation not found for token")
