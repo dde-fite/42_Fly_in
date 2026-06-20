@@ -1,4 +1,4 @@
-import type { Connection, Drone, Hub } from "../../types/simulation"
+import type { Connection, Drone, Hub } from "../types/simulation"
 
 // One drone gliding from hub `fromId` to hub `toId` along a connection track.
 // `progress` is eased 0→1; `tA`/`tB` are the station track rows it joins.

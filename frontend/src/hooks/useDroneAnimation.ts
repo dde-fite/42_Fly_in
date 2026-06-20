@@ -1,6 +1,6 @@
 import { type MutableRefObject, useCallback, useEffect, useRef } from "react"
-import { computeDroneMoves, type DroneMoveBase } from "../lib/canvas/moves"
-import type { DroneMove } from "../lib/canvas/scene"
+import { computeDroneMoves, type DroneMoveBase } from "../canvas/moves"
+import type { DroneMove } from "../canvas/scene"
 import type { Connection, Hub, Simulation } from "../types/simulation"
 
 interface Options {

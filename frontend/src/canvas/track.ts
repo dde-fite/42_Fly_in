@@ -1,4 +1,4 @@
-import type { Hub } from "../../types/simulation"
+import type { Hub } from "../types/simulation"
 import { getHubBox } from "./geometry"
 import { modelToCanvas, type View } from "./view"
 

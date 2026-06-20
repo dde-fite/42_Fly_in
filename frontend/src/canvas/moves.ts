@@ -1,4 +1,4 @@
-import type { Connection, Hub, Simulation } from "../../types/simulation"
+import type { Connection, Hub, Simulation } from "../types/simulation"
 import type { DroneMove } from "./scene"
 import { trackOffsets } from "./track"
 

@@ -1,4 +1,4 @@
-import type { Hub } from "../../types/simulation"
+import type { Hub } from "../types/simulation"
 
 // Viewport transform: model coordinates → canvas pixels.
 export interface View {
