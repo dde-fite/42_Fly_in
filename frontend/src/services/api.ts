@@ -6,9 +6,11 @@ import { RawSimulationSchema, SimulationSchema } from "../schemas/simulation"
 import { TokenSchema } from "../schemas/token"
 import { useSessionStore } from "../store/sessionStore"
 import type { Token } from "../types/api"
-import type { Connection, Drone, Hub, Simulation } from "../types/simulation"
+import type { Simulation } from "../types/simulation"
 
-const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`
+const backendUrl = import.meta.env.VITE_BACKEND_URL
+if (!backendUrl) throw new Error("VITE_BACKEND_URL is not set")
+const API_BASE = `${backendUrl}/api`
 
 export async function generateToken(): Promise<Token> {
 	const response = await fetch(`${API_BASE}/token`)
@@ -24,7 +26,7 @@ export async function generateToken(): Promise<Token> {
 async function fetchAll<T>(
 	resource: string,
 	label: string,
-	schema: { parse: (data: unknown) => Record<string, T> },
+	schema: z.ZodType<Record<string, T>>,
 	token: Token,
 ): Promise<Record<string, T>> {
 	const response = await fetch(
@@ -38,15 +40,6 @@ const HubsSchema = z.record(z.string(), HubSchema)
 const ConnectionsSchema = z.record(z.string(), ConnectionSchema)
 const DronesSchema = z.record(z.string(), DroneSchema)
 
-const fetchHubs = (token: Token): Promise<Record<string, Hub>> =>
-	fetchAll("hubs", "hubs", HubsSchema, token)
-
-const fetchConnections = (token: Token): Promise<Record<string, Connection>> =>
-	fetchAll("connections", "connections", ConnectionsSchema, token)
-
-const fetchDrones = (token: Token): Promise<Record<string, Drone>> =>
-	fetchAll("drones", "drones", DronesSchema, token)
-
 // ── Enrichment ────────────────────────────────────────────────────────────────
 
 async function enrichSimulation(
@@ -58,9 +51,9 @@ async function enrichSimulation(
 	},
 ): Promise<Simulation> {
 	const [hubs, connections, drones] = await Promise.all([
-		fetchHubs(token),
-		fetchConnections(token),
-		fetchDrones(token),
+		fetchAll("hubs", "hubs", HubsSchema, token),
+		fetchAll("connections", "connections", ConnectionsSchema, token),
+		fetchAll("drones", "drones", DronesSchema, token),
 	])
 
 	return SimulationSchema.parse({
@@ -92,7 +85,7 @@ export async function createSimulation(file: File): Promise<Simulation> {
 		{ method: "POST", body: formData },
 	)
 	if (!response.ok) {
-		const error = await response.text()
+		const error = await response.text().catch(() => "")
 		throw new Error(`Failed to create simulation: ${error}`)
 	}
 
@@ -101,6 +94,7 @@ export async function createSimulation(file: File): Promise<Simulation> {
 }
 
 export async function advanceSimulation(steps = 1): Promise<Simulation> {
+	if (steps < 1) throw new Error("steps must be >= 1")
 	const token = requireToken()
 
 	const response = await fetch(
