@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { Hub } from "../../types/simulation"
+import type { Hub } from "../src/types/simulation"
 import {
 	computeAutoFit,
 	HUB_SPACING,
@@ -8,7 +8,7 @@ import {
 	modelToCanvas,
 	type View,
 	zoomAt,
-} from "./view"
+} from "../src/canvas/view"
 
 const view: View = {
 	scale: 100,

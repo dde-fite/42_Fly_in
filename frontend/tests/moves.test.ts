@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import type { Connection, Hub, Simulation } from "../../types/simulation"
-import { computeDroneMoves } from "./moves"
+import type { Connection, Hub, Simulation } from "../src/types/simulation"
+import { computeDroneMoves } from "../src/canvas/moves"
 
 const hub = (capacity = 1): Hub => ({
 	name: "H",

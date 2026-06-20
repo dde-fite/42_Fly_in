@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
-import type { Hub } from "../../types/simulation"
-import { getHubBox } from "./geometry"
-import { connectionTrackLine, stationTrackY, trackOffsets } from "./track"
-import type { View } from "./view"
+import type { Hub } from "../src/types/simulation"
+import { getHubBox } from "../src/canvas/geometry"
+import { connectionTrackLine, stationTrackY, trackOffsets } from "../src/canvas/track"
+import type { View } from "../src/canvas/view"
 
 const view: View = {
 	scale: 100,

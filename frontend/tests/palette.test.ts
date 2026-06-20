@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { INFO, isRainbow, resolveHubColor } from "./palette"
+import { INFO, isRainbow, resolveHubColor } from "../src/canvas/palette"
 
 describe("resolveHubColor", () => {
 	it("falls back to the info colour when unset", () => {

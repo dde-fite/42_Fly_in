@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto"
 import { describe, expect, it } from "vitest"
-import { ConnectionSchema } from "./connection"
-import { DroneSchema } from "./drone"
-import { HubSchema } from "./hub"
-import { RawSimulationSchema, SimulationSchema } from "./simulation"
-import { TokenSchema } from "./token"
+import { ConnectionSchema } from "../src/schemas/connection"
+import { DroneSchema } from "../src/schemas/drone"
+import { HubSchema } from "../src/schemas/hub"
+import { RawSimulationSchema, SimulationSchema } from "../src/schemas/simulation"
+import { TokenSchema } from "../src/schemas/token"
 
 const uuid = () => randomUUID()
 

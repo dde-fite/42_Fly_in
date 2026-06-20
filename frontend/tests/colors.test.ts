@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { createDroneColorCache } from "./colors"
+import { createDroneColorCache } from "../src/canvas/colors"
 
 describe("createDroneColorCache", () => {
 	it("returns a stable colour for the same id", () => {

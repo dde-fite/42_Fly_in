@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { droneSizeFor, getHubBox, railMetrics } from "./geometry"
+import { droneSizeFor, getHubBox, railMetrics } from "../src/canvas/geometry"
 
 describe("railMetrics", () => {
 	it("scales spacing and width linearly with the view scale", () => {
