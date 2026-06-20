@@ -28,7 +28,7 @@ export default function PlaybackControls({
 }: PlaybackControlsProps) {
 	const uid = useId();
 	return (
-		<div className="flex flex-col items-center justify-center px-5 py-2.5 bg-gray-950/45">
+		<div className="w-full h-full flex flex-col items-center justify-center px-5 py-2.5 bg-gray-950/45">
 			<div className="flex items-center gap-2">
 				<p className="text-white text-sm">Turno</p>
 				<p className="text-white text-2xl">{turn}</p>
