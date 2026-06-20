@@ -1,12 +1,5 @@
 import type { Connection, Drone, Hub } from "../../types/simulation"
-import {
-	closeButton,
-	detailHeader,
-	detailLabel,
-	detailPanel,
-	detailRow,
-	detailValue,
-} from "./panelStyles"
+import DetailPanel, { DetailRow } from "./DetailPanel"
 
 interface ConnectionDetailPanelProps {
 	connection: Connection
@@ -21,49 +14,36 @@ export default function ConnectionDetailPanel({
 	drones,
 	onClose,
 }: ConnectionDetailPanelProps) {
-	const activeDrones = Array.from(drones.values()).filter(
-		d =>
-			(d.location === connection.hubs[0] &&
-				d.destination === connection.hubs[1]) ||
-			(d.location === connection.hubs[1] &&
-				d.destination === connection.hubs[0]),
-	).length
+	const [a, b] = connection.hubs
+	let activeDrones = 0
+	for (const d of drones.values()) {
+		const onLink =
+			(d.location === a && d.destination === b) ||
+			(d.location === b && d.destination === a)
+		if (onLink) activeDrones++
+	}
 
 	return (
-		<div className={`${detailPanel} right-4 top-50`}>
-			<div className={detailHeader}>
-				<h4 className='m-0 text-white text-[0.95rem] tracking-wide'>
-					Connection
-				</h4>
-				<button
-					className={closeButton}
-					onClick={onClose}
-					type='button'>
-					✕
-				</button>
-			</div>
-			<div className='p-3'>
-				<div className={detailRow}>
-					<span className={detailLabel}>From:</span>
-					<strong className={detailValue}>
-						{hubs.get(connection.hubs[0])?.name ?? "Unknown"}
-					</strong>
-				</div>
-				<div className={detailRow}>
-					<span className={detailLabel}>To:</span>
-					<strong className={detailValue}>
-						{hubs.get(connection.hubs[1])?.name ?? "Unknown"}
-					</strong>
-				</div>
-				<div className={detailRow}>
-					<span className={detailLabel}>Capacity:</span>
-					<strong className={detailValue}>{connection.capacity}</strong>
-				</div>
-				<div className={detailRow}>
-					<span className={detailLabel}>Active Drones:</span>
-					<strong className={detailValue}>{activeDrones}</strong>
-				</div>
-			</div>
-		</div>
+		<DetailPanel
+			title='Connection'
+			onClose={onClose}
+			position='right-4 top-4'>
+			<DetailRow
+				label='From:'
+				value={hubs.get(a)?.name ?? "Unknown"}
+			/>
+			<DetailRow
+				label='To:'
+				value={hubs.get(b)?.name ?? "Unknown"}
+			/>
+			<DetailRow
+				label='Capacity:'
+				value={connection.capacity}
+			/>
+			<DetailRow
+				label='Active Drones:'
+				value={activeDrones}
+			/>
+		</DetailPanel>
 	)
 }
