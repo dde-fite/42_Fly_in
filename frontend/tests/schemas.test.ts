@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest"
 import { ConnectionSchema } from "../src/schemas/connection"
 import { DroneSchema } from "../src/schemas/drone"
 import { HubSchema } from "../src/schemas/hub"
-import { RawSimulationSchema, SimulationSchema } from "../src/schemas/simulation"
+import {
+	RawSimulationSchema,
+	SimulationSchema,
+} from "../src/schemas/simulation"
 import { TokenSchema } from "../src/schemas/token"
 
 const uuid = () => randomUUID()
