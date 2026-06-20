@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict, PrivateAttr
-from src.core import TrafficError, logger
+from src.core import TrafficError, logger, DEBUG
 from src.utils.ft import short_id
 from .turn import Turn
 
@@ -55,7 +55,8 @@ class Drone(BaseModel):
             )
         prev = self._location
         self._location = zone
-        logger.debug(f"[DRONE {self}] Moved from '{prev}' to '{zone}'")
+        if logger.isEnabledFor(DEBUG):
+            logger.debug(f"[DRONE {self}] Moved from '{prev}' to '{zone}'")
         self.itinerary.pop_booking()
 
     # ------------------------------------------------------------------

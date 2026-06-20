@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from src.core import ZoneNotAvailable, ExpiredItinerary, TrafficError, logger
+from src.core import (ZoneNotAvailable, ExpiredItinerary, TrafficError, logger,
+                      DEBUG, config)
 from .drone import Drone
 from .hub import Hub
 from .turn import Turn
@@ -38,6 +39,11 @@ class Itinerary:
         self.__bookings: list[SlotBooking] = []
         self.__turn = turn
         self.__operative: bool = False
+
+        if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
+            l_hubs = (" -> ".join(h.name for h in hubs) if hubs else "None")
+            logger.debug(f"[ITINERARY {self}] Creating itinerary for drone "
+                         f"{drone} through hubs {l_hubs}")
 
         # Build the interleaved sequence of zones:
         # [hub0, connection01, hub1, connection12, hub2, …]
@@ -89,8 +95,17 @@ class Itinerary:
                 exit_turn=exit_turn,
             )
             try:
+                if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
+                    logger.debug(f"[ITINERARY {self}] Trying to book slot for "
+                                 f"drone {drone} in zone {zone}")
                 zone.book(booking, direction=next_zone)
+                if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
+                    logger.debug(f"[ITINERARY {self}] Booked slot for drone "
+                                 f"{drone} in zone {zone}")
             except ZoneNotAvailable:
+                if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
+                    logger.debug(f"[ITINERARY {self}] Failed to book slot for "
+                                 f"drone {drone} in zone {zone}")
                 self.destroy()
                 raise
             self.__bookings.append(booking)
@@ -159,7 +174,8 @@ class Itinerary:
             except Exception:
                 pass  # best-effort cleanup
         self.__bookings.clear()
-        logger.debug(f"[ITINERARY {self}] Destroyed")
+        if logger.isEnabledFor(DEBUG):
+            logger.debug(f"[ITINERARY {self}] Destroyed")
 
         if self.__drone.itinerary is self:
             self.__drone.itinerary = None

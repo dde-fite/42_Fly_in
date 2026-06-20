@@ -2,7 +2,7 @@ from __future__ import annotations
 import heapq
 from typing import TYPE_CHECKING
 from dataclasses import dataclass, field
-from src.core import TrafficError, ZoneNotAvailable, logger
+from src.core import TrafficError, ZoneNotAvailable, logger, DEBUG, config
 from .hub import Hub, HubCost
 from .itinerary import Itinerary
 from .turn import Turn
@@ -88,6 +88,11 @@ class TrafficController:
         if origin == drone.destination:
             return None
         ranked_paths = self._dijkstra(origin, drone.destination, drone.turn)
+        if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
+            l_hubs = (" -> ".join(h.name for h in ranked_paths[0][0])
+                      if ranked_paths else "None")
+            logger.debug("[TRAFFIC CONTROLLER] Fastest paths for drone"
+                         f" {drone}: {l_hubs}")
         for hub_path, _ in ranked_paths:
             try:
                 itinerary = Itinerary(drone, hub_path, drone.turn)

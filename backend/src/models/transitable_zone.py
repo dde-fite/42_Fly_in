@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict, PrivateAttr
-from src.core import TrafficError, ZoneNotAvailable, logger
+from src.core import TrafficError, ZoneNotAvailable, logger, DEBUG, config
 from .turn import Turn
 from .drone import Drone
 
@@ -141,12 +141,20 @@ class TransitableZone(BaseModel, ABC):
                 raise ZoneNotAvailable(
                     f"Zone is at capacity({self.capacity}) at turn {t}"
                 )
+        if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
+            logger.debug(f"[TRANSITABLE ZONE {self}] Booked slot for drone "
+                         f"{slot.guest} from turn {slot.enter_turn} to "
+                         f"{slot.exit_turn}")
         self._bookings.append(slot)
         self.get_occupancy.cache_clear()
 
     def unbook(self, slot: SlotBooking) -> None:
         if slot in self._bookings:
             self._bookings.remove(slot)
+        if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
+            logger.debug(f"[TRANSITABLE ZONE {self}] Unbooked slot for drone "
+                         f"{slot.guest} from turn {slot.enter_turn} to "
+                         f"{slot.exit_turn}")
         self.get_occupancy.cache_clear()
 
     # ------------------------------------------------------------------
@@ -169,8 +177,9 @@ class TransitableZone(BaseModel, ABC):
             raise TrafficError("Drone does not have a booking in this zone")
         if len(self.drones) + 1 > self.capacity:
             raise TrafficError("Zone capacity exceeded")
-        logger.debug(f"[TRANSITABLE ZONE {self}] Accepted drone {drone} from "
-                     f"colateral zone '{drone.location}'")
+        if logger.isEnabledFor(DEBUG):
+            logger.debug(f"[TRANSITABLE ZONE {self}] Accepted drone {drone} "
+                         f"from colateral zone '{drone.location}'")
         self.drones.add(drone)
         drone.location = self
         self.get_occupancy.cache_clear()
