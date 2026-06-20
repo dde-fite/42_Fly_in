@@ -20,9 +20,7 @@ export default function TokenDisplay({ onClose }: TokenDisplayProps) {
 	}
 
 	return (
-		<div
-			className='bg-black/70 rounded max-w-lg w-[90%] backdrop-blur-sm'
-			onClick={e => e.stopPropagation()}>
+		<div className='bg-black/70 rounded max-w-lg w-[90%] backdrop-blur-sm'>
 			<div className='bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border-2 border-green-900 rounded overflow-hidden'>
 				<div className='bg-gradient-to-br from-green-900 to-green-950 px-4 py-4 border-b border-green-950 flex justify-between items-center'>
 					<h2 className='m-0 text-white text-xl tracking-wide'>

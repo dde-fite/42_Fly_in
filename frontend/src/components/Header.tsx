@@ -59,6 +59,10 @@ export default function Header() {
 		requestFitView()
 	})
 
+	useKeypress("Escape", () => {
+		if (showToken) setShowToken(false)
+	})
+
 	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.currentTarget.files?.[0]
 		if (file?.name.endsWith(".txt")) newSimulation(file)
@@ -191,11 +195,16 @@ export default function Header() {
 
 			{/* Token modal */}
 			{showToken && (
-				<div
-					className='fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]'
-					onClick={() => setShowToken(false)}
-					onKeyDown={e => e.key === "Escape" && setShowToken(false)}>
-					<TokenDisplay onClose={() => setShowToken(false)} />
+				<div className='fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]'>
+					<button
+						type='button'
+						aria-label='Cerrar'
+						className='absolute inset-0 cursor-default'
+						onClick={() => setShowToken(false)}
+					/>
+					<div className='relative z-10'>
+						<TokenDisplay onClose={() => setShowToken(false)} />
+					</div>
 				</div>
 			)}
 		</>
