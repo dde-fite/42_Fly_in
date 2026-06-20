@@ -1,79 +1,81 @@
-import { useEffect, useRef, useState } from "react"
-import useKeypress from "../hooks/useKeypress"
-import { Player, usePlayback } from "../hooks/usePlayback"
-import { useSessionStore } from "../store/sessionStore"
-import { useSimulationStore } from "../store/simulationStore"
-import AppMenuBar from "./header/AppMenuBar"
-import type { Menu } from "./header/menuTypes"
-import NetworkStatus from "./header/NetworkStatus"
-import PlaybackControls from "./header/PlaybackControls"
-import TokenDisplay from "./TokenDisplay"
+import { useEffect, useRef, useState } from "react";
+import useKeypress from "../hooks/useKeypress";
+import { Player, usePlayback } from "../hooks/usePlayback";
+import { useSessionStore } from "../store/sessionStore";
+import { useSimulationStore } from "../store/simulationStore";
+import AppMenuBar from "./header/AppMenuBar";
+import type { Menu } from "./header/menuTypes";
+import NetworkStatus from "./header/NetworkStatus";
+import PlaybackControls from "./header/PlaybackControls";
+import TokenDisplay from "./TokenDisplay";
 
 export default function Header() {
-	const [openMenu, setOpenMenu] = useState<string | null>(null)
-	const [showToken, setShowToken] = useState(false)
+	const [openMenu, setOpenMenu] = useState<string | null>(null);
+	const [showToken, setShowToken] = useState(false);
 
-	const simulation = useSimulationStore(state => state.simulation)
-	const newSimulation = useSimulationStore(state => state.newSimulation)
-	const clearSimulation = useSimulationStore(state => state.clearSimulation)
-	const advanceSimulation = useSimulationStore(state => state.advanceSimulation)
-	const requestFitView = useSimulationStore(state => state.requestFitView)
-	const isLoading = useSessionStore(state => state.isLoading)
+	const simulation = useSimulationStore((state) => state.simulation);
+	const newSimulation = useSimulationStore((state) => state.newSimulation);
+	const clearSimulation = useSimulationStore((state) => state.clearSimulation);
+	const advanceSimulation = useSimulationStore(
+		(state) => state.advanceSimulation,
+	);
+	const requestFitView = useSimulationStore((state) => state.requestFitView);
+	const isLoading = useSessionStore((state) => state.isLoading);
 
-	const hasSimulation = simulation !== null
+	const hasSimulation = simulation !== null;
 	const { player, setPlayer, togglePlay } = usePlayback(
 		hasSimulation,
 		advanceSimulation,
-	)
+	);
 
-	const fileInputRef = useRef<HTMLInputElement>(null)
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	// Close menu on outside click
 	useEffect(() => {
-		if (!openMenu) return
-		const close = () => setOpenMenu(null)
-		document.addEventListener("click", close)
-		return () => document.removeEventListener("click", close)
-	}, [openMenu])
+		if (!openMenu) return;
+		const close = () => setOpenMenu(null);
+		document.addEventListener("click", close);
+		return () => document.removeEventListener("click", close);
+	}, [openMenu]);
 
 	useKeypress(
 		" ",
 		() => {
-			if (!hasSimulation) return
-			togglePlay()
+			if (!hasSimulation) return;
+			togglePlay();
 		},
 		{ preventDefault: true },
-	)
+	);
 
 	useKeypress(
 		"ArrowRight",
-		e => {
-			if (!hasSimulation || isLoading) return
-			advanceSimulation(e.shiftKey ? 10 : 1)
+		(e) => {
+			if (!hasSimulation || isLoading) return;
+			advanceSimulation(e.shiftKey ? 10 : 1);
 		},
 		{ preventDefault: true },
-	)
+	);
 
 	useKeypress("f", () => {
-		if (!hasSimulation) return
-		requestFitView()
-	})
+		if (!hasSimulation) return;
+		requestFitView();
+	});
 
 	useKeypress("Escape", () => {
-		if (showToken) setShowToken(false)
-	})
+		if (showToken) setShowToken(false);
+	});
 
 	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.currentTarget.files?.[0]
-		if (file?.name.endsWith(".txt")) newSimulation(file)
-		else if (file) alert("Please select a .txt file")
-		e.currentTarget.value = ""
-	}
+		const file = e.currentTarget.files?.[0];
+		if (file?.name.endsWith(".txt")) newSimulation(file);
+		else if (file) alert("Please select a .txt file");
+		e.currentTarget.value = "";
+	};
 
 	const close = (fn: () => void) => () => {
-		fn()
-		setOpenMenu(null)
-	}
+		fn();
+		setOpenMenu(null);
+	};
 
 	const menus: Menu[] = [
 		{
@@ -141,17 +143,17 @@ export default function Header() {
 				},
 			],
 		},
-	]
+	];
 
 	return (
 		<>
-			<header className='h-24 grid grid-cols-7 grid-rows-1 gap-4 bg-linear-to-l from-fuchsia-600 to-gray-900 shadow-lg border-b border-gray-950'>
+			<header className="h-24 grid grid-cols-7 grid-rows-1 gap-4 bg-linear-to-l from-fuchsia-600 to-gray-900 shadow-lg border-b border-gray-950">
 				{/* Left: title + menu buttons */}
-				<div className='col-span-6 flex gap-10 items-center py-3 px-6'>
+				<div className="col-span-6 flex gap-10 items-center py-3 px-6">
 					<div>
-						<h1 className='text-white text-2xl'>Fly In Visualizer</h1>
-						<a href='https://github.com/dde-fite'>
-							<p className='text-fuchsia-400 hover:underline'>dde-fite</p>
+						<h1 className="text-white text-2xl">Fly In Visualizer</h1>
+						<a href="https://github.com/dde-fite">
+							<p className="text-fuchsia-400 hover:underline">dde-fite</p>
 						</a>
 					</div>
 
@@ -162,7 +164,7 @@ export default function Header() {
 					/>
 
 					{hasSimulation && simulation && (
-						<div className='ml-auto'>
+						<div className="ml-auto">
 							<NetworkStatus
 								hubs={Object.keys(simulation.hubs).length}
 								connections={Object.keys(simulation.connections).length}
@@ -173,7 +175,7 @@ export default function Header() {
 				</div>
 
 				{/* Right: turn counter + playback controls */}
-				<div className='col-start-7 flex items-center justify-center'>
+				<div className="col-start-7 flex items-center justify-center">
 					{hasSimulation && (
 						<PlaybackControls
 							turn={simulation.turn}
@@ -187,26 +189,26 @@ export default function Header() {
 			{/* Hidden file input */}
 			<input
 				ref={fileInputRef}
-				type='file'
-				accept='.txt'
+				type="file"
+				accept=".txt"
 				onChange={handleFileSelect}
 				style={{ display: "none" }}
 			/>
 
 			{/* Token modal */}
 			{showToken && (
-				<div className='fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]'>
+				<div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]">
 					<button
-						type='button'
-						aria-label='Cerrar'
-						className='absolute inset-0 cursor-default'
+						type="button"
+						aria-label="Cerrar"
+						className="absolute inset-0 cursor-default"
 						onClick={() => setShowToken(false)}
 					/>
-					<div className='relative z-10'>
+					<div className="relative z-10">
 						<TokenDisplay onClose={() => setShowToken(false)} />
 					</div>
 				</div>
 			)}
 		</>
-	)
+	);
 }

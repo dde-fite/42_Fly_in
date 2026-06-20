@@ -1,7 +1,7 @@
-import { z } from "zod"
-import { ConnectionSchema } from "./connection"
-import { DroneSchema } from "./drone"
-import { HubSchema } from "./hub"
+import { z } from "zod";
+import { ConnectionSchema } from "./connection";
+import { DroneSchema } from "./drone";
+import { HubSchema } from "./hub";
 
 // What the backend actually returns (arrays of UUIDs)
 export const RawSimulationSchema = z.object({
@@ -11,7 +11,7 @@ export const RawSimulationSchema = z.object({
 	destination: z.uuidv4(),
 	connections: z.array(z.uuidv4()),
 	drones: z.array(z.uuidv4()),
-})
+});
 
 // Enriched simulation with full objects (built after fetching each item)
 export const SimulationSchema = z.object({
@@ -21,4 +21,4 @@ export const SimulationSchema = z.object({
 	destination: z.uuidv4(),
 	connections: z.record(z.string(), ConnectionSchema),
 	drones: z.record(z.string(), DroneSchema),
-})
+});

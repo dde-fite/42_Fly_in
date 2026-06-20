@@ -1,17 +1,17 @@
-import { create } from "zustand"
-import { generateToken } from "../services/api"
-import type { Token } from "../types/api"
+import { create } from "zustand";
+import { generateToken } from "../services/api";
+import type { Token } from "../types/api";
 
 interface SessionStore {
-	token: Token | null
-	isLoading: boolean
-	error: string | null
-	setError: (error: string | null) => void
-	setIsLoading: (isLoading: boolean) => void
-	fetchToken: () => Promise<void>
+	token: Token | null;
+	isLoading: boolean;
+	error: string | null;
+	setError: (error: string | null) => void;
+	setIsLoading: (isLoading: boolean) => void;
+	fetchToken: () => Promise<void>;
 }
 
-export const useSessionStore = create<SessionStore>(set => ({
+export const useSessionStore = create<SessionStore>((set) => ({
 	token: null,
 	isLoading: false,
 	error: null,
@@ -20,10 +20,10 @@ export const useSessionStore = create<SessionStore>(set => ({
 	setIsLoading: (isLoading: boolean) => set({ isLoading }),
 	fetchToken: async () => {
 		try {
-			const token = await generateToken()
-			set({ token, error: null })
+			const token = await generateToken();
+			set({ token, error: null });
 		} catch (e) {
-			set({ error: e instanceof Error ? e.message : "Unknown error" })
+			set({ error: e instanceof Error ? e.message : "Unknown error" });
 		}
 	},
-}))
+}));

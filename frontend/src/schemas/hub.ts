@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod";
 
 export const HubSchema = z.object({
 	name: z.string(),
@@ -8,4 +8,4 @@ export const HubSchema = z.object({
 	connections: z.array(z.uuidv4()),
 	capacity: z.number(),
 	drones: z.array(z.uuidv4()),
-})
+});
