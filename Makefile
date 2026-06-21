@@ -8,6 +8,9 @@ run:
 dev:
 	@$(MAKE) -j2 -f .Makefile dev
 
+build:
+	@$(MAKE) -C $(FRONTEND_DIR) build
+
 install:
 	@$(MAKE) -C $(BACKEND_DIR) install
 	@$(MAKE) -C $(FRONTEND_DIR) install
@@ -31,4 +34,4 @@ fclean:
 	@$(MAKE) -C $(BACKEND_DIR) fclean
 	@$(MAKE) -C $(FRONTEND_DIR) fclean
 
-.PHONY: all
+.PHONY: run dev install install-dev debug lint clean fclean
