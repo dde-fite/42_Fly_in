@@ -20,16 +20,16 @@ install-dev: install
 	@pip install -r requirements_dev.txt
 
 run:
-	@fastapi run $(SRC)
+	@$(PYTHON) -m fastapi run $(SRC)
 
 dev:
-	@fastapi dev $(SRC)
+	@$(PYTHON) -m fastapi dev $(SRC)
 
 test:
-	@pytest
+	@$(PYTHON) -m pytest
 
 debug:
-	$(PYTHON) -m pdb $(SRC)/main.py
+	@$(PYTHON) -m pdb $(SRC)/main.py
 
 lint:
 	@flake8 src/ tests/
@@ -43,3 +43,5 @@ clean:
 	@echo -e "\n$(GREEN)Deleted $(CACHE_FOLDERS) folders successfully!$(RESET)"
 
 fclean: clean
+
+.PHONY: install install-dev run dev test debug lint clean fclean
