@@ -37,6 +37,11 @@ export default function Header() {
 		document.addEventListener("click", close);
 		return () => document.removeEventListener("click", close);
 	}, [openMenu]);
+	
+	useKeypress("Escape", () => {
+		if (openMenu) setOpenMenu(null);
+		if (showToken) setShowToken(false);
+	});
 
 	useKeypress(
 		" ",
@@ -61,10 +66,6 @@ export default function Header() {
 		requestFitView();
 	});
 
-	useKeypress("Escape", () => {
-		if (showToken) setShowToken(false);
-	});
-
 	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.currentTarget.files?.[0];
 		if (file?.name.endsWith(".txt")) newSimulation(file);
@@ -79,64 +80,61 @@ export default function Header() {
 
 	const menus: Menu[] = [
 		{
-			id: "archivo",
-			label: "Archivo",
+			id: "file",
+			label: "File",
 			items: [
 				{
-					label: "Nueva simulación",
-					shortcut: "Ctrl+O",
+					label: "New simulation",
 					onClick: close(() => fileInputRef.current?.click()),
 				},
 				{
-					label: "Cerrar simulación",
+					label: "Close simulation",
 					onClick: close(clearSimulation),
 					disabled: !hasSimulation,
 				},
 				{ separator: true },
 				{
-					label: "Token…",
+					label: "Token",
 					onClick: close(() => setShowToken(true)),
 				},
 			],
 		},
 		{
-			id: "simulacion",
-			label: "Simulación",
+			id: "simulation",
+			label: "Simulation",
 			disabled: !hasSimulation,
 			items: [
 				{
-					label: "Siguiente turno",
-					shortcut: "→",
+					label: "Next turn",
 					onClick: close(() => advanceSimulation(1)),
 					disabled: isLoading || !hasSimulation,
 				},
 				{
-					label: "Avanzar 10 turnos",
-					shortcut: "Shift+→",
+					label: "Advance 10 turns",
 					onClick: close(() => advanceSimulation(10)),
 					disabled: isLoading || !hasSimulation,
 				},
 				{ separator: true },
 				{
-					label: player === Player.PAUSE ? "Reproducir" : "Pausar",
-					shortcut: "Espacio",
+					label: player === Player.PAUSE ? "Play" : "Pause",
+					shortcut: "Space",
 					onClick: close(togglePlay),
 					disabled: !hasSimulation,
 				},
 				{
-					label: "Velocidad rápida",
+					label: "Fast playback",
 					onClick: close(() => setPlayer(Player.FAST)),
 					disabled: !hasSimulation,
 				},
 			],
 		},
 		{
-			id: "vista",
-			label: "Vista",
+			id: "view",
+			label: "View",
 			disabled: !hasSimulation,
 			items: [
 				{
-					label: "Ajustar vista",
+					label: "Fit view",
 					shortcut: "F",
 					onClick: close(requestFitView),
 					disabled: !hasSimulation,
@@ -197,7 +195,7 @@ export default function Header() {
 
 			{/* Token modal */}
 			{showToken && (
-				<div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]">
+				<div className="fixed inset-0 bg-black/70 flex items-center justify-center z-1000">
 					<button
 						type="button"
 						aria-label="Cerrar"
