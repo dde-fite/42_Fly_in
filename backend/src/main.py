@@ -16,3 +16,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(routes.router, prefix="/api")
+
+
+def main() -> None:
+    print(
+        "Server is intended to be run with the following command:\n"
+        "fastapi run src/"
+    )
+
+
+if __name__ == "__main__":
+    main()
