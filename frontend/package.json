@@ -9,6 +9,8 @@
 		"preview": "vite preview",
 		"test": "vitest run",
 		"test:watch": "vitest",
+		"lint": "biome check",
+		"format": "biome format",
 		"clean": "rm -rf .cache .tmp lib",
 		"fclean": "npm run clean && rm -rf build dist node_modules package-lock.json"
 	},

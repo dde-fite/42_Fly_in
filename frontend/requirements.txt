@@ -1,1 +1,2 @@
 granian==2.7.2
+starlette==1.0.0

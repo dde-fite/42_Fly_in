@@ -1,4 +1,7 @@
-# Frontend Makefile for ADIF Drone Traffic Control System
+PYTHON=python3
+SRC=src
+DIST=dist
+DIST_FILES=$(DIST)/index.html $(DIST)/assets $(DIST)/icons.svg
 
 # COLORS
 GREEN		:= \033[1;32m
@@ -9,51 +12,37 @@ CYAN		:= \033[1;36m
 RED			:= \033[1;31m
 RESET		:= \033[0m
 
-.PHONY: help install build dev run lint clean fclean
-
-help:
-	@echo "$(CYAN)=== ADIF Drone Traffic Control Frontend ===$(RESET)"
-	@echo ""
-	@echo "$(GREEN)Available targets:$(RESET)"
-	@echo "  $(BLUE)install$(RESET)      - Install npm dependencies"
-	@echo "  $(BLUE)build$(RESET)        - Build production bundle"
-	@echo "  $(BLUE)dev$(RESET)          - Start development server"
-	@echo "  $(BLUE)preview$(RESET)      - Preview production build"
-	@echo "  $(BLUE)run$(RESET)          - Alias for 'dev'"
-	@echo "  $(BLUE)clean$(RESET)        - Remove build artifacts"
-	@echo "  $(BLUE)fclean$(RESET)       - Full clean (includes node_modules)"
-	@echo "  $(BLUE)lint$(RESET)         - Run TypeScript compiler"
 
 install:
-	@echo "$(CYAN)Installing dependencies...$(RESET)"
+	@pip install -r requirements.txt
+
+install-dev:
 	@npm install
 
-build:
-	@echo "$(CYAN)Building production bundle...$(RESET)"
+build: install-dev
 	@npm run build
 
+$(DIST_FILES):
+	@make build
+
+run: $(DIST_FILES)
+	@$(PYTHON) -m granian --port 3000 --interface asgi main:app
+
 dev:
-	@echo "$(CYAN)Starting development server...$(RESET)"
-	@echo "$(YELLOW)Frontend will be available at http://localhost:5173$(RESET)"
 	@npm run dev
 
 preview:
-	@echo "$(CYAN)Previewing production build...$(RESET)"
 	@npm run preview
 
-run: dev
-
 lint:
-	@echo "$(CYAN)Running TypeScript compiler...$(RESET)"
-	@npm run build -- --mode analyze
+	@npm run lint
+	@flake8 .
+	@mypy . --warn-return-any \
+		--warn-unused-ignores --ignore-missing-imports \
+		--disallow-untyped-defs --check-untyped-defs
 
-clean:
-	@echo "$(CYAN)Cleaning build artifacts...$(RESET)"
-	@npm run clean
-
-fclean: clean
-	@echo "$(CYAN)Full clean (removing node_modules)...$(RESET)"
-	@npm run fclean
+format:
+	@npm run format
 
 clean:
 	@echo -e "\n$(RED)Deleting Python temporary files... $(RESET)"
@@ -65,3 +54,5 @@ fclean: clean
 	@echo -e "\n$(RED)Deleting build and dependencies files... $(RESET)"
 	@npm run fclean
 	@echo -e "\n$(GREEN)Deleted build and dependencies successfully!$(RESET)"
+
+.PHONY: install install-dev build run dev preview lint format clean fclean

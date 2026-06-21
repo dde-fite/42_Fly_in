@@ -1,14 +1,11 @@
-async def app(scope, receive, send):
-    assert scope['type'] == 'http'
+from starlette.applications import Starlette
+from starlette.staticfiles import StaticFiles
 
-    await send({
-        'type': 'http.response.start',
-        'status': 200,
-        'headers': [
-            [b'content-type', b'text/plain'],
-        ],
-    })
-    await send({
-        'type': 'http.response.body',
-        'body': b'Hello, world!',
-    })
+app = Starlette()
+app.mount("/", StaticFiles(directory="dist", html=True))
+
+if __name__ == "__main__":
+    print(
+        "Server is intended to be run with the following command:\n"
+        "granian --port 3000 --interface asgi main:app"
+    )
