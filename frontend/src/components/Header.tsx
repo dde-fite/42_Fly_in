@@ -37,7 +37,7 @@ export default function Header() {
 		document.addEventListener("click", close);
 		return () => document.removeEventListener("click", close);
 	}, [openMenu]);
-	
+
 	useKeypress("Escape", () => {
 		if (openMenu) setOpenMenu(null);
 		if (showToken) setShowToken(false);
@@ -106,6 +106,7 @@ export default function Header() {
 			items: [
 				{
 					label: "Next turn",
+					shortcut: "Right",
 					onClick: close(() => advanceSimulation(1)),
 					disabled: isLoading || !hasSimulation,
 				},
@@ -198,7 +199,7 @@ export default function Header() {
 				<div className="fixed inset-0 bg-black/70 flex items-center justify-center z-1000">
 					<button
 						type="button"
-						aria-label="Cerrar"
+						aria-label="Close"
 						className="absolute inset-0 cursor-default"
 						onClick={() => setShowToken(false)}
 					/>
