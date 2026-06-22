@@ -13,17 +13,26 @@ CYAN		:= \033[1;36m
 RED			:= \033[1;31m
 RESET		:= \033[0m
 
-install:
-	@pip install -r requirements.txt
-
-install-dev: install
-	@pip install -r requirements_dev.txt
-
 run:
 	@$(PYTHON) -m fastapi run $(SRC)
 
 dev:
 	@$(PYTHON) -m fastapi dev $(SRC)
+
+check-venv:
+ifdef VIRTUAL_ENV
+	@echo -e "$(GREEN)Virtual environment found$(RESET)"
+else
+	@echo -e "$(RED)WARNING: Not in a virtual environment. Risk of dependency conflicts.$(RESET)"
+	@read -p "Continue anyway? [y/N] " ans && { [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; } || \
+		{ echo -e "$(RED)Aborted.$(RESET)"; exit 1; }
+endif
+
+install: check-venv
+	@$(PYTHON) -m pip install -r requirements.txt
+
+install-dev: install
+	@$(PYTHON) -m pip install -r requirements_dev.txt
 
 test:
 	@$(PYTHON) -m pytest

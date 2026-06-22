@@ -1,3 +1,4 @@
+NPM=npm
 PYTHON=python3
 SRC=src
 DIST=dist
@@ -13,8 +14,23 @@ RED			:= \033[1;31m
 RESET		:= \033[0m
 
 
-install:
-	@pip install -r requirements.txt
+run: $(DIST_FILES)
+	@$(PYTHON) -m granian --port 3000 --interface asgi main:app
+
+dev:
+	@npm run dev
+
+check-venv:
+ifdef VIRTUAL_ENV
+	@echo -e "$(GREEN)Virtual environment found$(RESET)"
+else
+	@echo -e "$(RED)WARNING: Not in a virtual environment. Risk of dependency conflicts.$(RESET)"
+	@read -p "Continue anyway? [y/N] " ans && { [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; } || \
+		{ echo -e "$(RED)Aborted.$(RESET)"; exit 1; }
+endif
+
+install: check-venv
+	@$(PYTHON) -m pip install -r requirements.txt
 
 install-dev:
 	@npm install
@@ -24,12 +40,6 @@ build: install-dev
 
 $(DIST_FILES):
 	@make build
-
-run: $(DIST_FILES)
-	@$(PYTHON) -m granian --port 3000 --interface asgi main:app
-
-dev:
-	@npm run dev
 
 preview:
 	@npm run preview
