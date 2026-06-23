@@ -76,17 +76,12 @@ class TransitableZone(BaseModel, ABC):
                 occ.append(b.guest)
         return len(occ)
 
-    # def get_occupancy_slots(self, turn: Turn, exclude: Drone | None = None) -> SlotBooking:
-    #     """
-    #     Return the number of drones occupying (or booked to occupy) at *turn*.
-
-    #     ``exclude`` lets the itinerary planner ignore bookings that
-    #     already belong to the drone being routed, so a drone's own spawn
-    #     booking does not block it from being assigned a slot in the same zone.
-    #     """
+    # def get_occupancy_slots(
+    #     self, turn: Turn, exclude: Drone | None = None
+    # ) -> SlotBooking:
+    #     """Return bookings at *turn*, excluding *drone*."""
     #     if turn.value == self.turn.value:
     #         return sum(1 for d in self.drones if d != exclude)
-
     #     occ: set[Drone] = set()
     #     for b in self._bookings:
     #         if exclude is not None and b.guest == exclude:
@@ -161,7 +156,7 @@ class TransitableZone(BaseModel, ABC):
     # Physical movement
     # ------------------------------------------------------------------
 
-    def accept_from_colateral(self, drone: Drone) -> None:
+    def accept_from_collateral(self, drone: Drone) -> None:
         """
         Physically move *drone* into this zone from a neighbouring one.
 
@@ -179,7 +174,7 @@ class TransitableZone(BaseModel, ABC):
             raise TrafficError("Zone capacity exceeded")
         if logger.isEnabledFor(DEBUG):
             logger.debug(f"[TRANSITABLE ZONE {self}] Accepted drone {drone} "
-                         f"from colateral zone '{drone.location}'")
+                         f"from collateral zone '{drone.location}'")
         self.drones.add(drone)
         drone.location = self
         self.get_occupancy.cache_clear()
@@ -216,15 +211,17 @@ class TransitableZone(BaseModel, ABC):
 
     @abstractmethod
     def get_movement_cost(self, direction: Hub | None = None) -> int | None:
-        """Return the number of turns required to traverse this zone, or None if blocked."""
+        """Return turns to traverse this zone, or None if blocked."""
         ...
 
     @abstractmethod
-    def get_next_available_exit(self, from_turn: Turn, destination: Hub) -> Turn | None:
-        """Return the earliest turn at which a drone can exit toward *destination*."""
+    def get_next_available_exit(
+        self, from_turn: Turn, destination: Hub
+    ) -> Turn | None:
+        """Return earliest exit turn toward *destination*."""
         ...
 
     @abstractmethod
     def request_exit(self, drone: Drone) -> None:
-        """Attempt to push *drone* into the next zone when its exit turn is due."""
+        """Push *drone* into the next zone when its exit turn is due."""
         ...

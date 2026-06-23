@@ -7,7 +7,6 @@ from src.core import TrafficError, logger
 from .transitable_zone import TransitableZone
 from .vector import Vector
 from .turn import Turn
-from .slot_booking import SlotBooking
 
 if TYPE_CHECKING:
     from .drone import Drone
@@ -15,6 +14,8 @@ if TYPE_CHECKING:
 
 
 class HubAccess(Enum):
+    """Zone access level determining movement cost and reachability."""
+
     NORMAL = "normal"
     BLOCKED = "blocked"
     RESTRICTED = "restricted"
@@ -55,6 +56,7 @@ class Hub(TransitableZone):
     @field_validator("name", mode="after")
     @classmethod
     def check_name(cls, value: str) -> str:
+        """Reject names with dashes or spaces (parser constraint)."""
         if "-" in value:
             raise ValueError("Hub names cannot contain dashes (-)")
         if " " in value:
@@ -64,6 +66,7 @@ class Hub(TransitableZone):
     @field_validator("color", mode="after")
     @classmethod
     def check_color(cls, value: str | None) -> str | None:
+        """Validate that *value* is a recognised CSS colour name or None."""
         if value is None or value == "rainbow":
             return value
         Color(value)
@@ -89,6 +92,7 @@ class Hub(TransitableZone):
     # ------------------------------------------------------------------
 
     def get_collaterals(self) -> list[TransitableZone]:
+        """Return all connections attached to this hub as collateral zones."""
         return list(self.connections)
 
     def get_movement_cost(self, direction: Hub | None = None) -> int | None:
@@ -106,7 +110,9 @@ class Hub(TransitableZone):
             i.value += 1
         return i
 
-    def get_next_available_exit(self, from_turn: Turn, destination: Hub) -> Turn | None:
+    def get_next_available_exit(
+        self, from_turn: Turn, destination: Hub
+    ) -> Turn | None:
         """
         Return the earliest turn at which a drone can leave this hub toward
         *destination*, factoring in the connection's availability.
@@ -114,7 +120,8 @@ class Hub(TransitableZone):
         connection = self.get_connection_by_hub(destination)
         if connection is None:
             raise TrafficError(
-                f"No connection between hub '{self.name}' and '{destination.name}'"
+                f"No connection between hub '{self.name}' "
+                f"and '{destination.name}'"
             )
         mov_cost = self.get_movement_cost()
         if mov_cost is None:
@@ -126,7 +133,7 @@ class Hub(TransitableZone):
         """
         Place a freshly created drone at this hub.
 
-        Unlike ``accept_from_colateral`` this does not require a pre-existing
+        Unlike ``accept_from_collateral`` this does not require a pre-existing
         booking; instead it creates an open-ended booking for the spawn turn.
         """
         if drone in self.drones:
@@ -134,7 +141,7 @@ class Hub(TransitableZone):
         if len(self.drones) >= self.capacity:
             raise TrafficError("Hub capacity exceeded on spawn")
 
-        # # Create an open-ended booking so the itinerary can later add an exit.
+        # # Create an open-ended booking so the itinerary can add an exit.
         # spawn_booking = SlotBooking(
         #     host=self,
         #     guest=drone,
@@ -161,8 +168,8 @@ class Hub(TransitableZone):
         next_booking = drone.itinerary.bookings[1]
         try:
             logger.debug(f"[HUB {self}] Requesting exit for drone {drone} at"
-                         f" colateral zone '{next_booking.host}'")
-            next_booking.host.accept_from_colateral(drone)
+                         f" collateral zone '{next_booking.host}'")
+            next_booking.host.accept_from_collateral(drone)
         except TrafficError:
             logger.debug(f"[HUB {self}] Denied exit for drone {drone}")
             return
