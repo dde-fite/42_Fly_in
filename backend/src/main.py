@@ -1,4 +1,4 @@
-import src.models._rebuild
+import src.models._rebuild  # noqa: F401
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.core import setup_logging, config
@@ -10,7 +10,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config.FRONTEND_URL,
+    allow_origins=[config.FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
