@@ -22,7 +22,7 @@ import {
 } from "../palette"
 import { drawBlockLine, drawDroneLabel } from "../primitives"
 import type { DroneMove, Scene } from "../scene"
-import { connectionTrackLine, trackOffsets } from "../track"
+import { connectionTrackLine, type Point, trackOffsets } from "../track"
 import { modelToCanvas, type View } from "../view"
 
 // ── Background ────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export function drawBackground(ctx: CanvasRenderingContext2D, view: View) {
 	// Background watermark, fixed top-left in screen space (CTC panel label).
 	ctx.save()
 	ctx.fillStyle = "rgba(255, 213, 79, 0.12)"
-	ctx.font = "bold 28px 'Courier New', monospace"
+	ctx.font = "bold 48px 'Courier New', monospace"
 	ctx.textAlign = "left"
 	ctx.textBaseline = "top"
 	ctx.fillText("CONTROL AREA", 20, 16)
@@ -145,6 +145,7 @@ export function drawHub(
 	scene: Scene,
 	hubId: string,
 	hub: Hub,
+	moving: Map<string, DroneMove>,
 ) {
 	const { scale } = view
 	const { origin, destination, selectedHubId } = scene
@@ -155,7 +156,16 @@ export function drawHub(
 	const isSelected = hubId === selectedHubId
 	const isOrigin = hubId === origin
 	const isDestination = hubId === destination
-	const droneCount = hub.drones.length
+	// The new state already parks each in-flight drone at its destination hub, but
+	// it is still visually gliding on the connection. Discount arrivals so the
+	// count badge and occupied-track colouring don't jump a turn ahead of the
+	// drone glyph (the origin already dropped it, which is correct — it left).
+	let arriving = 0
+	for (const move of moving.values()) {
+		const last = move.segments[move.segments.length - 1]
+		if (last && last.toId === hubId) arriving++
+	}
+	const droneCount = Math.max(0, hub.drones.length - arriving)
 	const hasDrones = droneCount > 0
 
 	const { boxW, boxH, fontSize, stationTrackSpacing, platformH, platformGap } =
@@ -349,8 +359,9 @@ export function drawHubDrones(
 	}
 }
 
-// One drone gliding along its connection track, with a red "occupied" fragment
-// sliding underneath it.
+// One drone gliding along its path, with a red "occupied" fragment sliding
+// underneath it. The path may be several connection legs: `progress` is mapped
+// across the total length so the glide spans the whole route at a steady pace.
 export function drawMovingDrone(
 	ctx: CanvasRenderingContext2D,
 	view: View,
@@ -363,22 +374,42 @@ export function drawMovingDrone(
 	const { hubs, drones } = scene
 	const droneSize = droneSizeFor(scale)
 
-	const hubA = hubs.get(move.fromId)
-	const hubB = hubs.get(move.toId)
-	if (!hubA || !hubB) return
+	// Resolve each leg to its drawn pixel endpoints; bail if any hub is missing.
+	const legs: { a: Point; b: Point; len: number }[] = []
+	for (const seg of move.segments) {
+		const hubA = hubs.get(seg.fromId)
+		const hubB = hubs.get(seg.toId)
+		if (!hubA || !hubB) return
+		const [a, b] = connectionTrackLine(view, hubA, hubB, seg.tA, seg.tB)
+		legs.push({ a, b, len: Math.hypot(b.x - a.x, b.y - a.y) || 1 })
+	}
+	if (legs.length === 0) return
 
-	const [a, b] = connectionTrackLine(view, hubA, hubB, move.tA, move.tB)
-	const dx = b.x - a.x
-	const dy = b.y - a.y
-	const len = Math.hypot(dx, dy) || 1
-	const at = (p: number) => ({ x: a.x + dx * p, y: a.y + dy * p })
+	const total = legs.reduce((sum, leg) => sum + leg.len, 0)
+
+	// Position at overall path fraction p (0→1): find the leg it lands on and
+	// interpolate within it.
+	const at = (p: number) => {
+		let target = Math.max(0, Math.min(1, p)) * total
+		for (let i = 0; i < legs.length; i++) {
+			const leg = legs[i]
+			if (target <= leg.len || i === legs.length - 1) {
+				const local = leg.len === 0 ? 0 : target / leg.len
+				return {
+					x: leg.a.x + (leg.b.x - leg.a.x) * local,
+					y: leg.a.y + (leg.b.y - leg.a.y) * local,
+				}
+			}
+			target -= leg.len
+		}
+		const last = legs[legs.length - 1]
+		return { x: last.b.x, y: last.b.y }
+	}
 
 	// Red fragment: a short block centred on the drone, sized to the drone.
-	const half = Math.min(0.5, (droneSize * 1.4) / len)
-	const p0 = Math.max(0, move.progress - half)
-	const p1 = Math.min(1, move.progress + half)
-	const f0 = at(p0)
-	const f1 = at(p1)
+	const half = Math.min(0.5, (droneSize * 1.4) / total)
+	const f0 = at(move.progress - half)
+	const f1 = at(move.progress + half)
 	drawBlockLine(ctx, f0.x, f0.y, f1.x, f1.y, "#ff1744", scale, true)
 
 	const pos = at(move.progress)

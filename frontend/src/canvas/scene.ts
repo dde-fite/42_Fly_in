@@ -1,12 +1,21 @@
 import type { Connection, Drone, Hub } from "../types/simulation"
 
-// One drone gliding from hub `fromId` to hub `toId` along a connection track.
-// `progress` is eased 0→1; `tA`/`tB` are the station track rows it joins.
-export interface DroneMove {
+// One leg of a drone move: a glide from hub `fromId` to hub `toId` along a
+// single connection track. `tA`/`tB` are the station track rows it joins at each
+// end.
+export interface MoveSegment {
 	fromId: string
 	toId: string
 	tA: number
 	tB: number
+}
+
+// One drone gliding from its old hub to its new hub. When the two hubs are not
+// directly connected (a drone can cross several zero-cost zones in one turn) the
+// move is a multi-leg path through intermediate hubs instead of a teleport.
+// `progress` is eased 0→1 across the whole path.
+export interface DroneMove {
+	segments: MoveSegment[]
 	progress: number
 }
 

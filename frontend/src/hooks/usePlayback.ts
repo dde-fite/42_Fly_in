@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useSessionStore } from "../store/sessionStore";
-import { useSimulationStore } from "../store/simulationStore";
+import { useEffect, useState } from "react"
+import { useSessionStore } from "../store/sessionStore"
+import { useSimulationStore } from "../store/simulationStore"
 
 export enum Player {
 	PAUSE = "pause",
@@ -8,13 +8,19 @@ export enum Player {
 	FAST = "fast",
 }
 
-const TURN_DELAY = 1000;
+// ms between turns at multiplier 1. The drone glide derives its duration from
+// this so the two never drift apart (see GLIDE_RATIO / useDroneAnimation).
+export const TURN_DELAY = 1000
+
+// Fraction of a turn the drone glide occupies. < 1 so the glide always finishes
+// before the next turn's state arrives, leaving a brief parked beat.
+export const GLIDE_RATIO = 0.8
 
 const MULTIPLIER: Record<Player, number> = {
 	[Player.PAUSE]: 0,
 	[Player.PLAY]: 1,
 	[Player.FAST]: 3,
-};
+}
 
 // Owns playback state and the auto-advance loop. Pauses when there is no
 // simulation; advances one turn every TURN_DELAY / multiplier ms while playing.
@@ -22,33 +28,31 @@ export function usePlayback(
 	hasSimulation: boolean,
 	advanceSimulation: (steps: number) => void,
 ) {
-	const [player, setPlayer] = useState<Player>(Player.PAUSE);
-	const isLoading = useSessionStore((state) => state.isLoading);
-	const setPlaybackSpeed = useSimulationStore(
-		(state) => state.setPlaybackSpeed,
-	);
+	const [player, setPlayer] = useState<Player>(Player.PAUSE)
+	const isLoading = useSessionStore(state => state.isLoading)
+	const setPlaybackSpeed = useSimulationStore(state => state.setPlaybackSpeed)
 
 	// Pause when simulation is cleared
 	useEffect(() => {
-		if (!hasSimulation) setPlayer(Player.PAUSE);
-	}, [hasSimulation]);
+		if (!hasSimulation) setPlayer(Player.PAUSE)
+	}, [hasSimulation])
 
 	// Expose the active multiplier so the canvas scales its move animation to the
 	// playback speed (slower on normal play, faster on fast play).
 	useEffect(() => {
-		setPlaybackSpeed(MULTIPLIER[player]);
-	}, [player, setPlaybackSpeed]);
+		setPlaybackSpeed(MULTIPLIER[player])
+	}, [player, setPlaybackSpeed])
 
 	// Auto-advance loop
 	useEffect(() => {
-		if (player === Player.PAUSE || isLoading || !hasSimulation) return;
-		const delay = TURN_DELAY / MULTIPLIER[player];
-		const t = setTimeout(() => advanceSimulation(1), delay);
-		return () => clearTimeout(t);
-	}, [player, isLoading, hasSimulation, advanceSimulation]);
+		if (player === Player.PAUSE || isLoading || !hasSimulation) return
+		const delay = TURN_DELAY / MULTIPLIER[player]
+		const t = setTimeout(() => advanceSimulation(1), delay)
+		return () => clearTimeout(t)
+	}, [player, isLoading, hasSimulation, advanceSimulation])
 
 	const togglePlay = () =>
-		setPlayer((p) => (p === Player.PAUSE ? Player.PLAY : Player.PAUSE));
+		setPlayer(p => (p === Player.PAUSE ? Player.PLAY : Player.PAUSE))
 
-	return { player, setPlayer, togglePlay };
+	return { player, setPlayer, togglePlay }
 }
