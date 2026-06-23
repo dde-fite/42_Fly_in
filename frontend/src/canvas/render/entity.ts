@@ -82,9 +82,10 @@ export function drawConnection(
 	scene: Scene,
 	connId: string,
 	connection: Connection,
+	moving: Map<string, DroneMove>,
 ) {
 	const { scale } = view
-	const { hubs, drones, selectedConnectionId } = scene
+	const { hubs, selectedConnectionId } = scene
 
 	const hub1 = hubs.get(connection.hubs[0])
 	const hub2 = hubs.get(connection.hubs[1])
@@ -93,14 +94,23 @@ export function drawConnection(
 	const cap = connection.capacity
 	const { offA, offB } = trackOffsets(hub1.capacity, hub2.capacity, cap)
 
-	// How many of this connection's tracks are taken by in-transit drones.
-	const occupancy = Array.from(drones.values()).filter(
-		d =>
-			(d.location === connection.hubs[0] &&
-				d.destination === connection.hubs[1]) ||
-			(d.location === connection.hubs[1] &&
-				d.destination === connection.hubs[0]),
-	).length
+	// Count drones currently gliding over this connection (animation only).
+	// d.destination is the drone's FINAL goal hub — checking it against the
+	// connection endpoints would only be correct for the last hop, so we use
+	// the live animation segments instead.
+	let occupancy = 0
+	for (const move of moving.values()) {
+		for (const seg of move.segments) {
+			if (
+				(seg.fromId === connection.hubs[0] &&
+					seg.toId === connection.hubs[1]) ||
+				(seg.fromId === connection.hubs[1] && seg.toId === connection.hubs[0])
+			) {
+				occupancy++
+				break
+			}
+		}
+	}
 
 	const selected = connId === selectedConnectionId
 	const accessColor = connectionAccessColor(hub1, hub2)

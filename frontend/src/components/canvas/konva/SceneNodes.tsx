@@ -39,17 +39,19 @@ export function ConnectionShape({
 	scene,
 	connId,
 	connection,
+	moving,
 }: {
 	view: View
 	scene: Scene
 	connId: string
 	connection: Connection
+	moving: Map<string, DroneMove>
 }) {
 	return (
 		<Shape
 			listening={false}
 			sceneFunc={ctx =>
-				drawConnection(as2d(ctx), view, scene, connId, connection)
+				drawConnection(as2d(ctx), view, scene, connId, connection, moving)
 			}
 		/>
 	)

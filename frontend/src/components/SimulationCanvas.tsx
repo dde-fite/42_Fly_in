@@ -175,6 +175,7 @@ export default function SimulationCanvas({
 								scene={scene}
 								connId={connId}
 								connection={connection}
+								moving={moving}
 							/>
 						))}
 						{hubEntries.map(([hubId, hub]) => (
