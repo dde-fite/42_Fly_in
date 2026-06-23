@@ -1,5 +1,6 @@
 import type { Hub } from "../types/simulation"
-import { connectionTrackPoints, hubHitBox } from "./render/entity"
+import { connectionTrackPoints } from "./render/connection"
+import { hubHitBox } from "./render/hub"
 import type { Scene } from "./scene"
 import type { View } from "./view"
 

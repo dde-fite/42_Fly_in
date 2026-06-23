@@ -1,13 +1,13 @@
 import type { Context } from "konva/lib/Context"
 import { Shape } from "react-konva"
+import { drawBackground } from "../../../canvas/render/background"
+import { drawConnection } from "../../../canvas/render/connection"
 import {
-	drawBackground,
-	drawConnection,
-	drawHub,
 	drawHubDrones,
 	drawMovingDrone,
 	parkedDronesByHub,
-} from "../../../canvas/render/entity"
+} from "../../../canvas/render/drone"
+import { drawHub } from "../../../canvas/render/hub"
 import type { DroneMove, Scene } from "../../../canvas/scene"
 import type { View } from "../../../canvas/view"
 import type { Connection, Hub } from "../../../types/simulation"
