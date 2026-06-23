@@ -36,6 +36,23 @@ def parse_params(raw_params: str) -> dict[str, Any]:
 
 
 def parse_hub(key: str, value: Any) -> ParsedHub:
+    """
+    Parse a hub definition line into a ParsedHub dict.
+
+    Args:
+        key (str): Hub type prefix — one of ``"hub"``, ``"start_hub"``,
+            or ``"end_hub"``.
+        value (str): Remainder of the line after the colon, e.g.
+            ``" roof1 3 4 [zone=restricted color=red]"``.
+
+    Returns:
+        ParsedHub: Dict with name, position, access, color, capacity,
+            is_origin, and is_destination fields populated.
+
+    Raises:
+        ParseError: On any syntax error, unknown hub type, invalid
+            coordinates, or unrecognised metadata key.
+    """
     params: ParsedHub = {
         "name": "",
         "position": Vector(0, 0),
@@ -114,20 +131,35 @@ def parse_hub(key: str, value: Any) -> ParsedHub:
 
 
 def parse_connection(raw: str) -> ParsedConnection:
+    """
+    Parse a raw connection line into a ParsedConnection dict.
+
+    Args:
+        raw (str): Raw value string after the ``connection:`` prefix,
+            e.g. ``"hub1-hub2 [max_link_capacity=2]"``.
+
+    Returns:
+        ParsedConnection: Dict with ``hubs`` (two hub names) and optional
+            ``capacity``.
+
+    Raises:
+        ParseError: If the hub pair syntax is wrong or an unknown argument
+            is provided.
+    """
     params: ParsedConnection = {
         "hubs": [],
         "capacity": None
     }
-    splits = raw.split(maxsplit=2)
+    outer_splits = raw.split(maxsplit=1)
     # Hub name parsing
-    splits = splits[0].split("-")
-    if len(splits) != 2:
+    hub_pair = outer_splits[0].split("-")
+    if len(hub_pair) != 2:
         raise ParseError("Syntax error for connection", raw)
-    params["hubs"].append(splits[0])
-    params["hubs"].append(splits[1])
+    params["hubs"].append(hub_pair[0])
+    params["hubs"].append(hub_pair[1])
     # Parsing of extra arguments
-    if len(splits) == 3:
-        for key, value in parse_params(splits[2]).items():
+    if len(outer_splits) == 2:
+        for key, value in parse_params(outer_splits[1]).items():
             match key:
                 case "max_link_capacity":
                     params["capacity"] = value
@@ -137,6 +169,24 @@ def parse_connection(raw: str) -> ParsedConnection:
 
 
 async def parse_map(file: UploadFile) -> ParsedMap:
+    """
+    Parse an uploaded map file into a ParsedMap dict.
+
+    Reads the file content, strips comments (lines starting with ``#``),
+    and dispatches each directive to the appropriate parser. Raises
+    ParseError on any syntax or semantic violation.
+
+    Args:
+        file (UploadFile): The uploaded plain-text map file.
+
+    Returns:
+        ParsedMap: Dict containing ``nb_drones``, ``hubs``, and
+            ``connection`` lists ready for Simulation construction.
+
+    Raises:
+        ParseError: On any unrecognised directive, duplicate ``nb_drones``,
+            undeclared hub reference, or invalid metadata.
+    """
     strict_first_meaningful_line = True
     strict_hubs_declared: list[str] = []
     params: ParsedMap = {

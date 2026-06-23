@@ -1,1 +1,1 @@
-from .types import ParsedConnection, ParsedHub, ParsedMap
+from .types import ParsedConnection, ParsedHub, ParsedMap  # noqa: F401

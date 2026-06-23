@@ -1,5 +1,5 @@
 # Medium Level 3: Priority zones create optimal path challenges
-nb_drones: 5
+nb_drones: 4
 
 start_hub: start 0 0 [color=green max_drones=4]
 hub: slow_path1 1 -1 [zone=restricted color=red]
