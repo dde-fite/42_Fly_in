@@ -47,9 +47,9 @@ export default function AppMenuBar({
 								fill="currentColor"
 								className="opacity-60"
 								role="img"
-								aria-label="Abrir menú"
+								aria-label="Open menu"
 							>
-								<title>Abrir menú</title>
+								<title>Open menu</title>
 								<path d="M0 0l5 6 5-6z" />
 							</svg>
 						</span>
