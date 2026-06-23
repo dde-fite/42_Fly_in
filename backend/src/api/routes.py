@@ -1,3 +1,4 @@
+import secrets
 from uuid import UUID
 from pydantic import ValidationError
 from fastapi import APIRouter, HTTPException, Query, UploadFile
@@ -17,6 +18,14 @@ from src.core.errors import (
 
 router = APIRouter()
 
+_TOKEN_QUERY = Query(
+    ...,
+    min_length=43,
+    max_length=43,
+    pattern=r'^[A-Za-z0-9_-]{43}$',
+    description="Authentication token that identifies the simulation session.",
+)
+
 
 # ---- debug ----
 @router.get(
@@ -31,7 +40,7 @@ router = APIRouter()
     include_in_schema=True,
 )
 def generate_token() -> str:
-    import secrets
+    """Generate a cryptographically secure random URL-safe token."""
     token = secrets.token_urlsafe(32)
     return token
 # ---------------
@@ -54,8 +63,9 @@ def generate_token() -> str:
     tags=["Simulation"],
 )
 async def get_simulation(
-    token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
+    token: SimulationToken = _TOKEN_QUERY,
 ) -> ResponseSimulation:
+    """Return the current state of the simulation for *token*."""
     try:
         return fetch_simulation(token)
     except SimulationNotFound:
@@ -76,15 +86,19 @@ async def get_simulation(
     responses={
         200: {"description": "Simulation created successfully."},
         400: {"description": "Map file could not be parsed (syntax error)."},
-        409: {"description": "A simulation is already registered for this token."},
-        422: {"description": "Map values are invalid or produce a logical conflict (e.g. duplicate hubs, capacity violations)."},
+        409: {"description": "A simulation already exists for this token."},
+        422: {"description": (
+            "Map values are invalid or produce a logical conflict "
+            "(e.g. duplicate hubs, capacity violations)."
+        )},
     },
     tags=["Simulation"],
 )
 async def create_simulation(
-    token: SimulationToken = Query(..., description="Authentication token that will own the new simulation."),
-    file: UploadFile = ...,
+    file: UploadFile,
+    token: SimulationToken = _TOKEN_QUERY,
 ) -> ResponseSimulation:
+    """Parse *file* and register a new simulation for *token*."""
     try:
         return await register_simulation(token, file)
     except ParseError as e:
@@ -96,6 +110,11 @@ async def create_simulation(
         raise HTTPException(
             422,
             f"Incorrect values in map: {e.errors(include_url=False)}"
+        )
+    except SimulationAlreadyAllocated:
+        raise HTTPException(
+            409,
+            "A simulation is already registered for this token"
         )
     except SimulationConflict as e:
         raise HTTPException(
@@ -111,7 +130,7 @@ async def create_simulation(
     description=(
         "Executes the given number of turns on the simulation associated with "
         "the token. Each turn: itineraries are validated, the traffic "
-        "controller assigns routes to unrouted drones, drones attempt to move, "
+        "controller assigns routes to unrouted drones, drones move, "
         "zones purge expired bookings, and the turn counter is incremented. "
         "Returns the simulation state after all steps have been applied."
     ),
@@ -122,9 +141,13 @@ async def create_simulation(
     tags=["Simulation"],
 )
 async def advance_simulation(
-    token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
-    steps: int = Query(default=1, ge=1, description="Number of turns to advance. Must be a positive integer."),
+    token: SimulationToken = _TOKEN_QUERY,
+    steps: int = Query(
+        default=1, ge=1,
+        description="Number of turns to advance. Must be a positive integer.",
+    ),
 ) -> ResponseSimulation:
+    """Advance the simulation by *steps* turns and return the new state."""
     try:
         return execute_turn(token, steps)
     except SimulationNotFound:
@@ -139,7 +162,7 @@ async def advance_simulation(
     summary="Get all hubs",
     description=(
         "Returns every hub of the simulation associated with the token, keyed "
-        "by its UUID. Each hub includes name, position, capacity, access zone, "
+        "by its UUID. Each hub includes name, position, capacity, access, "
         "color and connected drones."
     ),
     responses={
@@ -149,8 +172,9 @@ async def advance_simulation(
     tags=["Hubs"],
 )
 async def get_hubs(
-    token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
+    token: SimulationToken = _TOKEN_QUERY,
 ) -> dict[UUID, ResponseHub]:
+    """Return all hubs for the simulation associated with *token*."""
     try:
         return fetch_hubs(token)
     except SimulationNotFound:
@@ -164,8 +188,8 @@ async def get_hubs(
     response_model=dict[UUID, ResponseDrone],
     summary="Get all drones",
     description=(
-        "Returns every drone of the simulation associated with the token, keyed "
-        "by its UUID. Each drone includes its current location and destination."
+        "Returns every drone of the simulation for the token, keyed "
+        "by its UUID. Each drone includes location and destination."
     ),
     responses={
         200: {"description": "All drones keyed by UUID."},
@@ -174,8 +198,9 @@ async def get_hubs(
     tags=["Drones"],
 )
 async def get_drones(
-    token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
+    token: SimulationToken = _TOKEN_QUERY,
 ) -> dict[UUID, ResponseDrone]:
+    """Return all drones for the simulation associated with *token*."""
     try:
         return fetch_drones(token)
     except SimulationNotFound:
@@ -189,9 +214,8 @@ async def get_drones(
     response_model=dict[UUID, ResponseConnection],
     summary="Get all connections",
     description=(
-        "Returns every connection of the simulation associated with the token, "
-        "keyed by its UUID. Each connection includes the two hubs it links and "
-        "its capacity."
+        "Returns every connection of the simulation for the token, "
+        "keyed by its UUID. Includes the two endpoint hubs and capacity."
     ),
     responses={
         200: {"description": "All connections keyed by UUID."},
@@ -200,8 +224,9 @@ async def get_drones(
     tags=["Connections"],
 )
 async def get_connections(
-    token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
+    token: SimulationToken = _TOKEN_QUERY,
 ) -> dict[UUID, ResponseConnection]:
+    """Return all connections for the simulation associated with *token*."""
     try:
         return fetch_connections(token)
     except SimulationNotFound:
@@ -215,9 +240,9 @@ async def get_connections(
     response_model=dict[UUID, ResponseItinerary],
     summary="Get all itineraries",
     description=(
-        "Returns every active drone itinerary of the simulation associated with "
-        "the token, keyed by its UUID. Each itinerary lists its booked slots in "
-        "travel order with the zone, its kind, and the enter/exit turns."
+        "Returns every active itinerary for the simulation token, keyed "
+        "by its UUID. Each itinerary lists booked slots in travel order "
+        "with zone, kind, and enter/exit turns."
     ),
     responses={
         200: {"description": "All itineraries keyed by UUID."},
@@ -226,8 +251,9 @@ async def get_connections(
     tags=["Itineraries"],
 )
 async def get_itineraries(
-    token: SimulationToken = Query(..., description="Authentication token that identifies the simulation session."),
+    token: SimulationToken = _TOKEN_QUERY,
 ) -> dict[UUID, ResponseItinerary]:
+    """Return all active itineraries for the simulation of *token*."""
     try:
         return fetch_itineraries(token)
     except SimulationNotFound:

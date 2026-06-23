@@ -177,8 +177,8 @@ class TrafficController:
             visited: frozenset[Hub] = node.visited
             path: list[Hub] = node.path
 
-            # Prune stale entries: a *strictly* cheaper path was already settled.
-            # We allow equal-cost entries through so we collect all optimal paths.
+            # Prune stale: strictly cheaper path already settled.
+            # Allow equal-cost entries to collect all optimal paths.
             if hub in best_arrival and best_arrival[hub] < arr:
                 continue
             best_arrival[hub] = arr
@@ -190,7 +190,16 @@ class TrafficController:
                 # fails to book).
                 continue
 
-            for connection in hub.connections:
+            # Expand neighbours in a stable order so route planning is
+            # deterministic. Otherwise the loop iterates ``hub.connections``
+            # (a set), whose order depends on the process hash seed, so the
+            # same map could be solved in a different number of turns each run.
+            # Ordering by neighbour name is stable and reproducible.
+            connections = sorted(
+                hub.connections,
+                key=lambda c: c.other_hub(hub).name,
+            )
+            for connection in connections:
                 neighbour: Hub = connection.other_hub(hub)
 
                 # Skip blocked hubs (impassable access level).
@@ -201,9 +210,12 @@ class TrafficController:
                 if neighbour in visited:
                     continue
 
-                # Simulate the temporal cost of this edge
+                # Add hub traversal cost before entering the connection.
+                # Without this, all paths look equal (only restricted hops
+                # differ) and Dijkstra picks suboptimal paths by name order.
+                hub_cost = hub.get_movement_cost() or 0
                 conn_entry = connection.get_next_available_entry(
-                    Turn(arr), neighbour
+                    Turn(arr + hub_cost), neighbour
                 )
                 if not conn_entry:
                     continue
