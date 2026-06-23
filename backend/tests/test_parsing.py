@@ -128,7 +128,7 @@ async def test_parsing_ok_easy_02() -> None:
         s,
         hubs=["start", "junction", "path_a", "path_b", "goal"],
         connections=5,
-        drones=4
+        drones=3
     )
 
 
@@ -185,7 +185,7 @@ async def test_parsing_ok_medium_03() -> None:
             "merge_point", "goal"
         ],
         connections=7,
-        drones=5
+        drones=4
     )
 
 
@@ -201,7 +201,7 @@ async def test_parsing_ok_hard_01() -> None:
             "trap_loop2", "bottleneck", "final_stretch1", "final_stretch2",
             "final_stretch3", "goal"
         ],
-        connections=20,
+        connections=22,
         drones=8
     )
 
@@ -218,7 +218,7 @@ async def test_parsing_ok_hard_02() -> None:
             "restricted_tunnel2", "restricted_tunnel3", "priority_bypass1",
             "priority_bypass2", "convergence", "final_bottleneck", "goal"
         ],
-        connections=18,
+        connections=21,
         drones=12
     )
 

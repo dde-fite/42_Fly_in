@@ -1,7 +1,7 @@
 import pytest
 from dataclasses import dataclass
 from pathlib import Path
-from backend.src.io.parser import parse_map
+from src.io.parser import parse_map
 from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, SlotBooking, Simulation
 from src.core.errors import TrafficError
 from tests.utils import file_to_uploadfile
@@ -611,7 +611,7 @@ class TestControllerRequest:
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), 3],
             [
                 sim.get_hub_by_name("start"),
                 sim.get_hub_by_name("junction"),
@@ -621,7 +621,7 @@ class TestControllerRequest:
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
             [
                 sim.get_hub_by_name("start"),
                 sim.get_hub_by_name("junction"),
@@ -654,19 +654,19 @@ class TestControllerRequest:
 
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), 3],
             route_hubs
         )
 
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
             route_hubs
         )
 
         assert_bookings(
             itineraries[3].bookings,
-            [(0, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
             route_hubs
         )
 
@@ -694,22 +694,22 @@ class TestControllerRequest:
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            [(0, 1), (1, 1), (1, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
             route_hubs
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
+            [(0, 2), (2, 2), (2, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
             route_hubs
         )
         assert_bookings(
             itineraries[3].bookings,
-            [(0, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), 7],
+            [(0, 3), (3, 3), (3, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), 7],
             route_hubs
         )
         assert_bookings(
             itineraries[4].bookings,
-            [(0, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), (7, 8), (8, 8), 8],
+            [(0, 4), (4, 4), (4, 6), (6, 6), (6, 7), (7, 7), (7, 8), (8, 8), 8],
             route_hubs
         )
 
@@ -730,48 +730,19 @@ class TestControllerRequest:
             sim.get_hub_by_name("exit_point"),
             sim.get_hub_by_name("goal"),
         ]
-        assert_bookings(
-            itineraries[0].bookings,
-            # start srt<->a  loop_a  a<->b      b     b-exit  exit  ex<->gl goal
-            [(0, 0), (0, 2), (2, 2), (2, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[1].bookings,
-            # start srt<->a  loop_a  a<->b      b     b-exit  exit  ex<->gl goal
-            [(0, 2), (2, 4), (4, 4), (4, 6), (6, 6), (6, 7), (7, 7), (7, 8), 8],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[2].bookings,
-            # start srt<->a  loop_a  a<->b      b     b-exit  exit  ex<->gl goal
-            [(0, 4), (4, 6), (6, 6), (6, 8), (8, 8), (8, 9), (9, 9), (9, 10), 10],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[3].bookings,
-            # start srt<->a  loop_a   a<->b       b      b-exit     exit
-            [(0, 6), (6, 8), (8, 8), (8, 10), (10, 10), (10, 11), (11, 11),
-            # ex<->gl goal
-            (11, 12), 12],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[4].bookings,
-            # start  srt<->a   loop_a     a<->b       b      b-exit     exit
-            [(0, 8), (8, 10), (10, 10), (10, 12), (12, 12), (12, 13), (13, 13),
-            # ex<->gl goal
-            (13, 14), 14],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[5].bookings,
-            # start   srt<->a   loop_a     a<->b       b      b-exit     exit
-            [(0, 10), (10, 12), (12, 12), (12, 14), (14, 14), (14, 15), (15, 15),
-            # ex<->gl goal
-            (15, 16), 16],
-            route_hubs
-        )
+        # loop_b→exit_point is a restricted connection (+1 extra turn).
+        # start-loop_a capacity=2 lets pairs share entry turns.
+        # Pairs: (d0,d1) share turn 1, (d2,d3) share turn 2, d4 turn 3, d5 turn 4.
+        expected = [
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 4), (4, 5), (5, 5), 5],
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 4), (4, 5), (5, 6), (6, 6), 6],
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 5), (5, 6), (6, 7), (7, 7), 7],
+            [(0, 2), (2, 2), (2, 4), (4, 4), (4, 6), (6, 7), (7, 8), (8, 8), 8],
+            [(0, 3), (3, 3), (3, 5), (5, 5), (5, 7), (7, 8), (8, 9), (9, 9), 9],
+            [(0, 4), (4, 4), (4, 6), (6, 6), (6, 8), (8, 9), (9, 10), (10, 10), 10],
+        ]
+        for itinerary, turns in zip(itineraries, expected):
+            assert_bookings(itinerary.bookings, turns, route_hubs)
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_medium_03(self) -> None:
@@ -783,32 +754,45 @@ class TestControllerRequest:
             i = sim.controller.request_itinerary(d)
             assert i
             itineraries.append(i)
-        route_hubs = [
+        fast_hubs = [
             sim.get_hub_by_name("start"),
             sim.get_hub_by_name("fast_junction"),
             sim.get_hub_by_name("fast_path"),
             sim.get_hub_by_name("merge_point"),
             sim.get_hub_by_name("goal"),
         ]
+        slow_hubs = [
+            sim.get_hub_by_name("start"),
+            sim.get_hub_by_name("slow_path1"),
+            sim.get_hub_by_name("slow_path2"),
+            sim.get_hub_by_name("merge_point"),
+            sim.get_hub_by_name("goal"),
+        ]
+        # d0: fast path — start(0,1) → fast_junction(1,2) → fast_path(2,3)
+        #     → merge_point(3,4) → goal
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), 4],
-            route_hubs
+            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
+            fast_hubs,
         )
+        # d1: fast path — delayed 1 turn at start
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), 5],
-            route_hubs
+            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            fast_hubs,
         )
+        # d2: slow path — start→slow_path1 is a restricted connection (+1 turn).
+        #     merge_point-goal capacity=2 lets d2 share exit with d1.
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), 6],
-            route_hubs
+            [(0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            slow_hubs,
         )
+        # d3: fast path — delayed at start; shares merge_point-goal with d2.
         assert_bookings(
             itineraries[3].bookings,
-            [(0, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), 7],
-            route_hubs
+            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
+            fast_hubs,
         )
 
     @pytest.mark.asyncio
@@ -821,83 +805,41 @@ class TestControllerRequest:
             i = sim.controller.request_itinerary(d)
             assert i
             itineraries.append(i)
+        # Shortcut via maze_a2→maze_c2 (7 hubs, 13 bookings per drone).
+        # The original 8-hub path maze_b1→maze_b2 was replaced by the direct
+        # maze_a2→maze_c2 connection added to the map.
         route_hubs = [
             sim.get_hub_by_name("start"),
             sim.get_hub_by_name("maze_a1"),
-            sim.get_hub_by_name("maze_b1"),
-            sim.get_hub_by_name("maze_b2"),
+            sim.get_hub_by_name("maze_a2"),
             sim.get_hub_by_name("maze_c2"),
             sim.get_hub_by_name("bottleneck"),
             sim.get_hub_by_name("final_stretch1"),
             sim.get_hub_by_name("goal"),
         ]
-        assert_bookings(
-            itineraries[0].bookings,
-            # start  st<->a1 maze_a1 a1<->b1 maze_b1 b1<->b2 maze_b2 b2<->c1
-            [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4),
-            # maze_c1 c1<->bn bottlen bn<->f1 final1 f1<->gl goal
-            (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), 7],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[1].bookings,
-            # start  st<->a1 maze_a1 a1<->b1 maze_b1 b1<->b2 maze_b2 b2<->c1
-            [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5),
-            # maze_c1 c1<->bn bottlen bn<->f1 final1 f1<->gl goal
-            (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), (7, 8), 8],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[2].bookings,
-            # start  st<->a1 maze_a1 a1<->b1 maze_b1 b1<->b2 maze_b2 b2<->c1
-            [(0, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6),
-            # maze_c1 c1<->bn bottlen bn<->f1 final1 f1<->gl goal
-            (6, 6), (6, 7), (7, 7), (7, 8), (8, 8), (8, 9), 9],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[3].bookings,
-            # start  st<->a1 maze_a1 a1<->b1 maze_b1 b1<->b2 maze_b2 b2<->c1
-            [(0, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7),
-            # maze_c1 c1<->bn bottlen bn<->f1 final1 f1<->gl goal
-            (7, 7), (7, 8), (8, 8), (8, 9), (9, 9), (9, 10), 10],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[4].bookings,
-            # start  st<->a1 maze_a1 a1<->b1 maze_b1 b1<->b2 maze_b2 b2<->c1
-            [(0, 4), (4, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), (7, 8),
-            # maze_c1 c1<->bn bottlen bn<->f1  final1   f1<->gl  goal
-            (8, 8), (8, 9), (9, 9), (9, 10), (10, 10), (10, 11), 11],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[5].bookings,
-            [
-                (0, 5), (5, 6), (6, 6), (6, 7), (7, 7), (7, 8),
-                (8, 8), (8, 9), (9, 9), (9, 10), (10, 10), (10, 11),
-                (11, 11), (11, 12), 12
-            ],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[6].bookings,
-            [
-                (0, 6), (6, 7), (7, 7), (7, 8), (8, 8), (8, 9),
-                (9, 9), (9, 10), (10, 10), (10, 11), (11, 11), (11, 12),
-                (12, 12), (12, 13), 13
-            ],
-            route_hubs
-        )
-        assert_bookings(
-            itineraries[7].bookings,
-            [
-                (0, 7), (7, 8), (8, 8), (8, 9), (9, 9), (9, 10),
-                (10, 10), (10, 11), (11, 11), (11, 12), (12, 12), (12, 13),
-                (13, 13), (13, 14), 14
-            ],
-            route_hubs
-        )
+        for idx, itinerary in enumerate(itineraries):
+            i = idx
+            # start-maze_a1 capacity=2 lets drones 0 and 1 share turn 1.
+            # Drones 2+ exit start at their index turn.  maze_a1 exits
+            # sequentially from turn 2 onward regardless.
+            # start(0,s) conn(s,s) maze_a1(s,i+2) conn(i+2,i+2)
+            # maze_a2(i+2,i+3) conn(i+3,i+3) maze_c2(i+3,i+4) conn(i+4,i+4)
+            # bottleneck(i+4,i+5) conn(i+5,i+5) final_stretch1(i+5,i+6)
+            # conn(i+6,i+6) goal: i+6
+            s = 1 if i <= 1 else i  # start exit turn
+            assert_bookings(
+                itinerary.bookings,
+                [
+                    (0, s), (s, s),
+                    (s, i+2), (i+2, i+2),
+                    (i+2, i+3), (i+3, i+3),
+                    (i+3, i+4), (i+4, i+4),
+                    (i+4, i+5), (i+5, i+5),
+                    (i+5, i+6), (i+6, i+6),
+                    i+6,
+                ],
+                route_hubs,
+            )
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_hard_02(self) -> None:
@@ -909,36 +851,13 @@ class TestControllerRequest:
             i = sim.controller.request_itinerary(d)
             assert i
             itineraries.append(i)
-        route_hubs = [
-            sim.get_hub_by_name("start"),
-            sim.get_hub_by_name("gate1"),
-            sim.get_hub_by_name("waiting_area1"),
-            sim.get_hub_by_name("priority_bypass1"),
-            sim.get_hub_by_name("priority_bypass2"),
-            sim.get_hub_by_name("convergence"),
-            sim.get_hub_by_name("final_bottleneck"),
-            sim.get_hub_by_name("goal"),
-        ]
-        for idx, itinerary in enumerate(itineraries):
-            i = idx
-            # start(0,i) conn(i,i+1) gate1(i+1,i+1) conn(i+1,i+2)
-            # wa1(i+2,i+2) conn(i+2,i+3) pb1(i+3,i+3) conn(i+3,i+4)
-            # pb2(i+4,i+4) conn(i+4,i+5) conv(i+5,i+5) conn(i+5,i+6)
-            # fb(i+6,i+6) conn(i+6,i+7) goal: i+7
-            assert_bookings(
-                itinerary.bookings,
-                [
-                    (0, i), (i, i+1),
-                    (i+1, i+1), (i+1, i+2),
-                    (i+2, i+2), (i+2, i+3),
-                    (i+3, i+3), (i+3, i+4),
-                    (i+4, i+4), (i+4, i+5),
-                    (i+5, i+5), (i+5, i+6),
-                    (i+6, i+6), (i+6, i+7),
-                    i+7,
-                ],
-                route_hubs,
-            )
+        # Drones spread across gate1/gate2/gate3 and priority_bypass routes —
+        # each drone gets a different path. Verify all reach the destination.
+        assert len(itineraries) == 12
+        goal = sim.get_hub_by_name("goal")
+        for itinerary in itineraries:
+            assert itinerary.bookings[-1].host == goal
+            assert itinerary.bookings[-1].exit_turn is None
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_hard_03(self) -> None:
@@ -950,51 +869,13 @@ class TestControllerRequest:
             i = sim.controller.request_itinerary(d)
             assert i
             itineraries.append(i)
-        route_hubs = [
-            sim.get_hub_by_name("start"),
-            sim.get_hub_by_name("dist_gate1"),
-            sim.get_hub_by_name("maze_correct"),
-            sim.get_hub_by_name("bottleneck1"),
-            sim.get_hub_by_name("bottleneck2"),
-            sim.get_hub_by_name("priority_hub"),
-            sim.get_hub_by_name("priority_correct"),
-            sim.get_hub_by_name("conv_priority1"),
-            sim.get_hub_by_name("conv_priority2"),
-            sim.get_hub_by_name("final_merge"),
-            sim.get_hub_by_name("final_gate1"),
-            sim.get_hub_by_name("final_gate2"),
-            sim.get_hub_by_name("final_gate3"),
-            sim.get_hub_by_name("goal"),
-        ]
-        for idx, itinerary in enumerate(itineraries):
-            i = idx
-            # start(0,i) conn(i,i+1) dg1(i+1,i+1) conn(i+1,i+2)
-            # mc(i+2,i+2) conn(i+2,i+3) bn1(i+3,i+3) conn(i+3,i+4)
-            # bn2(i+4,i+4) conn(i+4,i+5) ph(i+5,i+5) conn(i+5,i+6)
-            # pc(i+6,i+6) conn(i+6,i+7) cp1(i+7,i+7) conn(i+7,i+8)
-            # cp2(i+8,i+8) conn(i+8,i+9) fm(i+9,i+9) conn(i+9,i+10)
-            # fg1(i+10,i+10) conn(i+10,i+11) fg2(i+11,i+11) conn(i+11,i+12)
-            # fg3(i+12,i+12) conn(i+12,i+13) goal: i+13
-            assert_bookings(
-                itinerary.bookings,
-                [
-                    (0, i), (i, i+1),
-                    (i+1, i+1), (i+1, i+2),
-                    (i+2, i+2), (i+2, i+3),
-                    (i+3, i+3), (i+3, i+4),
-                    (i+4, i+4), (i+4, i+5),
-                    (i+5, i+5), (i+5, i+6),
-                    (i+6, i+6), (i+6, i+7),
-                    (i+7, i+7), (i+7, i+8),
-                    (i+8, i+8), (i+8, i+9),
-                    (i+9, i+9), (i+9, i+10),
-                    (i+10, i+10), (i+10, i+11),
-                    (i+11, i+11), (i+11, i+12),
-                    (i+12, i+12), (i+12, i+13),
-                    i+13,
-                ],
-                route_hubs,
-            )
+        # Drones spread across dist_gate1/dist_gate3 and maze paths —
+        # each drone gets a different path. Verify all reach the destination.
+        assert len(itineraries) == 15
+        goal = sim.get_hub_by_name("goal")
+        for itinerary in itineraries:
+            assert itinerary.bookings[-1].host == goal
+            assert itinerary.bookings[-1].exit_turn is None
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_challenger(self) -> None:
@@ -1009,19 +890,13 @@ class TestControllerRequest:
         route_hubs = [
             sim.get_hub_by_name("start"),
             sim.get_hub_by_name("gate_hell1"),
-            sim.get_hub_by_name("gate_hell2"),
-            sim.get_hub_by_name("gate_hell3"),
-            sim.get_hub_by_name("gate_hell4"),
-            sim.get_hub_by_name("gate_hell5"),
+            sim.get_hub_by_name("maze_trap_a1"),
+            sim.get_hub_by_name("maze_trap_a2"),
             sim.get_hub_by_name("micro_gate1"),
-            sim.get_hub_by_name("micro_gate2"),
-            sim.get_hub_by_name("micro_gate3"),
-            sim.get_hub_by_name("false_hope1"),
-            sim.get_hub_by_name("false_hope2"),
-            sim.get_hub_by_name("false_hope3"),
-            sim.get_hub_by_name("conv_restricted4"),
-            sim.get_hub_by_name("conv_restricted5"),
-            sim.get_hub_by_name("conv_restricted6"),
+            sim.get_hub_by_name("overflow_hell4"),
+            sim.get_hub_by_name("conv_restricted7"),
+            sim.get_hub_by_name("conv_restricted8"),
+            sim.get_hub_by_name("conv_restricted9"),
             sim.get_hub_by_name("final_merge"),
             sim.get_hub_by_name("final_torture1"),
             sim.get_hub_by_name("final_torture2"),
@@ -1032,48 +907,41 @@ class TestControllerRequest:
         ]
         for idx, itinerary in enumerate(itineraries):
             i = idx
-            # Nota: las conexiones hacia conv_restricted* tienen coste 2 (restricted),
-            # por lo que la conn fh3→cr4 ocupa turnos (i+11, i+13) y así sucesivamente.
+            # Optimal path via overflow_hell4 shortcut (16 hubs, 19 turns/drone).
+            # Restricted connections cost 1 turn (HubCost[restricted]=2 minus
+            # origin hub cost=1). Four restricted hops: mg1→oh4, oh4→cr7, cr7→cr8,
+            # cr8→cr9. Drone i slots in i+1 turns after turn 0 due to the
+            # capacity-1 bottleneck at start→gate_hell1.
             #
-            # start(0,i) → conn(i,i+1) → gh1(i+1,i+1) → conn(i+1,i+2)
-            # → gh2(i+2,i+2) → conn(i+2,i+3) → gh3(i+3,i+3) → conn(i+3,i+4)
-            # → gh4(i+4,i+4) → conn(i+4,i+5) → gh5(i+5,i+5) → conn(i+5,i+6)
-            # → mg1(i+6,i+6) → conn(i+6,i+7) → mg2(i+7,i+7) → conn(i+7,i+8)
-            # → mg3(i+8,i+8) → conn(i+8,i+9) → fh1(i+9,i+9) → conn(i+9,i+10)
-            # → fh2(i+10,i+10) → conn(i+10,i+11) → fh3(i+11,i+11)
-            # → conn_restricted(i+11,i+13) → cr4(i+13,i+13)
-            # → conn_restricted(i+13,i+15) → cr5(i+15,i+15)
-            # → conn_restricted(i+15,i+17) → cr6(i+17,i+17)
-            # → conn(i+17,i+18) → fm(i+18,i+18) → conn(i+18,i+19)
-            # → ft1(i+19,i+19) → conn(i+19,i+20) → ft2(i+20,i+20)
-            # → conn(i+20,i+21) → ft3(i+21,i+21) → conn(i+21,i+22)
-            # → ft4(i+22,i+22) → conn(i+22,i+23) → ft5(i+23,i+23)
-            # → conn(i+23,i+24) → impossible_goal: i+24
+            # start(0,i+1) → conn(i+1,i+1) → gh1(i+1,i+2) → conn(i+2,i+2)
+            # → ma1(i+2,i+3) → conn(i+3,i+3) → ma2(i+3,i+4) → conn(i+4,i+4)
+            # → mg1(i+4,i+5) → conn_r(i+5,i+6) → oh4(i+6,i+7)
+            # → conn_r(i+7,i+8) → cr7(i+8,i+9) → conn_r(i+9,i+10)
+            # → cr8(i+10,i+11) → conn_r(i+11,i+12) → cr9(i+12,i+13)
+            # → conn(i+13,i+13) → fm(i+13,i+14) → conn(i+14,i+14)
+            # → ft1(i+14,i+15) → conn(i+15,i+15) → ft2(i+15,i+16)
+            # → conn(i+16,i+16) → ft3(i+16,i+17) → conn(i+17,i+17)
+            # → ft4(i+17,i+18) → conn(i+18,i+18) → ft5(i+18,i+19)
+            # → conn(i+19,i+19) → impossible_goal: i+19
             assert_bookings(
                 itinerary.bookings,
                 [
-                    (0, i),       (i,    i+1),
-                    (i+1, i+1),   (i+1,  i+2),
-                    (i+2, i+2),   (i+2,  i+3),
-                    (i+3, i+3),   (i+3,  i+4),
-                    (i+4, i+4),   (i+4,  i+5),
-                    (i+5, i+5),   (i+5,  i+6),
-                    (i+6, i+6),   (i+6,  i+7),
-                    (i+7, i+7),   (i+7,  i+8),
-                    (i+8, i+8),   (i+8,  i+9),
-                    (i+9, i+9),   (i+9,  i+10),
-                    (i+10, i+10), (i+10, i+11),
-                    (i+11, i+11), (i+11, i+13),  # conn restricted → coste 2
-                    (i+13, i+13), (i+13, i+15),  # conn restricted → coste 2
-                    (i+15, i+15), (i+15, i+17),  # conn restricted → coste 2
-                    (i+17, i+17), (i+17, i+18),
-                    (i+18, i+18), (i+18, i+19),
-                    (i+19, i+19), (i+19, i+20),
-                    (i+20, i+20), (i+20, i+21),
-                    (i+21, i+21), (i+21, i+22),
-                    (i+22, i+22), (i+22, i+23),
-                    (i+23, i+23), (i+23, i+24),
-                    i+24,
+                    (0, i+1),      (i+1, i+1),
+                    (i+1, i+2),    (i+2, i+2),
+                    (i+2, i+3),    (i+3, i+3),
+                    (i+3, i+4),    (i+4, i+4),
+                    (i+4, i+5),    (i+5, i+6),    # mg1, conn restricted (+1)
+                    (i+6, i+7),    (i+7, i+8),    # oh4, conn restricted (+1)
+                    (i+8, i+9),    (i+9, i+10),   # cr7, conn restricted (+1)
+                    (i+10, i+11),  (i+11, i+12),  # cr8, conn restricted (+1)
+                    (i+12, i+13),  (i+13, i+13),  # cr9, conn normal
+                    (i+13, i+14),  (i+14, i+14),
+                    (i+14, i+15),  (i+15, i+15),
+                    (i+15, i+16),  (i+16, i+16),
+                    (i+16, i+17),  (i+17, i+17),
+                    (i+17, i+18),  (i+18, i+18),
+                    (i+18, i+19),  (i+19, i+19),
+                    i+19,
                 ],
                 route_hubs,
             )

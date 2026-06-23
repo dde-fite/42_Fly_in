@@ -5,10 +5,10 @@ from glob import glob
 from pathlib import Path
 from pydantic import ValidationError
 from src.core.errors import ParseError, SimulationConflict, TrafficError
-from src.models import Simulation, Hub, Connection, Drone
+from src.models import Simulation, Hub, Connection, Drone, Itinerary
 from src.models.turn import Turn
 from src.models.vector import Vector
-from backend.src.io.parser import parse_map
+from src.io.parser import parse_map
 from tests.utils import file_to_uploadfile, assert_uuid
 
 
@@ -258,10 +258,10 @@ class TestSimulationFromMap:
             sim,
             turn=0,
             hubs=[
-                "start", "slow_path1", "slow_path2", "slow_path3",
+                "start", "slow_path1", "slow_path2",
                 "fast_junction", "fast_path", "merge_point", "goal"
             ],
-            connections=8,
+            connections=7,
             drones=4
         )
 
@@ -279,7 +279,7 @@ class TestSimulationFromMap:
                 "trap_loop2", "bottleneck", "final_stretch1", "final_stretch2",
                 "final_stretch3", "goal"
             ],
-            connections=20,
+            connections=22,
             drones=8
         )
 
@@ -297,7 +297,7 @@ class TestSimulationFromMap:
                 "restricted_tunnel2", "restricted_tunnel3", "priority_bypass1",
                 "priority_bypass2", "convergence", "final_bottleneck", "goal"
             ],
-            connections=18,
+            connections=21,
             drones=12
         )
 
@@ -345,8 +345,8 @@ class TestSimulationFromMap:
     @pytest.mark.asyncio
     async def test_simulation_error_batch(self, file_path: str) -> None:
         file = file_to_uploadfile(file_path)
-        map = await parse_map(file)
-        with pytest.raises((ValidationError, SimulationConflict)):
+        with pytest.raises((ValidationError, SimulationConflict, ParseError)):
+            map = await parse_map(file)
             Simulation(map=map)
 
 
@@ -676,3 +676,83 @@ class TestDiagnostics:
         assert "turn=" in r
         assert "hubs=" in r
         assert "drones=" in r
+
+
+# ─── Itinerary edge cases ─────────────────────────────────────────────────────
+
+
+class TestItineraryEdgeCases:
+
+    @pytest.fixture
+    def two_hub_sim(self) -> Simulation:
+        sim = Simulation()
+        a = Hub(name="A", position=Vector(0, 0))
+        b = Hub(name="B", position=Vector(1, 0))
+        sim.add_hub(a, is_origin=True)
+        sim.add_hub(b, is_destination=True)
+        Connection(hubs=frozenset({a, b}), turn=sim.turn)
+        return sim
+
+    def test_itinerary_requires_at_least_one_hub(
+        self, two_hub_sim: Simulation
+    ) -> None:
+        sim = two_hub_sim
+        drone = sim.make_drone()
+        with pytest.raises(TrafficError):
+            Itinerary(drone=drone, hubs=[], turn=sim.turn)
+
+    def test_itinerary_raises_if_drone_already_has_one(
+        self, two_hub_sim: Simulation
+    ) -> None:
+        sim = two_hub_sim
+        drone = sim.make_drone()
+        Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        with pytest.raises(TrafficError):
+            Itinerary(
+                drone=drone,
+                hubs=[sim.origin, sim.destination],
+                turn=sim.turn,
+            )
+
+    def test_itinerary_raises_when_no_connection_between_hubs(
+        self, two_hub_sim: Simulation
+    ) -> None:
+        sim = two_hub_sim
+        # Add a third hub with no connection to A or B
+        c = Hub(name="C", position=Vector(2, 0))
+        sim.add_hub(c)
+        drone = sim.make_drone()
+        with pytest.raises(TrafficError):
+            Itinerary(drone=drone, hubs=[sim.origin, c], turn=sim.turn)
+
+    def test_itinerary_tick_is_noop_when_not_operative(
+        self, two_hub_sim: Simulation
+    ) -> None:
+        from src.models.itinerary import Itinerary as _Itinerary
+        sim = two_hub_sim
+        drone = sim.make_drone()
+        it = Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        it.destroy()
+        assert not it.operative
+        it.tick()  # must not raise
+
+    def test_itinerary_expired_itinerary_raises(
+        self, two_hub_sim: Simulation
+    ) -> None:
+        from src.core.errors import ExpiredItinerary
+        sim = two_hub_sim
+        drone = sim.make_drone()
+        it = Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        with pytest.raises(ExpiredItinerary):
+            it.expired_itinerary()
+
+    def test_itinerary_destroy_detaches_drone(
+        self, two_hub_sim: Simulation
+    ) -> None:
+        sim = two_hub_sim
+        drone = sim.make_drone()
+        it = Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        assert drone.itinerary is it
+        it.destroy()
+        assert drone.itinerary is None
+        assert not it.operative
