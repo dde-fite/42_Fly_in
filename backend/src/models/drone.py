@@ -47,8 +47,9 @@ class Drone(BaseModel):
     def location(self, zone: TransitableZone) -> None:
         if not self.itinerary:
             raise TrafficError("Drone needs an itinerary to move")
-        # After popping the first booking the next expected zone is bookings[0].
-        expected = self.itinerary.bookings[1].host if len(self.itinerary.bookings) >= 2 else None
+        # After popping first booking, expected zone is bookings[0].
+        expected = (self.itinerary.bookings[1].host
+                    if len(self.itinerary.bookings) >= 2 else None)
         if zone != expected:
             raise TrafficError(
                 "Drone does not have permission to move to that zone"
@@ -76,6 +77,9 @@ class Drone(BaseModel):
             return False
 
         # Request exit when the scheduled exit turn has been reached.
+        # The loop lets a drone chain several zero-duration hops in one turn:
+        # each successful exit consumes bookings[0], so the next booking is
+        # evaluated immediately.
         moved = False
         while True:
             actual = self.itinerary.bookings[0]
@@ -86,6 +90,12 @@ class Drone(BaseModel):
             logger.debug(f"[DRONE {self}] Requesting exit from zone"
                          f"'{self._location}'")
             self._location.request_exit(self)
+            # If the exit was denied (the next zone was full), request_exit
+            # leaves bookings[0] untouched. Stop retrying this turn instead of
+            # spinning forever; the itinerary expires and is replanned later.
+            bookings = self.itinerary.bookings
+            if bookings and bookings[0] is actual:
+                break
             moved = True
         return moved
 

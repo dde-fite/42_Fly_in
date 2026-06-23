@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import UUID, uuid4
 from src.core import (ZoneNotAvailable, ExpiredItinerary, TrafficError, logger,
                       DEBUG, config)
@@ -17,12 +17,12 @@ class Itinerary:
     Represents a planned route for a drone through a series of hubs and the
     connections between them.
 
-    The itinerary is built from a list of Hub checkpoints. Internally it expands
-    them into the full sequence: hub → connection → hub → connection → … → hub,
+    The itinerary is built from a list of Hub checkpoints. Internally it
+    expands them into hub → connection → hub → connection → … → hub,
     booking a time-slot in each zone along the way.
 
-    If any zone cannot be booked the whole itinerary is rolled back (destroy) and
-    a ZoneNotAvailable exception is propagated.
+    If any zone cannot be booked the whole itinerary is rolled back
+    (destroy) and a ZoneNotAvailable exception is propagated.
     """
 
     def __init__(
@@ -64,6 +64,7 @@ class Itinerary:
         current: Turn = Turn(turn.value)
 
         first = True
+        entry: Turn
         for i, zone in enumerate(zones):
             next_zone = zones[i + 1] if i + 1 < len(zones) else None
             if first:
@@ -73,9 +74,10 @@ class Itinerary:
                 entry = Turn(self.__turn.value)
                 first = False
             else:
-                entry = zone.get_next_available_entry(current, next_zone)
-                if not entry:
+                maybe_entry = zone.get_next_available_entry(current, next_zone)
+                if not maybe_entry:
                     raise TrafficError("There is no space for movement")
+                entry = maybe_entry
             if next_zone is not None:
                 # next_zone is always a Hub when zone is a Connection, and
                 # vice-versa. get_next_available_exit needs the
@@ -85,7 +87,9 @@ class Itinerary:
                     if isinstance(next_zone, Hub)
                     else hubs[(i + 1) // 2 + 1]
                 )
-                exit_turn: Turn | None = zone.get_next_available_exit(entry, destination_hub)
+                exit_turn: Turn | None = zone.get_next_available_exit(
+                    entry, destination_hub
+                )
                 if not exit_turn:
                     raise TrafficError("There is no space for movement")
             else:
@@ -100,7 +104,7 @@ class Itinerary:
                 if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
                     logger.debug(f"[ITINERARY {self}] Trying to book slot for "
                                  f"drone {drone} in zone {zone}")
-                zone.book(booking, direction=next_zone)
+                zone.book(booking, direction=cast("Hub | None", next_zone))
                 if logger.isEnabledFor(DEBUG) and config.EXTENDED_LOGGING:
                     logger.debug(f"[ITINERARY {self}] Booked slot for drone "
                                  f"{drone} in zone {zone}")
@@ -122,18 +126,22 @@ class Itinerary:
 
     @property
     def id(self) -> UUID:
+        """Unique identifier for this itinerary."""
         return self.__id
 
     @property
     def drone(self) -> Drone:
+        """The drone this itinerary belongs to."""
         return self.__drone
 
     @property
     def bookings(self) -> list[SlotBooking]:
+        """Snapshot of the current slot bookings in travel order."""
         return self.__bookings.copy()
 
     @property
     def operative(self) -> bool:
+        """True if the itinerary is active and has not been destroyed."""
         return self.__operative
 
     # ------------------------------------------------------------------
@@ -150,10 +158,18 @@ class Itinerary:
     # ------------------------------------------------------------------
 
     def tick(self) -> None:
+        """
+        Validate the itinerary for the current turn.
+
+        Destroys the itinerary if it is finished (no remaining bookings or
+        no exit turn on the first booking).  Raises ExpiredItinerary if
+        the drone has overstayed its exit slot or if any booking has been
+        removed from its host zone.
+        """
         if not self.__operative:
             return
 
-        # Itinerary is finished if no bookings remain or the last zone has no exit.
+        # Finished if no bookings remain or the first booking has no exit.
         if not self.__bookings or not self.__bookings[0].exit_turn:
             self.destroy()
             return
@@ -168,6 +184,7 @@ class Itinerary:
                 self.expired_itinerary()
 
     def expired_itinerary(self) -> None:
+        """Destroy this itinerary and raise ExpiredItinerary."""
         self.destroy()
         raise ExpiredItinerary("The itinerary has expired")
 
@@ -177,8 +194,9 @@ class Itinerary:
         for b in list(self.__bookings):
             try:
                 b.host.unbook(b)
-            except Exception:
-                pass  # best-effort cleanup
+            except Exception as e:
+                logger.warning("[ITINERARY %s] Failed to unbook slot: %s",
+                               self, e)
         self.__bookings.clear()
         if logger.isEnabledFor(DEBUG):
             logger.debug(f"[ITINERARY {self}] Destroyed")

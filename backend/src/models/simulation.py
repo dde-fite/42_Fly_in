@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import Any, Iterable, TYPE_CHECKING, cast
-from src.core import TrafficError, SimulationConflict, logger, DEBUG
+from src.core import (TrafficError, SimulationConflict, ExpiredItinerary,
+                      logger, DEBUG)
 from .turn import Turn
-from .hub import Hub
+from .hub import Hub, HubAccess
 from .drone import Drone
 from .connection import Connection
 from .traffic_controller import TrafficController
@@ -11,8 +12,18 @@ if TYPE_CHECKING:
     from src.io import ParsedMap, ParsedConnection
 
 
-class Simulation():
+def _remaining_bookings(drone: Drone) -> int:
+    """
+    Sort key for movement order: number of bookings the drone has left.
 
+    Fewer remaining bookings means the drone is closer to its destination, so
+    it should move first. Drones without an itinerary sort last (they do not
+    move this turn anyway).
+    """
+    return len(drone.itinerary.bookings) if drone.itinerary else 1 << 30
+
+
+class Simulation:
     """
     Top-level container that owns all simulation entities and drives the
     turn-by-turn execution loop.
@@ -21,11 +32,11 @@ class Simulation():
         turn (Turn): Shared mutable Turn object.  All entities reference this
                   same instance so advancing it here propagates everywhere.
         hubs (set[Hub]): All hubs in the airspace graph.
-        origin (Hub): Default spawn hub (used when adding drones without a custom origin).
+        origin (Hub): Default spawn hub.
         destination (Hub): Default destination hub.
         connections (set[Connection]): All connections in the airspace graph.
         drones (set[Drone]): Active drones being simulated.
-        controller (TrafficController): Traffic controller instance responsible for route planning.
+        controller (TrafficController): Route planning controller.
     """
 
     def __init__(
@@ -33,11 +44,11 @@ class Simulation():
             *,
             map: ParsedMap | None = None,
 
-            hubs: Iterable[Hub] = [],
+            hubs: Iterable[Hub] | None = None,
             origin: Hub | None = None,
             destination: Hub | None = None,
-            connections: Iterable[Connection] = [],
-            drones: Iterable[Drone] = [],
+            connections: Iterable[Connection] | None = None,
+            drones: Iterable[Drone] | None = None,
     ) -> None:
         self.turn: Turn = Turn(0)
         self.controller: TrafficController = TrafficController(self)
@@ -48,13 +59,13 @@ class Simulation():
         self.drones: set[Drone] = set()
         if map:
             self.__init_map(map)
-        for h in hubs:
+        for h in (hubs or []):
             is_origin = origin == h
             is_destination = destination == h
             self.add_hub(h, is_origin, is_destination)
-        for c in connections:
+        for c in (connections or []):
             self.add_connection(c)
-        for d in drones:
+        for d in (drones or []):
             self.add_drone(d)
         if logger.isEnabledFor(DEBUG):
             logger.debug(
@@ -69,7 +80,7 @@ class Simulation():
                 capacity=h["capacity"] if h["capacity"] is not None else 1,
                 capacity_defined=(True if h["capacity"] is not None
                                   else False),
-                access=h["access"],
+                access=HubAccess(h["access"]),
                 color=h["color"]
             )
             self.add_hub(
@@ -126,7 +137,9 @@ class Simulation():
     @property
     def destination(self) -> Hub:
         if not self.__destination:
-            raise SimulationConflict("Destination is not defined for simulation")
+            raise SimulationConflict(
+                "Destination is not defined for simulation"
+            )
         return self.__destination
 
     def get_hub_by_name(self, hub_name: str) -> Hub | None:
@@ -254,7 +267,9 @@ class Simulation():
                 f"'{hubs[0]}'<->'{hubs[1]}"
             )
         if h1 == h2:
-            raise SimulationConflict(f"Self connection not allowed: {hubs[0]}<->{hubs[1]}")
+            raise SimulationConflict(
+                f"Self connection not allowed: {hubs[0]}<->{hubs[1]}"
+            )
         con = Connection(hubs=frozenset({h1, h2}), **params)
         # In case of error, raises ValidationError
         self.add_connection(con)
@@ -297,8 +312,8 @@ class Simulation():
             if drone.itinerary:
                 try:
                     drone.itinerary.tick()
-                except Exception:
-                    pass  # ExpiredItinerary already destroys itself; continue.
+                except ExpiredItinerary:
+                    pass  # Already destroyed inside tick(); continue.
 
         # 2. Route planning.
         self.controller.tick()
@@ -306,7 +321,11 @@ class Simulation():
         # 5. Advance turn.
         self.turn.value += 1
         # 3. Drone movement.
-        for drone in list(self.drones):
+        # Move drones closest to their destination first. A drone enters a zone
+        # only once the drone ahead has vacated it, so processing downstream
+        # drones before upstream ones keeps a single-file pipeline flowing
+        # instead of denying entry (which would stall the queue and add turns).
+        for drone in sorted(self.drones, key=_remaining_bookings):
             if drone.tick():
                 drones_moved.append(drone)
 
@@ -318,11 +337,10 @@ class Simulation():
 
         logger.debug(f"********* ENDED TURN {self.turn.value} *********")
 
-        # 6. Print drones moved
+        # 6. Log drones moved
         if drones_moved:
-            for d in drones_moved:
-                print(f"{d}-{d.location}", end=" ")
-            print()
+            line = " ".join(f"{d}-{d.location}" for d in drones_moved)
+            logger.info(line)
 
     def run(self, max_turns: int = 1000) -> int:
         """
@@ -351,7 +369,9 @@ class Simulation():
             "drones": [
                 {
                     "id": str(drone.id),
-                    "location": getattr(drone.location, "name", str(drone.location)),
+                    "location": getattr(
+                        drone.location, "name", str(drone.location)
+                    ),
                     "destination": drone.destination.name,
                     "has_itinerary": drone.itinerary is not None,
                     "arrived": drone.location == drone.destination,
