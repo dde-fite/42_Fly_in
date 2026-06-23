@@ -1,10 +1,10 @@
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import "./style.css";
+import ReactDOM from "react-dom/client"
+import App from "./App"
+import "./style.css"
 
-const rootElement = document.getElementById("root");
+const rootElement = document.getElementById("root")
 if (!rootElement) {
-	throw new Error("Root element #root not found");
+	throw new Error("Root element #root not found")
 }
 
-ReactDOM.createRoot(rootElement).render(<App />);
+ReactDOM.createRoot(rootElement).render(<App />)

@@ -1,4 +1,4 @@
-import type { z } from "zod";
-import type { TokenSchema } from "../schemas/token";
+import type { z } from "zod"
+import type { TokenSchema } from "../schemas/token"
 
-export type Token = z.infer<typeof TokenSchema>;
+export type Token = z.infer<typeof TokenSchema>
