@@ -21,24 +21,19 @@ This work is published under the terms of <a href="LICENSE"><b>MIT license</b></
 
 ### Preamble
 
-Imagine you’re in a city you don’t know and want to go to a store. You’ll probably pull out your phone and open your trusted maps app to get directions on the fastest way to get there. But have you ever stopped to think about the complexity behind it all?
+Imagine you're in a city you don't know and you want to go to a store. You'll probably pull out your phone and open your trusted maps app to get directions on how to get there the fastest way. But have you ever stopped to think about the complexity behind it?
 
-There are many ways to find the shortest path between two points. For a long time, the only way was to try each route one by one until you found the best one. But of course, imagine being in a big city and having to walk down every street to find the shortest route to a coffee shop. That would be an excruciatingly long and inefficient process, wouldn’t it?
+There are many ways to find the shortest path between two points. For a long time, the only way was to try each route one by one until you found the best one. But of course, imagine being in a big city and having to walk down every street to find the shortest route to a coffee shop. It would be an excruciatingly long and inefficient process, wouldn’t it?
 
 That’s how things were until the debate over pathfinding came to the forefront.
 
-Alongside the boom in transportation - with improvements in speed and range—and the enormous increase in the number of travelers, a new need emerged: the need to keep everything under control. Every mistake or element left to chance became an accident leading to fatal consequences. That’s why traffic controls, protocols, and so on were introduced.
-
-Railway networks pioneered the answer long before the digital age: **Centralized Traffic Control (CTC)**. A CTC system gives a single dispatcher full authority over every train in a network. No train moves without a granted path. Every track section and station platform has a finite capacity. Paths are reserved in advance across time, preventing two trains from ever competing over the same block of track. This reservation model — plan the route, lock the resources, move the vehicle — is the operational backbone of modern rail networks in Spain (governed by the *Reglamento de Circulación Ferroviaria*, RD 664/2015) and worldwide.
-
-**Fly_in applies this exact model to autonomous drones.** Hubs are stations. Connections are track sections. The traffic controller is the CTC dispatcher. Drones hold their position until the controller grants a complete, conflict-free itinerary with every intermediate zone reserved for the exact turns the drone will occupy them — just as a train waits at a signal until the dispatcher clears the entire path ahead.
+Alongside the boom in transportation—with improvements in speed and range—and the enormous increase in the number of travelers, a new need emerged: the need to keep everything under control. Every mistake or element left to chance became an accident leading to fatal consequences. That’s why traffic controls, protocols, and so on were introduced.
 
 Fly_in is a 42 project aimed at creating an implementation that addresses these two needs. The challenge is to develop an autonomous drone navigation program that runs a simulation based on a map submitted by the user. This map, in a specific format, contains hubs (stations), connections between hubs, and the number of drones. The drones must find the shortest route to reach their destination, and the hubs and stations will have capacity limits that cannot be exceeded.
 
 You are free to choose how to approach the project, as long as you do not use pathfinding libraries or graph data structures.
 
 The program will run in turns, and for each turn, the drones’ movements will be printed following this example:
-
 ```
 D1-roof1 D2-corridorA
 D1-roof2 D2-tunnelB
@@ -48,7 +43,7 @@ D1-goal D2-goal
 ### Architecture
 This project consists of a web service that allows users to upload maps, view the simulation, and control it. Its structure consists of a monorepo with a backend built using FastAPI and a frontend built using React and served by a static server written in Python.
 
-Both parties must be running simultaneously and communicate via REST requests.
+Both parts must be running simultaneously and communicate via REST requests.
 ```mermaid
 sequenceDiagram
     participant F as Frontend
@@ -130,7 +125,7 @@ The line-by-line processing flow is as follows:
 #### Domain
 Data classes are divided into two parts: **models** and **schemas**.
 
-The models contain all the simulation data; some are standard Python classes, while others are Pydantic models, as they are designed to be passed directly from the parser to the model. 
+The models contain all the simulation data; some are standard Python classes, while others are Pydantic models, as they are designed to be passed directly from the parser to the model.
 
 **List of models:**
 
@@ -168,7 +163,7 @@ Schemas are Pydantic models that define how the API responds. Whenever the backe
 | Block section reservation | Slot Booking |
 | Signal aspect / route authority | Zone access type (`normal`, `priority`, `blocked`) |
 
-For a drone to move, the traffic controller must grant it an itinerary — a complete, conflict-free sequence of hubs and connections with reserved time windows for every zone along the route. Until an itinerary is granted the drone holds its position, exactly as a train waits at a stop signal until the dispatcher clears the entire path ahead. When building an itinerary, the system requests permission from each hub and connection to authorize the drone’s entry and exit, creating a Slot Booking that records the reserved window. If any zone cannot be booked, the entire itinerary is rolled back atomically — no partial reservations persist, guaranteeing network-wide consistency.
+For a drone to move, the traffic controller must grant it an itinerary - a complete, conflict-free sequence of hubs and connections with reserved time windows for every zone along the route. Until an itinerary is granted the drone holds its position, exactly as a train waits at a stop signal until the dispatcher clears the entire path ahead. When building an itinerary, the system requests permission from each hub and connection to authorize the drone’s entry and exit, creating a Slot Booking that records the reserved window. If any zone cannot be booked, the entire itinerary is rolled back atomically - no partial reservations persist, guaranteeing network-wide consistency.
 
 ##### Traffic Controller
 
@@ -198,7 +193,7 @@ sequenceDiagram
                 Z-->>I: exit_turn
                 I->>Z: book(SlotBooking)
                 alt ZoneNotAvailable
-                    I->>I: destroy() — unbook all slots
+                    I->>I: destroy() - unbook all slots
                     I-->>TC: raise ZoneNotAvailable
                 end
             end
@@ -234,7 +229,7 @@ Zones use their collection of `SlotBooking` entries to determine available capac
 
 - Python 3.10+
 - Node.js (for the frontend dev tools and build)
-- A Python virtual environment activated before running any `make` target — both `backend/` and `frontend/` Makefiles warn and abort if no virtualenv is detected.
+- A Python virtual environment activated before running any `make` target - both `backend/` and `frontend/` Makefiles warn and abort if no virtualenv is detected.
 
 ### Installation
 
@@ -251,7 +246,7 @@ make install-dev  # installs backend dev deps + frontend npm packages
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `VITE_BACKEND_URL` | **yes** | — | Base URL of the backend API. The app throws at startup if missing. |
+| `VITE_BACKEND_URL` | **yes** | - | Base URL of the backend API. The app throws at startup if missing. |
 | `PORT` | no | `3000` | Port for the Vite dev server. |
 
 Set them in a `.env` file at `frontend/` or export them in the shell before running:
@@ -260,7 +255,7 @@ Set them in a `.env` file at `frontend/` or export them in the shell before runn
 export VITE_BACKEND_URL=http://localhost:3000
 ```
 
-`VITE_BACKEND_URL` must be set **before** `make build` or `make dev` — Vite inlines it at build time, so changing it after building requires a rebuild.
+`VITE_BACKEND_URL` must be set **before** `make build` or `make dev` - Vite inlines it at build time, so changing it after building requires a rebuild.
 
 #### Backend
 
@@ -270,7 +265,7 @@ Backend variables are read via `pydantic-settings` (`BaseSettings`), so they can
 |---|---|---|
 | `FRONTEND_URL` | `http://localhost:3000` | Allowed CORS origin. Must match the URL where the frontend is served. |
 | `LOG_LEVEL` | `DEBUG` | Python logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
-| `EXTENDED_LOGGING` | `false` | If `true`, logs detailed per-zone booking events and Dijkstra decisions. Verbose — only useful for debugging the traffic system. |
+| `EXTENDED_LOGGING` | `false` | If `true`, logs detailed per-zone booking events and Dijkstra decisions. Verbose - only useful for debugging the traffic system. |
 | `STRICT_PARSER` | `true` | If `true`, enforces strict map format (connections must reference already-declared hubs; `nb_drones` must be the first non-comment line). |
 
 ### Running (recommended)
@@ -320,7 +315,7 @@ The visualizer is a web application built with **React + Konva** that renders th
 
 The canvas is drawn on a Konva `<Stage>` with a single `<Layer>`. All drawing logic lives in pure functions (`canvas/`) that receive a `View` (scale + pan) and a `Scene` (the current state snapshot) and write to a `CanvasRenderingContext2D`. Konva only owns the scene graph and event capture; the draw functions are framework-agnostic and fully unit-testable.
 
-Pan and zoom are managed via a custom `View` transform (`modelToCanvas`) applied at draw time and at hit-test time — **not** through Konva's built-in stage transform. This keeps drawing and click detection in a single source of truth.
+Pan and zoom are managed via a custom `View` transform (`modelToCanvas`) applied at draw time and at hit-test time - **not** through Konva's built-in stage transform. This keeps drawing and click detection in a single source of truth.
 
 **Color coding by hub access type:**
 
@@ -335,10 +330,10 @@ Pan and zoom are managed via a custom `View` transform (`modelToCanvas`) applied
 
 Clicking a hub or a connection opens a floating **detail panel** in the top-right corner:
 
-- **Hub panel** — position, access type, capacity, current drone count, connected hubs, color.
-- **Connection panel** — endpoint hubs, capacity, active drones.
+- **Hub panel** - position, access type, capacity, current drone count, connected hubs, color.
+- **Connection panel** - endpoint hubs, capacity, active drones.
 
-Click detection uses a manual hit-test (`hitTest.ts`) against the same geometry used for drawing — hubs take priority over connections, and connection tolerance scales with zoom.
+Click detection uses a manual hit-test (`hitTest.ts`) against the same geometry used for drawing - hubs take priority over connections, and connection tolerance scales with zoom.
 
 ### Playback
 
@@ -360,7 +355,7 @@ When a turn advances, drones that changed hub slide along their assigned rail fr
 ### Pathfinding
 - [Wikipedia: Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
 - [DataCamp: Dijkstra's algorithm in Python](https://www.datacamp.com/tutorial/dijkstra-algorithm-in-python)
-- [GeeksforGeeks: Python program for Dijkstra's shortest path algorithm — Greedy Algo-7](https://www.geeksforgeeks.org/python/python-program-for-dijkstras-shortest-path-algorithm-greedy-algo-7/)
+- [GeeksforGeeks: Python program for Dijkstra's shortest path algorithm - Greedy Algo-7](https://www.geeksforgeeks.org/python/python-program-for-dijkstras-shortest-path-algorithm-greedy-algo-7/)
 - [W3Schools: Dijkstra's algorithm](https://www.w3schools.com/dsa/dsa_algo_graphs_dijkstra.php)
 - [Medium: Shortest path: Dijkstra's algorithm step-by-step Python guide](https://medium.com/data-science/shortest-path-dijkstras-algorithm-step-by-step-python-guide-896769522752)
 - [YouTube: Dijkstra's Algorithm Visualized and Explained - Carl the Person](https://www.youtube.com/watch?v=71Z-Jpnm3D4)
