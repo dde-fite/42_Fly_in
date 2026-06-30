@@ -339,8 +339,8 @@ class Simulation:
 
         # 6. Log drones moved
         if drones_moved:
-            line = " ".join(f"{d}-{d.location}" for d in drones_moved)
-            logger.info(line)
+            line = "\n".join(f"{d}-{d.location}" for d in drones_moved)
+            print(line)
 
     def run(self, max_turns: int = 1000) -> int:
         """
