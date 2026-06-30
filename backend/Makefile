@@ -1,4 +1,5 @@
-PYTHON=python3
+VENV_PYTHON := ../.venv/bin/python
+PYTHON := $(shell [ -f $(VENV_PYTHON) ] && echo $(VENV_PYTHON) || echo python3)
 SRC=src
 
 CACHE_FOLDERS = __pycache__ .pytest_cache .mypy_cache
