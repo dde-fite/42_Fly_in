@@ -40,16 +40,3 @@ def set_simulation(token: SimulationToken, s: Simulation) -> None:
         s (Simulation): The Simulation instance to cache.
     """
     dc[token] = s
-
-
-def simulation_exists(token: SimulationToken) -> bool:
-    """
-    Check whether a simulation is currently cached for *token*.
-
-    Args:
-        token (SimulationToken): The session token to look up.
-
-    Returns:
-        bool: True if a non-expired entry exists, False otherwise.
-    """
-    return token in dc

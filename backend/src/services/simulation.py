@@ -10,7 +10,7 @@ from src.mappers import (
     hub_to_schema, drone_to_schema, itinerary_to_schema
 )
 from src.utils.data_wrapper import (
-    get_simulation, set_simulation, simulation_exists
+    get_simulation, set_simulation
 )
 from src.core.errors import SimulationAlreadyAllocated
 from src.io.parser import parse_map
@@ -29,8 +29,6 @@ async def register_simulation(
         ValidationError
         SimulationConflict
     """
-    if simulation_exists(token):
-        raise SimulationAlreadyAllocated()
     map = await parse_map(file)
     await file.close()
     s = Simulation(map=map)
