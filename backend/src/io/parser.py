@@ -35,6 +35,22 @@ def parse_params(raw_params: str) -> dict[str, Any]:
     return params
 
 
+def parse_nb_drones(value: str) -> int:
+    """
+    Parse the number of drones from a string.
+
+    Args:
+        value (str): String containing the number of drones.
+    """
+    value = value.strip()
+    if not value.isdigit():
+        raise ParseError(
+            "Number of drones does not contain a valid positive integer",
+            value
+        )
+    return int(value)
+
+
 def parse_hub(key: str, value: Any) -> ParsedHub:
     """
     Parse a hub definition line into a ParsedHub dict.
@@ -219,14 +235,8 @@ async def parse_map(file: UploadFile) -> ParsedMap:
                         " than 1 time",
                         line
                     )
-                value = value.strip()
-                if not value.isdigit():
-                    raise ParseError(
-                        "Number of drones does not contains a valid"
-                        " positive integer",
-                        line
-                    )
-                params["nb_drones"] = int(value.strip())
+                nb = parse_nb_drones(value)
+                params["nb_drones"] = nb
             case "hub" | "start_hub" | "end_hub":
                 h = parse_hub(key, value)
                 if config.STRICT_PARSER:
