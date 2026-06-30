@@ -105,10 +105,13 @@ class Hub(TransitableZone):
         destination: TransitableZone | None = None
     ) -> Turn | None:
         """Return the earliest turn >= *from_turn* where a slot is free."""
+        _MAX_SEARCH = 1000
         i = Turn(from_turn.value)
-        while self.get_occupancy(i) >= self.capacity:
-            i.value += 1
-        return i
+        for _ in range(_MAX_SEARCH):
+            if self.get_occupancy(i) < self.capacity:
+                return i
+            i = Turn(i.value + 1)
+        return None
 
     def get_next_available_exit(
         self, from_turn: Turn, destination: Hub
