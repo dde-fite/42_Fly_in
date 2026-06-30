@@ -1,3 +1,4 @@
+import asyncio
 import secrets
 from uuid import UUID
 from pydantic import ValidationError
@@ -149,7 +150,7 @@ async def advance_simulation(
 ) -> ResponseSimulation:
     """Advance the simulation by *steps* turns and return the new state."""
     try:
-        return execute_turn(token, steps)
+        return await asyncio.to_thread(execute_turn, token, steps)
     except SimulationNotFound:
         raise HTTPException(404, "Simulation not found for token")
 
