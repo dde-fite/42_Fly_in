@@ -12,7 +12,6 @@ from src.mappers import (
 from src.utils.data_wrapper import (
     get_simulation, set_simulation
 )
-from src.core.errors import SimulationAlreadyAllocated
 from src.io.parser import parse_map
 
 
