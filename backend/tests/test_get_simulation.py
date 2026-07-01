@@ -48,7 +48,7 @@ def assert_simulation_response(
         assert_uuid(drone)
 
 
-# ── GET /token ────────────────────────────────────────────────────────────────
+# ── GET /token ───────────────────────────────────────────────────────────────
 
 def test_generate_token_is_valid_length() -> None:
     res = client.get("/api/token")
@@ -58,13 +58,14 @@ def test_generate_token_is_valid_length() -> None:
     assert len(token) == 43
 
 
-# ── GET /simulation ───────────────────────────────────────────────────────────
+# ── GET /simulation ──────────────────────────────────────────────────────────
 
 def test_get_simulation_ok() -> None:
     tok = _create()
     res = client.get("/api/simulation", params={"token": tok})
     assert res.status_code == 200
-    assert_simulation_response(res.json(), turn=0, hubs=4, connections=3, drones=2)
+    assert_simulation_response(res.json(), turn=0, hubs=4, connections=3,
+                               drones=2)
 
 
 def test_get_simulation_not_found() -> None:
@@ -80,41 +81,56 @@ def test_get_simulation_bad_token() -> None:
     assert "detail" in res.json()
 
 
-# ── POST /simulation/step ─────────────────────────────────────────────────────
+# ── POST /simulation/step ────────────────────────────────────────────────────
 
 def test_advance_simulation_one_step() -> None:
     tok = _create()
-    res = client.post("/api/simulation/step", params={"token": tok, "steps": 1})
+    res = client.post(
+        "/api/simulation/step",
+        params={"token": tok, "steps": 1}
+    )
     assert res.status_code == 200
     assert res.json()["turn"] == 1
 
 
 def test_advance_simulation_multiple_steps() -> None:
     tok = _create()
-    res = client.post("/api/simulation/step", params={"token": tok, "steps": 5})
+    res = client.post(
+        "/api/simulation/step",
+        params={"token": tok, "steps": 5}
+    )
     assert res.status_code == 200
     assert res.json()["turn"] == 5
 
 
 def test_advance_simulation_not_found() -> None:
     tok = secrets.token_urlsafe(32)
-    res = client.post("/api/simulation/step", params={"token": tok, "steps": 1})
+    res = client.post(
+        "/api/simulation/step",
+        params={"token": tok, "steps": 1}
+    )
     assert res.status_code == 404
     assert "detail" in res.json()
 
 
 def test_advance_simulation_bad_token() -> None:
-    res = client.post("/api/simulation/step", params={"token": "bad", "steps": 1})
+    res = client.post(
+        "/api/simulation/step",
+        params={"token": "bad", "steps": 1}
+    )
     assert res.status_code == 422
 
 
 def test_advance_simulation_zero_steps_rejected() -> None:
     tok = _create()
-    res = client.post("/api/simulation/step", params={"token": tok, "steps": 0})
+    res = client.post(
+        "/api/simulation/step",
+        params={"token": tok, "steps": 0}
+    )
     assert res.status_code == 422
 
 
-# ── GET /hubs ─────────────────────────────────────────────────────────────────
+# ── GET /hubs ────────────────────────────────────────────────────────────────
 
 def test_get_hubs_ok() -> None:
     tok = _create()
@@ -130,7 +146,7 @@ def test_get_hubs_not_found() -> None:
     assert "detail" in res.json()
 
 
-# ── GET /drones ───────────────────────────────────────────────────────────────
+# ── GET /drones ──────────────────────────────────────────────────────────────
 
 def test_get_drones_ok() -> None:
     tok = _create()
@@ -146,7 +162,7 @@ def test_get_drones_not_found() -> None:
     assert "detail" in res.json()
 
 
-# ── GET /connections ──────────────────────────────────────────────────────────
+# ── GET /connections ─────────────────────────────────────────────────────────
 
 def test_get_connections_ok() -> None:
     tok = _create()
@@ -162,7 +178,7 @@ def test_get_connections_not_found() -> None:
     assert "detail" in res.json()
 
 
-# ── GET /itineraries ──────────────────────────────────────────────────────────
+# ── GET /itineraries ─────────────────────────────────────────────────────────
 
 def test_get_itineraries_ok() -> None:
     tok = _create()

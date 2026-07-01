@@ -2,7 +2,10 @@ import pytest
 from dataclasses import dataclass
 from pathlib import Path
 from src.io.parser import parse_map
-from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary, SlotBooking, Simulation
+from src.models import (
+    Turn, Vector, Hub, Connection, Drone, Itinerary,
+                        SlotBooking, Simulation
+)
 from src.core.errors import TrafficError
 from tests.utils import file_to_uploadfile
 

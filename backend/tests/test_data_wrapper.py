@@ -1,7 +1,8 @@
 import pytest
 import secrets
 from unittest.mock import MagicMock
-from src.utils.data_wrapper import get_simulation, set_simulation, simulation_exists
+from src.utils.data_wrapper import (get_simulation, set_simulation,
+                                    simulation_exists)
 from src.core.errors import SimulationNotFound
 
 
