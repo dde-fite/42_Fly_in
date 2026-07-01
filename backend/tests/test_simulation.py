@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from src.core.errors import ParseError, SimulationConflict, TrafficError
 from src.models import Simulation, Hub, Connection, Drone, Itinerary
 from src.models.vector import Vector
+from src.io import ParsedMap
 from src.io.parser import parse_map
 from tests.utils import file_to_uploadfile, assert_uuid
 
@@ -367,6 +368,58 @@ class TestSimulationFromMap:
         file = file_to_uploadfile(file_path)
         with pytest.raises((ValidationError, SimulationConflict, ParseError)):
             map = await parse_map(file)
+            Simulation(map=map)
+
+    def test_nb_drones_spawn_out_of_memory_raises_simulation_conflict(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """
+        A map may declare an arbitrarily large nb_drones (the parser accepts
+        any positive integer). If spawning that many Drone objects exhausts
+        memory, Simulation must surface a clean SimulationConflict instead of
+        letting an unhandled MemoryError crash the process.
+        """
+        import src.models.simulation as simulation_module
+
+        calls = {"n": 0}
+        real_drone = simulation_module.Drone
+
+        def flaky_drone(*args: Any, **kwargs: Any) -> Drone:
+            calls["n"] += 1
+            if calls["n"] > 2:
+                raise MemoryError("simulated out-of-memory during spawn")
+            return real_drone(*args, **kwargs)
+
+        monkeypatch.setattr(simulation_module, "Drone", flaky_drone)
+
+        map: ParsedMap = {
+            "nb_drones": 10,
+            "hubs": [
+                {
+                    "name": "start",
+                    "position": Vector(0, 0),
+                    "access": "normal",
+                    "color": None,
+                    "capacity": None,
+                    "is_origin": True,
+                    "is_destination": False,
+                },
+                {
+                    "name": "goal",
+                    "position": Vector(1, 0),
+                    "access": "normal",
+                    "color": None,
+                    "capacity": None,
+                    "is_origin": False,
+                    "is_destination": True,
+                },
+            ],
+            "connection": [
+                {"hubs": ["start", "goal"], "capacity": None},
+            ],
+        }
+        with pytest.raises(SimulationConflict):
             Simulation(map=map)
 
 

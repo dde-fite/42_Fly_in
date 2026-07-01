@@ -5,7 +5,7 @@ from pathlib import Path
 from tests.utils import file_to_uploadfile
 from src.core.errors import ParseError
 from src.io import ParsedMap, ParsedConnection, ParsedHub
-from src.io.parser import parse_map
+from src.io.parser import parse_map, parse_nb_drones
 
 
 SUBJECT_MAPS_DIR = Path(__file__).parent / "maps"
@@ -349,6 +349,13 @@ async def test_parsing_ok_07() -> None:
     assert s["hubs"][0]["position"].x == (
         523330231315344564654123513044240534564563412153045)
     assert s["hubs"][0]["position"].y == 56565
+
+
+def test_parse_nb_drones_rejects_zero() -> None:
+    """nb_drones must be a *positive* integer; 0 drones is not a valid map."""
+    with pytest.raises(ParseError):
+        parse_nb_drones("0")
+
 
 # -----------------------
 # Create simulation ERROR
