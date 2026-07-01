@@ -242,11 +242,20 @@ class Simulation:
             if oh.position == hub.position:
                 raise SimulationConflict(f"Conflict with hub '{oh.name}' and "
                                          f"'{oh.name}' coordinates")
-        hub.turn = self.turn
         if is_origin:
+            if self.__origin:
+                raise SimulationConflict(
+                    f"Origin already defined as '{self.__origin.name}'"
+                )
             self.__origin = hub
         if is_destination:
+            if self.__destination:
+                raise SimulationConflict(
+                    "Destination already defined as "
+                    f"'{self.__destination.name}'"
+                )
             self.__destination = hub
+        hub.turn = self.turn
         self.hubs.add(hub)
 
     def make_connection(
@@ -340,7 +349,7 @@ class Simulation:
         # 6. Log drones moved
         if drones_moved:
             line = "\n".join(f"{d}-{d.location}" for d in drones_moved)
-            print(line)
+            print(f"{line}\n")
 
     def run(self, max_turns: int = 1000) -> int:
         """
