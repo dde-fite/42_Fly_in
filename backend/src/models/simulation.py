@@ -67,26 +67,6 @@ class Simulation:
             self.add_connection(c)
         for d in (drones or []):
             self.add_drone(d)
-        if not self.__origin or not self.__destination:
-            raise SimulationConflict(
-                "Origin and destination hubs must be defined"
-            )
-        test_drone: Drone
-        if self.drones:
-            test_drone = next(iter(self.drones))
-        else:
-            test_drone = Drone(
-                origin=self.origin,
-                destination=self.destination,
-                turn=self.turn
-            )
-        test_iti = self.controller.request_itinerary(test_drone)
-        if not test_iti:
-            raise SimulationConflict(
-                "No valid itinerary exists for test drone. "
-                "Check hub connectivity."
-            )
-        test_iti.destroy()
         if logger.isEnabledFor(DEBUG):
             logger.debug(
                 f"Simulation created: {self}"
@@ -121,6 +101,26 @@ class Simulation:
                         f"drones (spawned {len(self.drones)} before running "
                         "out)"
                     )
+        if not self.__origin or not self.__destination:
+            raise SimulationConflict(
+                "Origin and destination hubs must be defined"
+            )
+        test_drone: Drone
+        if self.drones:
+            test_drone = next(iter(self.drones))
+        else:
+            test_drone = Drone(
+                origin=self.origin,
+                destination=self.destination,
+                turn=self.turn
+            )
+        test_iti = self.controller.request_itinerary(test_drone)
+        if not test_iti:
+            raise SimulationConflict(
+                "No valid itinerary exists for test drone. "
+                "Check hub connectivity."
+            )
+        test_iti.destroy()
 
     def __make_connection_from_map(
         self,
