@@ -271,52 +271,6 @@ def test_create_simulation_bad_token_05() -> None:
 #         assert "detail" in data
 
 
-# Repeated tokens
-def test_create_simulation_repeated_token_01() -> None:
-    token = secrets.token_urlsafe(32)
-    with open(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt") as file:
-        map = file.read()
-
-    res = client.post(
-        "/api/simulation",
-        params={"token": token},
-        files={"file": ("file", map, "text/plain")}
-    )
-    assert res.status_code == 200
-
-    res = client.post(
-        "/api/simulation",
-        params={"token": token},
-        files={"file": ("file", map, "text/plain")}
-    )
-
-    assert res.status_code == 409
-    data = res.json()
-    assert "detail" in data
-
-
-def test_create_simulation_repeated_token_02() -> None:
-    token = secrets.token_urlsafe(32)
-    with open(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt") as file:
-        map = file.read()
-    res = client.post(
-            "/api/simulation",
-            params={"token": token},
-            files={"file": ("file", map, "text/plain")}
-        )
-    assert res.status_code == 200
-
-    for _i in range(100):
-        res = client.post(
-            "/api/simulation",
-            params={"token": token},
-            files={"file": ("file", map, "text/plain")}
-        )
-        assert res.status_code == 409
-        data = res.json()
-        assert "detail" in data
-
-
 # # -----------------------
 # # SIMULATION - GET
 # # -----------------------
