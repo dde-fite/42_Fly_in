@@ -241,7 +241,7 @@ async def parse_map(file: UploadFile) -> ParsedMap:
                 h = parse_hub(key, value)
                 if config.STRICT_PARSER:
                     strict_hubs_declared.append(h["name"])
-                params["hubs"].append(parse_hub(key, value))
+                params["hubs"].append(h)
             case "connection":
                 c = parse_connection(value)
                 # If strict mode is enabled, check if hubs were declared
