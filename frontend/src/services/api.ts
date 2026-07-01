@@ -8,8 +8,7 @@ import { useSessionStore } from "../store/sessionStore"
 import type { Token } from "../types/api"
 import type { Simulation } from "../types/simulation"
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL
-if (!backendUrl) throw new Error("VITE_BACKEND_URL is not set")
+const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8000"
 const API_BASE = `${backendUrl}/api`
 
 export async function generateToken(): Promise<Token> {

@@ -31,8 +31,6 @@ endif
 
 install: check-venv
 	@$(PYTHON) -m pip install -r requirements.txt
-
-install-dev:
 	@npm install
 
 build: install-dev
