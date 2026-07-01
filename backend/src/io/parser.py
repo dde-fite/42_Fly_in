@@ -43,7 +43,7 @@ def parse_nb_drones(value: str) -> int:
         value (str): String containing the number of drones.
     """
     value = value.strip()
-    if not value.isdigit():
+    if not value.isdigit() or int(value) == 0:
         raise ParseError(
             "Number of drones does not contain a valid positive integer",
             value
