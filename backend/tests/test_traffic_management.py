@@ -4,7 +4,7 @@ from pathlib import Path
 from src.io.parser import parse_map
 from src.models import (
     Turn, Vector, Hub, Connection, Drone, Itinerary,
-                        SlotBooking, Simulation
+    SlotBooking, Simulation
 )
 from src.core.errors import TrafficError
 from tests.utils import file_to_uploadfile
@@ -26,7 +26,7 @@ def assert_bookings(
         turns: list[tuple[int, int] | int],
         hubs: list[Hub | None] | None = None
 ) -> None:
-    h_copy: list[Hub] | None = None
+    h_copy: list[Hub | None] | None = None
     is_h = True
     if hubs:
         assert None not in hubs
@@ -213,7 +213,6 @@ class TestItineraryInit:
                 map.hubs["C"]
             ]
         )
-
 
     def test_itinerary_booking_ok_02(self) -> None:
         map = make_map_02()
@@ -402,7 +401,6 @@ class TestItineraryInit:
                 turn=map.turn
             )
 
-
     def test_itinerary_booking_bad_02(self) -> None:
         map = make_map_01()
         with pytest.raises(TrafficError):
@@ -416,7 +414,6 @@ class TestItineraryInit:
                 turn=map.turn
             )
 
-
     def test_itinerary_booking_bad_03(self) -> None:
         map = make_map_02()
         with pytest.raises(TrafficError):
@@ -429,7 +426,6 @@ class TestItineraryInit:
                 ],
                 turn=map.turn
             )
-
 
     def test_itinerary_booking_bad_04(self) -> None:
         map = make_map_02()
@@ -529,45 +525,11 @@ class TestControllerRequest:
             ]
         )
 
-    # def test_controller_request_ok_03(self) -> None:
-    #     turn = Turn(0)
-    #     A = Hub(name="A", position=Vector(x=0, y=0), turn=turn, capacity=3)
-    #     B = Hub(name="B", position=Vector(x=1, y=1), turn=turn, capacity=2)
-    #     C = Hub(name="C", position=Vector(x=1, y=0), turn=turn, capacity=10, access=HubAccess.RESTRICTED)
-    #     D = Hub(name="C", position=Vector(x=2, y=0), turn=turn, capacity=3)
-    #     Connection(hubs=frozenset({A, B}), turn=turn, capacity=2)
-    #     Connection(hubs=frozenset({A, C}), turn=turn, capacity=10)
-    #     Connection(hubs=frozenset({B, D}), turn=turn, capacity=1)
-    #     Connection(hubs=frozenset({C, D}), turn=turn, capacity=10)
-    #     drones = [
-    #         Drone(origin=A, destination=D, turn=turn),
-    #         Drone(origin=A, destination=D, turn=turn),
-    #         Drone(origin=A, destination=D, turn=turn),
-    #     ]
-    #     itineraries = [
-    #         Itinerary(drone=drones[0], hubs=[A, B, C], turn=turn),
-    #         Itinerary(drone=drones[1], hubs=[A, B, C], turn=turn),
-    #         Itinerary(drone=drones[2], hubs=[A, B, C], turn=turn),
-    #     ]
-    #     assert_bookings(
-    #         itineraries[0].bookings,
-    #         [(0, 1), (1, 1), (1, 2), (2, 2), 2],
-    #         [A, B, C]
-    #     )
-    #     assert_bookings(
-    #         itineraries[1].bookings,
-    #         [(0, 1), (1, 1), (1, 3), (3, 3), 3],
-    #         [A, B, C]
-    #     )
-    #     assert_bookings(
-    #         itineraries[2].bookings,
-    #         [(0, 1), (1, 1), (1, 4), (4, 4), 4],
-    #         [A, B, C]
-    #     )
-
     @pytest.mark.asyncio
     async def test_controller_request_ok_easy_01(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "easy/01_linear_path.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -594,7 +556,9 @@ class TestControllerRequest:
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_easy_02(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/02_simple_fork.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "easy/02_simple_fork.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -635,7 +599,9 @@ class TestControllerRequest:
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_easy_03(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/03_basic_capacity.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "easy/03_basic_capacity.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -675,7 +641,9 @@ class TestControllerRequest:
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_medium_01(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/01_dead_end_trap.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "medium/01_dead_end_trap.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -692,33 +660,50 @@ class TestControllerRequest:
         ]
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
+            [
+                (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3),
+                (3, 4), (4, 4), 4
+            ],
             route_hubs
         )
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 1), (1, 1), (1, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            [
+                (0, 1), (1, 1), (1, 3), (3, 3), (3, 4), (4, 4),
+                (4, 5), (5, 5), 5
+            ],
             route_hubs
         )
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 2), (2, 2), (2, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
+            [
+                (0, 2), (2, 2), (2, 4), (4, 4), (4, 5), (5, 5),
+                (5, 6), (6, 6), 6
+            ],
             route_hubs
         )
         assert_bookings(
             itineraries[3].bookings,
-            [(0, 3), (3, 3), (3, 5), (5, 5), (5, 6), (6, 6), (6, 7), (7, 7), 7],
+            [
+                (0, 3), (3, 3), (3, 5), (5, 5), (5, 6), (6, 6),
+                (6, 7), (7, 7), 7
+            ],
             route_hubs
         )
         assert_bookings(
             itineraries[4].bookings,
-            [(0, 4), (4, 4), (4, 6), (6, 6), (6, 7), (7, 7), (7, 8), (8, 8), 8],
+            [
+                (0, 4), (4, 4), (4, 6), (6, 6), (6, 7), (7, 7),
+                (7, 8), (8, 8), 8
+            ],
             route_hubs
         )
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_medium_02(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/02_circular_loop.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "medium/02_circular_loop.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -735,21 +720,42 @@ class TestControllerRequest:
         ]
         # loop_b→exit_point is a restricted connection (+1 extra turn).
         # start-loop_a capacity=2 lets pairs share entry turns.
-        # Pairs: (d0,d1) share turn 1, (d2,d3) share turn 2, d4 turn 3, d5 turn 4.
-        expected = [
-            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 4), (4, 5), (5, 5), 5],
-            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 4), (4, 5), (5, 6), (6, 6), 6],
-            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 5), (5, 6), (6, 7), (7, 7), 7],
-            [(0, 2), (2, 2), (2, 4), (4, 4), (4, 6), (6, 7), (7, 8), (8, 8), 8],
-            [(0, 3), (3, 3), (3, 5), (5, 5), (5, 7), (7, 8), (8, 9), (9, 9), 9],
-            [(0, 4), (4, 4), (4, 6), (6, 6), (6, 8), (8, 9), (9, 10), (10, 10), 10],
+        # Pairs: (d0,d1) share turn 1, (d2,d3) share turn 2, d4 turn 3,
+        # d5 turn 4.
+        expected: list[list[tuple[int, int] | int]] = [
+            [
+                (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 4),
+                (4, 5), (5, 5), 5
+            ],
+            [
+                (0, 1), (1, 1), (1, 2), (2, 2), (2, 4), (4, 5),
+                (5, 6), (6, 6), 6
+            ],
+            [
+                (0, 2), (2, 2), (2, 3), (3, 3), (3, 5), (5, 6),
+                (6, 7), (7, 7), 7
+            ],
+            [
+                (0, 2), (2, 2), (2, 4), (4, 4), (4, 6), (6, 7),
+                (7, 8), (8, 8), 8
+            ],
+            [
+                (0, 3), (3, 3), (3, 5), (5, 5), (5, 7), (7, 8),
+                (8, 9), (9, 9), 9
+            ],
+            [
+                (0, 4), (4, 4), (4, 6), (6, 6), (6, 8), (8, 9),
+                (9, 10), (10, 10), 10
+            ],
         ]
         for itinerary, turns in zip(itineraries, expected):
             assert_bookings(itinerary.bookings, turns, route_hubs)
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_medium_03(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -775,39 +781,55 @@ class TestControllerRequest:
         #     → merge_point(3,4) → goal
         assert_bookings(
             itineraries[0].bookings,
-            [(0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), 4],
+            [
+                (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3),
+                (3, 4), (4, 4), 4
+            ],
             fast_hubs,
         )
         # d1: fast path — delayed 1 turn at start
         assert_bookings(
             itineraries[1].bookings,
-            [(0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            [
+                (0, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4),
+                (4, 5), (5, 5), 5
+            ],
             fast_hubs,
         )
-        # d2: slow path — start→slow_path1 is a restricted connection (+1 turn).
-        #     merge_point-goal capacity=2 lets d2 share exit with d1.
+        # d2: slow path — start→slow_path1 is a restricted connection
+        #     (+1 turn). merge_point-goal capacity=2 lets d2 share exit
+        #     with d1.
         assert_bookings(
             itineraries[2].bookings,
-            [(0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), 5],
+            [
+                (0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 4),
+                (4, 5), (5, 5), 5
+            ],
             slow_hubs,
         )
-        # d3: fast path — delayed at start; shares merge_point-goal with d2.
+        # d3: fast path — delayed at start; shares merge_point-goal
+        #     with d2.
         assert_bookings(
             itineraries[3].bookings,
-            [(0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5), (5, 6), (6, 6), 6],
+            [
+                (0, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5),
+                (5, 6), (6, 6), 6
+            ],
             fast_hubs,
         )
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_hard_01(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/01_maze_nightmare.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "hard/01_maze_nightmare.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
         for d in sim.drones:
-            i = sim.controller.request_itinerary(d)
-            assert i
-            itineraries.append(i)
+            req = sim.controller.request_itinerary(d)
+            assert req
+            itineraries.append(req)
         # Shortcut via maze_a2→maze_c2 (7 hubs, 13 bookings per drone).
         # The original 8-hub path maze_b1→maze_b2 was replaced by the direct
         # maze_a2→maze_c2 connection added to the map.
@@ -846,7 +868,9 @@ class TestControllerRequest:
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_hard_02(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/02_capacity_hell.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "hard/02_capacity_hell.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -864,7 +888,9 @@ class TestControllerRequest:
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_hard_03(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
@@ -882,14 +908,16 @@ class TestControllerRequest:
 
     @pytest.mark.asyncio
     async def test_controller_request_ok_challenger(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         itineraries: list[Itinerary] = []
         for d in sim.drones:
-            i = sim.controller.request_itinerary(d)
-            assert i
-            itineraries.append(i)
+            req = sim.controller.request_itinerary(d)
+            assert req
+            itineraries.append(req)
         route_hubs = [
             sim.get_hub_by_name("start"),
             sim.get_hub_by_name("gate_hell1"),
@@ -910,10 +938,11 @@ class TestControllerRequest:
         ]
         for idx, itinerary in enumerate(itineraries):
             i = idx
-            # Optimal path via overflow_hell4 shortcut (16 hubs, 19 turns/drone).
-            # Restricted connections cost 1 turn (HubCost[restricted]=2 minus
-            # origin hub cost=1). Four restricted hops: mg1→oh4, oh4→cr7, cr7→cr8,
-            # cr8→cr9. Drone i slots in i+1 turns after turn 0 due to the
+            # Optimal path via overflow_hell4 shortcut (16 hubs,
+            # 19 turns/drone). Restricted connections cost 1 turn
+            # (HubCost[restricted]=2 minus origin hub cost=1). Four
+            # restricted hops: mg1→oh4, oh4→cr7, cr7→cr8, cr8→cr9.
+            # Drone i slots in i+1 turns after turn 0 due to the
             # capacity-1 bottleneck at start→gate_hell1.
             #
             # start(0,i+1) → conn(i+1,i+1) → gh1(i+1,i+2) → conn(i+2,i+2)
@@ -986,172 +1015,3 @@ class TestTick:
         assert drones[0].location == map.hubs["C"]
         assert drones[1].location == map.hubs["C"]
         assert drones[2].location == map.hubs["C"]
-
-
-# def test_controller_request_03() -> None:
-#     map_exp = make_map_02()
-#     map_out = make_map_02()
-#     make_itinerary_02(map_exp)
-#     sim = map_to_simulation(map_out)
-#     for d in map_out.drones:
-#         sim.controller.request_itinerary(d)
-#     for de, do in zip(map_exp.drones, map_out.drones):
-#         assert de.itinerary
-#         assert do.itinerary
-#         for ie, io in zip(de.itinerary.bookings, do.itinerary.bookings):
-#             assert ie.enter_turn == io.enter_turn
-#             assert ie.exit_turn == io.exit_turn
-#             assert ie.host == io.host
-
-
-# def test_itinerary_is_operative(turn, linear_map, drone_at_a):
-#     itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#     drone_at_a.itinerary = itinerary
-#     assert itinerary.operative()
-
-# def test_all_zones_have_booking(turn, linear_map, drone_at_a):
-#         itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#         drone_at_a.itinerary = itinerary
-
-#         zones = [
-#             linear_map["hub_a"],
-#             linear_map["con_ab"],
-#             linear_map["hub_b"],
-#             linear_map["con_bc"],
-#             linear_map["hub_c"],
-#         ]
-#         for zone in zones:
-#             assert zone.get_booking_for_drone(drone_at_a) is not None
-
-# def test_last_booking_has_no_exit_turn(turn, linear_map, drone_at_a):
-#         itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#         drone_at_a.itinerary = itinerary
-
-#         assert itinerary.bookings[-1].exit_turn is None
-
-# def test_booking_turns_are_sequential(turn, linear_map, drone_at_a):
-#         itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#         drone_at_a.itinerary = itinerary
-
-#         bookings = itinerary.bookings
-#         for i in range(len(bookings) - 1):
-#             current_exit = bookings[i].exit_turn
-#             next_entry = bookings[i + 1].enter_turn
-#             assert current_exit is not None
-#             assert current_exit.value == next_entry.value
-
-
-# def test_drone_reaches_destination(turn, linear_map, drone_at_a):
-#         itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#         drone_at_a.itinerary = itinerary
-#         drones = [drone_at_a]
-
-#         print_state(turn, linear_map, drones)
-#         for _ in range(10):
-#             tick_all(turn, linear_map, drones)
-#             print_state(turn, linear_map, drones)
-#             if drone_at_a.location == drone_at_a.destination:
-#                 break
-
-#         assert drone_at_a.location == linear_map["hub_c"]
-
-# def test_drone_passes_through_hub_b(turn, linear_map, drone_at_a):
-#         itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#         drone_at_a.itinerary = itinerary
-#         drones = [drone_at_a]
-#         visited = set()
-
-#         for _ in range(10):
-#             tick_all(turn, linear_map, drones)
-#             visited.add(drone_at_a.location)
-#             if drone_at_a.location == drone_at_a.destination:
-#                 break
-
-#         assert linear_map["hub_b"] in visited
-
-# def test_drone_location_updates_each_tick(turn, linear_map, drone_at_a):
-#         itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#         drone_at_a.itinerary = itinerary
-
-#         locations = [drone_at_a.location]
-#         for _ in range(5):
-#             tick_all(turn, linear_map, [drone_at_a])
-#             locations.append(drone_at_a.location)
-
-#         # Al menos debe haberse movido una vez
-#         assert len(set(id(loc) for loc in locations)) > 1
-
-# def test_hub_capacity_respected(turn, linear_map):
-#         """Dos drones no pueden estar en el mismo hub de capacidad 1 al mismo turno."""
-#         hub_a = linear_map["hub_a"]
-#         hub_c = linear_map["hub_c"]
-
-#         drone1 = Drone(destination=hub_c, turn=turn)
-#         drone1._location = hub_a
-#         hub_a.drones.add(drone1)
-
-#         drone2 = Drone(destination=hub_c, turn=turn)
-#         drone2._location = hub_a
-#         hub_a.drones.add(drone2)
-
-#         itinerary1 = make_itinerary(drone1, linear_map, turn)
-#         drone1.itinerary = itinerary1
-
-#         itinerary2 = make_itinerary(drone2, linear_map, turn)
-#         drone2.itinerary = itinerary2
-
-#         # Los bookings de ambos no deben solaparse en el mismo turno en ninguna zona
-#         for zone in [linear_map["hub_b"], linear_map["hub_c"]]:
-#             b1 = zone.get_booking_for_drone(drone1)
-#             b2 = zone.get_booking_for_drone(drone2)
-#             if b1 and b2:
-#                 # Sus ventanas de entrada no deben coincidir
-#                 assert b1.enter_turn.value != b2.enter_turn.value
-
-
-# def test_book_returns_false_if_already_booked(turn, linear_map, drone_at_a):
-#         itinerary = make_itinerary(drone_at_a, linear_map, turn)
-#         drone_at_a.itinerary = itinerary
-
-#         hub_a = linear_map["hub_a"]
-#         booking = hub_a.get_booking_for_drone(drone_at_a)
-#         assert booking is not None
-
-#         result = hub_a.book(booking)
-#         assert result is False
-
-# def test_book_rejected_when_at_capacity(turn, linear_map):
-#         from src.core.models.slot_booking import SlotBooking
-
-#         hub_b = linear_map["hub_b"]
-#         hub_c = linear_map["hub_c"]
-
-#         drone1 = Drone(destination=hub_c, turn=turn)
-#         drone1._location = hub_b
-
-#         drone2 = Drone(destination=hub_c, turn=turn)
-#         drone2._location = hub_b
-
-#         from src.core.models.slot_booking import SlotBooking
-#         b1 = SlotBooking(host=hub_b, guest=drone1, enter_turn=Turn(1), exit_turn=Turn(3))
-#         b2 = SlotBooking(host=hub_b, guest=drone2, enter_turn=Turn(1), exit_turn=Turn(3))
-
-#         assert hub_b.book(b1) is True
-#         assert hub_b.book(b2) is False
-
-
-# def test_get_next_available_exit_returns_turn(turn, linear_map, drone_at_a):
-#         con_ab = linear_map["con_ab"]
-#         hub_b = linear_map["hub_b"]
-
-#         result = con_ab.get_next_available_exit(turn, hub_b)
-#         assert result is not None
-#         assert result.value >= turn.value
-
-# def test_get_next_available_exit_invalid_destination(turn, linear_map):
-#         from src.core.errors import TrafficError
-#         con_ab = linear_map["con_ab"]
-#         hub_c = linear_map["hub_c"]  # no conectado a con_ab
-
-#         with pytest.raises(TrafficError):
-#             con_ab.get_next_available_exit(turn, hub_c)

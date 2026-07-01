@@ -2,7 +2,7 @@ from src.mappers import drone_to_schema, itinerary_to_schema
 from src.models import Turn, Vector, Hub, Connection, Drone, Itinerary
 
 
-def _build():
+def _build() -> tuple[list[Hub], Drone, Itinerary]:
     """A → B → C → D line with one drone routed across the whole path."""
     turn = Turn(0)
     a = Hub(name="A", position=Vector(x=0, y=0), turn=turn, capacity=3)
@@ -17,13 +17,13 @@ def _build():
     return [a, b, c, d], drone, itinerary
 
 
-def test_drone_exposes_its_itinerary_id():
+def test_drone_exposes_its_itinerary_id() -> None:
     _hubs, _drone, itinerary = _build()
     schema = drone_to_schema(itinerary.drone)
     assert schema.itinerary == itinerary.id
 
 
-def test_drone_without_itinerary_has_no_itinerary_id():
+def test_drone_without_itinerary_has_no_itinerary_id() -> None:
     turn = Turn(0)
     a = Hub(name="A", position=Vector(x=0, y=0), turn=turn, capacity=1)
     drone = Drone(origin=a, destination=a, turn=turn)
@@ -31,7 +31,7 @@ def test_drone_without_itinerary_has_no_itinerary_id():
     assert schema.itinerary is None
 
 
-def test_itinerary_schema_exposes_slots_with_entries_and_exits():
+def test_itinerary_schema_exposes_slots_with_entries_and_exits() -> None:
     _hubs, drone, itinerary = _build()
     schema = itinerary_to_schema(itinerary)
 

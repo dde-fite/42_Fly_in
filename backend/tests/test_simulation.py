@@ -6,7 +6,6 @@ from pathlib import Path
 from pydantic import ValidationError
 from src.core.errors import ParseError, SimulationConflict, TrafficError
 from src.models import Simulation, Hub, Connection, Drone, Itinerary
-from src.models.turn import Turn
 from src.models.vector import Vector
 from src.io.parser import parse_map
 from tests.utils import file_to_uploadfile, assert_uuid
@@ -118,7 +117,7 @@ def connected_simulation(
     return sim, origin, destination, conn
 
 
-# ─── Construction ─────────────────────────────────────────────────────────────
+# ─── Construction ────────────────────────────────────────────────────────────
 
 
 class TestSimulationInit:
@@ -180,7 +179,9 @@ class TestSimulationFromMap:
     # Subject's maps
     @pytest.mark.asyncio
     async def test_parsing_ok_easy_01(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/01_linear_path.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "easy/01_linear_path.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -193,7 +194,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_easy_02(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/02_simple_fork.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "easy/02_simple_fork.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -206,7 +209,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_easy_03(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "easy/03_basic_capacity.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "easy/03_basic_capacity.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -219,7 +224,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_medium_01(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/01_dead_end_trap.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "medium/01_dead_end_trap.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -235,7 +242,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_medium_02(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/02_circular_loop.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "medium/02_circular_loop.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -251,7 +260,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_medium_03(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -267,7 +278,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_hard_01(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/01_maze_nightmare.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "hard/01_maze_nightmare.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -285,7 +298,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_hard_02(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/02_capacity_hell.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "hard/02_capacity_hell.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -303,21 +318,24 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_hard_03(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
             sim,
             turn=0,
             hubs=[
-                "start", "dist_gate1", "dist_gate2", "dist_gate3", "maze_trap1",
-                "maze_trap2", "maze_loop1", "maze_loop2", "maze_loop3",
-                "maze_loop4", "maze_correct", "bottleneck1", "bottleneck2",
-                "overflow1", "overflow2", "priority_hub", "priority_trap1",
-                "priority_trap2", "priority_dead_end", "priority_correct",
-                "conv_restricted1", "conv_restricted2", "conv_normal1",
-                "conv_normal2", "conv_priority1", "conv_priority2", "final_merge",
-                "final_gate1", "final_gate2", "final_gate3", "goal"
+                "start", "dist_gate1", "dist_gate2", "dist_gate3",
+                "maze_trap1", "maze_trap2", "maze_loop1", "maze_loop2",
+                "maze_loop3", "maze_loop4", "maze_correct", "bottleneck1",
+                "bottleneck2", "overflow1", "overflow2", "priority_hub",
+                "priority_trap1", "priority_trap2", "priority_dead_end",
+                "priority_correct", "conv_restricted1", "conv_restricted2",
+                "conv_normal1", "conv_normal2", "conv_priority1",
+                "conv_priority2", "final_merge", "final_gate1",
+                "final_gate2", "final_gate3", "goal"
             ],
             connections=37,
             drones=15
@@ -325,7 +343,9 @@ class TestSimulationFromMap:
 
     @pytest.mark.asyncio
     async def test_parsing_ok_challenger(self) -> None:
-        file = file_to_uploadfile(SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt")
+        file = file_to_uploadfile(
+            SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt"
+        )
         map = await parse_map(file)
         sim = Simulation(map=map)
         assert_simulation(
@@ -678,7 +698,7 @@ class TestDiagnostics:
         assert "drones=" in r
 
 
-# ─── Itinerary edge cases ─────────────────────────────────────────────────────
+# ─── Itinerary edge cases ────────────────────────────────────────────────────
 
 
 class TestItineraryEdgeCases:
@@ -706,7 +726,9 @@ class TestItineraryEdgeCases:
     ) -> None:
         sim = two_hub_sim
         drone = sim.make_drone()
-        Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        Itinerary(
+            drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn
+        )
         with pytest.raises(TrafficError):
             Itinerary(
                 drone=drone,
@@ -728,10 +750,11 @@ class TestItineraryEdgeCases:
     def test_itinerary_tick_is_noop_when_not_operative(
         self, two_hub_sim: Simulation
     ) -> None:
-        from src.models.itinerary import Itinerary as _Itinerary
         sim = two_hub_sim
         drone = sim.make_drone()
-        it = Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        it = Itinerary(
+            drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn
+        )
         it.destroy()
         assert not it.operative
         it.tick()  # must not raise
@@ -742,7 +765,9 @@ class TestItineraryEdgeCases:
         from src.core.errors import ExpiredItinerary
         sim = two_hub_sim
         drone = sim.make_drone()
-        it = Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        it = Itinerary(
+            drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn
+        )
         with pytest.raises(ExpiredItinerary):
             it.expired_itinerary()
 
@@ -751,7 +776,9 @@ class TestItineraryEdgeCases:
     ) -> None:
         sim = two_hub_sim
         drone = sim.make_drone()
-        it = Itinerary(drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn)
+        it = Itinerary(
+            drone=drone, hubs=[sim.origin, sim.destination], turn=sim.turn
+        )
         assert drone.itinerary is it
         it.destroy()
         assert drone.itinerary is None

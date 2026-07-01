@@ -176,7 +176,9 @@ async def test_parsing_ok_medium_02() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_medium_03() -> None:
-    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt")
+    file = file_to_uploadfile(
+        SUBJECT_MAPS_DIR / "medium/03_priority_puzzle.txt"
+    )
     s = await parse_map(file)
     assert_map(
         s,
@@ -225,7 +227,9 @@ async def test_parsing_ok_hard_02() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_hard_03() -> None:
-    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt")
+    file = file_to_uploadfile(
+        SUBJECT_MAPS_DIR / "hard/03_ultimate_challenge.txt"
+    )
     s = await parse_map(file)
     assert_map(
         s,
@@ -246,7 +250,9 @@ async def test_parsing_ok_hard_03() -> None:
 
 @pytest.mark.asyncio
 async def test_parsing_ok_challenger() -> None:
-    file = file_to_uploadfile(SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt")
+    file = file_to_uploadfile(
+        SUBJECT_MAPS_DIR / "challenger/01_the_impossible_dream.txt"
+    )
     s = await parse_map(file)
     assert_map(
         s,
