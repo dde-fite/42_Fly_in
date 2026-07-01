@@ -113,7 +113,14 @@ class Simulation:
             self.add_connection(c_obj)
         if map["nb_drones"]:
             for _i in range(map["nb_drones"]):
-                self.make_drone()
+                try:
+                    self.make_drone()
+                except MemoryError:
+                    raise SimulationConflict(
+                        f"Not enough memory to spawn {map['nb_drones']} "
+                        f"drones (spawned {len(self.drones)} before running "
+                        "out)"
+                    )
 
     def __make_connection_from_map(
         self,
