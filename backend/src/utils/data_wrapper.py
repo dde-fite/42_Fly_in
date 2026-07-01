@@ -40,3 +40,13 @@ def set_simulation(token: SimulationToken, s: Simulation) -> None:
         s (Simulation): The Simulation instance to cache.
     """
     dc[token] = s
+
+
+def simulation_exists(token: SimulationToken) -> bool:
+    """
+    Check if a simulation exists for *token* in the in-memory cache.
+
+    Args:
+        token (SimulationToken): The session token to check.
+    """
+    return token in dc
